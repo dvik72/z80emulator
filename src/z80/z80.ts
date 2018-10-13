@@ -17,6 +17,34 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //
 //////////////////////////////////////////////////////////////////////////////
+
+
+// This code emulates the Z80 / R800 processor.The emulation starts in
+// Z80 mode which makes it useful for any Z80 based emulator.
+//
+// The code has been verified with the 'zexall' test suite.
+//
+// An internal clock that runs at 21.477270 MHz is being used.However,
+// the frequency is scaled down to:
+// Z80    3.579545 MHz
+// R800   7.159090 MHz
+//
+// It is possible to chance the clock speed to any frequency in the
+// series 21477270 / n where n is an integer greater or equal to 1.
+//
+// The emulation is driven by subsequent calls to 'r800execute' which
+// runs the emulation until the time given as an argument has passed.
+// The time used as argument should come from a timer running at
+// 2.1477270 MHz(= 6 * normal MSX frequency).
+//
+//
+// References:
+// - blueMSX R800 emulation
+// - Z80 Family CPU Users Manual, UM008001 - 1000, ZiLOG 2001
+// - The Undocumented Z80 Documented version 0.6, Sean Young 2003
+// - R800 vs Z80 timing sheet, Tobias Keizer 2004
+
+
 // Frequency of the system clock.
 const MASTER_FREQUENCY = 21477270;
 
@@ -199,18 +227,24 @@ class Z80 {
     this.terminateFlag = false;
 
     this.initTables();
-    this.reset(0);
+    this.reset();
   }
 
+  // Returns the current system time.
   getSystemTime(): number {
     return this.systemTime;
   }
 
+  // Sets the frequency of the CPU mode specified by the cpuMode argument.
+  // The selected frequency must be an integer fraction of the master
+  // frequency, e.g.R800_MASTER_FREQUENCY / 6. If a non integer fraction
+  // is selected the timing tables will become invalid. 
   setFrequency(frequency: number): void {
     this.frequencyZ80 = frequency;
   }
 
-  reset(cpuTime: number): void {
+  // Resets the Z80.
+  reset(): void {
     this.cpuMode = Z80Mode.UNKNOWN;
     this.oldCpuMode = Z80Mode.UNKNOWN;
 
@@ -227,6 +261,7 @@ class Z80 {
     this.nmiEdge = false;
   }
 
+  // Sets the CPU mode to either Z80 or R800
   setMode(mode: Z80Mode): void {
     if (this.cpuMode === mode) {
       return;
@@ -236,18 +271,22 @@ class Z80 {
     this.cpuMode = mode;
   }
 
+  // Gets the current CPU mode
   getMode(): Z80Mode {
     return this.cpuMode;
   }
 
+  // Raises the interrupt line.
   setInt(): void {
     this.intState = INT_LOW;
   }
 
+  // Clears the interrupt line.
   clearInt(): void {
     this.intState = INT_HIGH;
   }
 
+  // Raises the non maskable interrupt line.
   setNmi(): void {
     if (this.nmiState === INT_HIGH) {
       this.nmiEdge = true;
@@ -255,18 +294,18 @@ class Z80 {
     this.nmiState = INT_LOW;
   }
 
+  // Clears the non maskable interrupt line.
   clearNmi(): void {
     this.nmiState = INT_HIGH;
   }
 
-  stopExecution() {
-    this.terminateFlag = true;
-  }
-
+  // Sets a timeout at the given time. When CPU execution reaches
+  // the time, the timer callback method will be called.
   setTimeoutAt(time: number) {
     this.timeout = time;
   }
 
+  // Execites CPU instructions until the stopExecution method is called.
   execute(): void {
     while (!this.terminateFlag) {
       if ((this.timeout - this.systemTime >> 31) > 0) {
@@ -340,74 +379,9 @@ class Z80 {
     }
   }
 
-  executeUntil(endTime: number): void {
-    while ((this.systemTime - endTime >> 31) == 0) {
-      if (this.oldCpuMode != Z80Mode.UNKNOWN) {
-        this.switchCpu();
-      }
-
-      if (this.cpuMode === Z80Mode.R800) {
-        if ((this.systemTime - this.lastRefreshTime | 0) > 222 * 3) {
-          this.lastRefreshTime = this.systemTime;
-          this.addSystemTime(20 * 3);
-        }
-      }
-
-      this.executeInstruction(this.readOpcode());
-
-      if (!this.regs.halt) {
-        const iff1 = this.regs.iff1 >> 1;
-        this.regs.iff1 >>= iff1;
-      }
-
-      if (!((this.intState === INT_LOW && this.regs.iff1) || this.nmiEdge)) {
-        continue;
-      }
-
-      if (this.regs.halt) {
-        this.regs.PC.inc();
-        this.regs.halt = false;
-      }
-
-      if (this.nmiEdge) {
-        this.nmiEdge = false;
-        this.writeMemCb(this.regs.SP.dec(), this.regs.PC.h.get());
-        this.writeMemCb(this.regs.SP.dec(), this.regs.PC.l.get());
-        this.regs.iff1 = 0;
-        this.regs.PC.set(0x0066);
-        this.M1();
-        this.addSystemTime(this.delay.NMI);
-        continue;
-      }
-
-      this.regs.iff1 = 0;
-      this.regs.iff2 = 0;
-
-      switch (this.regs.im) {
-        case 0: {
-          this.addSystemTime(this.delay.IM);
-          const address = this.dataBus;
-          this.dataBus = this.defaultDataBus;
-          this.executeInstruction(address & 0xff);
-          break;
-        }
-        case 1: {
-          this.addSystemTime(this.delay.IM);
-          this.executeInstruction(0xff);
-          break;
-        }
-        case 2: {
-          const address = this.dataBus | (this.regs.I.get() << 8);
-          this.dataBus = this.defaultDataBus;
-          this.writeMemCb(this.regs.SP.dec(), this.regs.PC.h.get());
-          this.writeMemCb(this.regs.SP.dec(), this.regs.PC.l.get());
-          this.regs.PC.setLH(this.readMemCb(address), this.readMemCb(address + 1 & 0xffff));
-          this.M1_nodelay();
-          this.addSystemTime(this.delay.IM2);
-          break;
-        }
-      }
-    }
+  // Stops the execution of the z80 emulation.
+  stopExecution() {
+    this.terminateFlag = true;
   }
 
   private regs: RegisterBank;
