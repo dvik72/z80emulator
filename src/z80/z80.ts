@@ -2,8 +2,6 @@
 //
 // Description: Emulation of the Z80 / R800 processor
 //
-// Copyright(C) 2018 Daniel Vik
-//
 // This program is free software; you can redistribute it and / or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
@@ -19,7 +17,6 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //
 //////////////////////////////////////////////////////////////////////////////
-
 
 // Frequency of the system clock.
 const MASTER_FREQUENCY = 21477270;
@@ -48,10 +45,6 @@ const CPU_VDP_IO_DELAY = 1;
 const CPU_ENABLE_M1 = 2;
 
 class Register {
-  constructor() {
-    this.set(0xff);
-  }
-
   get(): number { return this.v; }
   set(v: number): void { this.v = v & 0xff; }
   inc(): number { ++this.v; return this.v &= 0xff; }
@@ -59,20 +52,18 @@ class Register {
   add(v: number): number { this.v += v; return this.v &= 0xff; }
   sub(v: number): number { this.v -= v; return this.v &= 0xff; }
 
-  v: number;
+  private v: number = 0xff;
 }
 
 class RegisterPair {
-  constructor() { }
-
   get(): number { return this.h.get() << 8 | this.l.get(); }
   set(v: number): void { this.h.set(v >> 8); this.l.set(v); }
   setLH(l: number, h: number): void { this.l.set(l); this.h.set(h); }
   inc(): number { this.l.inc() && this.h.inc(); return this.get(); }
   dec(): number { this.l.get() && this.h.dec(); this.l.dec(); return this.get(); }
 
-  postInc(): number { let r = this.get(); this.inc(); return r; }
-  postDec(): number { let r = this.get(); this.dec(); return r; }
+  postInc(): number { const r = this.get(); this.inc(); return r; }
+  postDec(): number { const r = this.get(); this.dec(); return r; }
 
   h: Register;
   l: Register;
@@ -100,11 +91,6 @@ class RegisterBank {
     this.I.set(0);
     this.R.set(0);
     this.R2.set(0);
-    this.iff1 = 0;
-    this.iff2 = 0;
-    this.im = 0;
-    this.halt = false;
-    this.eiMode = 0;
   }
 
   AF: RegisterPair;
@@ -124,11 +110,11 @@ class RegisterBank {
   R: Register;
   R2: Register;
 
-  iff1: number;
-  iff2: number;
-  im: number;
-  halt: boolean;
-  eiMode: number;
+  iff1: number = 0;
+  iff2: number = 0;
+  im: number = 0;
+  halt: boolean = false;
+  eiMode: number = 0;
 }
 
 // Instruction delay constants. 
@@ -197,48 +183,8 @@ class Z80 {
     this.reset(0);
   }
 
-  regs: RegisterBank;
-  regBankZ80: RegisterBank;
-  regBankR800: RegisterBank;
-  systemTime: number;
-  lastRefreshTime: number;
-  lastVdpAccessTime: number;
-  cachePage: number;
-  dataBus: number;
-  defaultDataBus: number;
-  cpuFlags: number;
-  intState: number;
-  nmiState: number;
-  nmiEdge: boolean;
-  frequencyZ80: number;
-  frequencyR800: number;
-  cpuMode: Z80Mode;
-  oldCpuMode: Z80Mode;
-  instCount: number;
-  terminateFlag: boolean;
-  timeout: number;
-
-  delay: Z80Delay;
-
-  ZSXYTable: number[];
-  ZSPXYTable: number[];
-  ZSPHTable: number[];
-  DAATable: number[];
-
-  readMemCb: (a: number) => number;
-  writeMemCb: (a: number, v: number) => void;
-  readIoCb: (a: number) => number;
-  writeIoCb: (a: number, v: number) => void;
-  timeoutCb: () => void;
-
-
   getSystemTime(): number {
     return this.systemTime;
-  }
-
-  addSystemTime(delta: number): void {
-    this.systemTime += delta;
-    this.systemTime &= 0xffffffff;
   }
 
   setFrequency(frequency: number): void {
@@ -263,7 +209,7 @@ class Z80 {
   }
 
   setMode(mode: Z80Mode): void {
-    if (this.cpuMode == mode) {
+    if (this.cpuMode === mode) {
       return;
     }
 
@@ -284,7 +230,7 @@ class Z80 {
   }
 
   setNmi(): void {
-    if (this.nmiState == INT_HIGH) {
+    if (this.nmiState === INT_HIGH) {
       this.nmiEdge = true;
     }
     this.nmiState = INT_LOW;
@@ -304,8 +250,6 @@ class Z80 {
 
   execute(): void {
     while (!this.terminateFlag) {
-      let iff1 = 0;
-
       if ((this.timeout - this.systemTime >> 31) > 0) {
         this.timeoutCb();
       }
@@ -314,7 +258,7 @@ class Z80 {
         this.switchCpu();
       }
 
-      if (this.cpuMode == Z80Mode.R800) {
+      if (this.cpuMode === Z80Mode.R800) {
         if ((this.systemTime - this.lastRefreshTime | 0) > 222 * 3) {
           this.lastRefreshTime = this.systemTime;
           this.addSystemTime(20 * 3);
@@ -332,7 +276,7 @@ class Z80 {
         continue;
       }
 
-      if (!((this.intState == INT_LOW && this.regs.iff1) || this.nmiEdge)) {
+      if (!((this.intState === INT_LOW && this.regs.iff1) || this.nmiEdge)) {
         continue;
       }
 
@@ -353,7 +297,7 @@ class Z80 {
       switch (this.regs.im) {
         case 0: {
           this.addSystemTime(this.delay.IM);
-          let address = this.dataBus;
+          const address = this.dataBus;
           this.dataBus = this.defaultDataBus;
           this.executeInstruction(address & 0xff);
           break;
@@ -364,11 +308,11 @@ class Z80 {
           break;
         }
         case 2: {
-          let address = this.dataBus | (this.regs.I.get() << 8);
+          const address = this.dataBus | (this.regs.I.get() << 8);
           this.dataBus = this.defaultDataBus;
           this.writeMemCb(this.regs.SP.dec(), this.regs.PC.h.get());
           this.writeMemCb(this.regs.SP.dec(), this.regs.PC.l.get());
-          this.regs.PC.setLH(this.readMemCb(address++), this.readMemCb(address & 0xffff));
+          this.regs.PC.setLH(this.readMemCb(address), this.readMemCb(address + 1 & 0xffff));
           this.M1_nodelay();
           this.addSystemTime(this.delay.IM2);
           break;
@@ -383,7 +327,7 @@ class Z80 {
         this.switchCpu();
       }
 
-      if (this.cpuMode == Z80Mode.R800) {
+      if (this.cpuMode === Z80Mode.R800) {
         if ((this.systemTime - this.lastRefreshTime | 0) > 222 * 3) {
           this.lastRefreshTime = this.systemTime;
           this.addSystemTime(20 * 3);
@@ -393,11 +337,11 @@ class Z80 {
       this.executeInstruction(this.readOpcode());
 
       if (!this.regs.halt) {
-        let iff1 = this.regs.iff1 >> 1;
+        const iff1 = this.regs.iff1 >> 1;
         this.regs.iff1 >>= iff1;
       }
 
-      if (!((this.intState == INT_LOW && this.regs.iff1) || this.nmiEdge)) {
+      if (!((this.intState === INT_LOW && this.regs.iff1) || this.nmiEdge)) {
         continue;
       }
 
@@ -423,7 +367,7 @@ class Z80 {
       switch (this.regs.im) {
         case 0: {
           this.addSystemTime(this.delay.IM);
-          let address = this.dataBus;
+          const address = this.dataBus;
           this.dataBus = this.defaultDataBus;
           this.executeInstruction(address & 0xff);
           break;
@@ -434,11 +378,11 @@ class Z80 {
           break;
         }
         case 2: {
-          let address = this.dataBus | (this.regs.I.get() << 8);
+          const address = this.dataBus | (this.regs.I.get() << 8);
           this.dataBus = this.defaultDataBus;
           this.writeMemCb(this.regs.SP.dec(), this.regs.PC.h.get());
           this.writeMemCb(this.regs.SP.dec(), this.regs.PC.l.get());
-          this.regs.PC.setLH(this.readMemCb(address++), this.readMemCb(address & 0xffff));
+          this.regs.PC.setLH(this.readMemCb(address), this.readMemCb(address + 1 & 0xffff));
           this.M1_nodelay();
           this.addSystemTime(this.delay.IM2);
           break;
@@ -447,7 +391,47 @@ class Z80 {
     }
   }
 
-  initTables(): void {
+  private regs: RegisterBank;
+  private regBankZ80: RegisterBank;
+  private regBankR800: RegisterBank;
+  private systemTime: number;
+  private lastRefreshTime: number;
+  private lastVdpAccessTime: number;
+  private cachePage: number;
+  private dataBus: number;
+  private defaultDataBus: number;
+  private cpuFlags: number;
+  private intState: number;
+  private nmiState: number;
+  private nmiEdge: boolean;
+  private frequencyZ80: number;
+  private frequencyR800: number;
+  private cpuMode: Z80Mode;
+  private oldCpuMode: Z80Mode;
+  private instCount: number;
+  private terminateFlag: boolean;
+  private timeout: number;
+
+  private delay: Z80Delay;
+
+  private ZSXYTable: number[];
+  private ZSPXYTable: number[];
+  private ZSPHTable: number[];
+  private DAATable: number[];
+
+  // Callback functions for reading and writing memory and IO
+  private readMemCb: (a: number) => number;
+  private writeMemCb: (a: number, v: number) => void;
+  private readIoCb: (a: number) => number;
+  private writeIoCb: (a: number, v: number) => void;
+  private timeoutCb: () => void;
+
+  private addSystemTime(delta: number): void {
+    this.systemTime += delta;
+    this.systemTime &= 0xffffffff;
+  }
+
+  private initTables(): void {
     for (let i = 0; i < 256; ++i) {
       let flags = i ^ 1;
       flags = flags ^ (flags >> 4);
@@ -462,12 +446,12 @@ class Z80 {
     }
 
     for (let i = 0; i < 0x800; ++i) {
-      let flagC = i & 0x100;
-      let flagN = i & 0x200;
-      let flagH = i & 0x400;
-      let a = i & 0xff;
-      let hi = a / 16;
-      let lo = a & 15;
+      const flagC = i & 0x100;
+      const flagN = i & 0x200;
+      const flagH = i & 0x400;
+      const a = i & 0xff;
+      const hi = a / 16;
+      const lo = a & 15;
       let diff = 0;
       let regA = 0;
 
@@ -520,11 +504,11 @@ class Z80 {
     this.initFrequencies();
   }
 
-  initFrequencies(): void {
+  private initFrequencies(): void {
     switch (this.cpuMode) {
       case Z80Mode.Z80:
       default: {
-        let freqAdjust = MASTER_FREQUENCY / (this.frequencyZ80 - 1);
+        const freqAdjust = MASTER_FREQUENCY / (this.frequencyZ80 - 1);
 
         this.delay.MEM = freqAdjust * 3;
         this.delay.MEMOP = freqAdjust * 3;
@@ -561,7 +545,7 @@ class Z80 {
         break;
       }
       case Z80Mode.R800: {
-        let freqAdjust = MASTER_FREQUENCY / (this.frequencyR800 - 1);
+        const freqAdjust = MASTER_FREQUENCY / (this.frequencyR800 - 1);
 
         this.delay.MEM = freqAdjust * 2;
         this.delay.MEMOP = freqAdjust * 1;
@@ -600,18 +584,18 @@ class Z80 {
     }
   }
 
-  byteToSignedInt(v: number): number {
+  private  byteToSignedInt(v: number): number {
     if (v > 127) v -= 256;
     return v;
   }
 
-  wordToSignedInt(v: number): number {
+  private wordToSignedInt(v: number): number {
     if (v > 32767) v -= 65536;
     return v;
   }
 
-  readOpcode(): number {
-    let address = this.regs.PC.postInc();
+  private readOpcode(): number {
+    const address = this.regs.PC.postInc();
     this.addSystemTime(this.delay.MEMOP);
     if ((address >> 8) ^ this.cachePage) {
       this.cachePage = address >> 8;
@@ -620,29 +604,29 @@ class Z80 {
     return this.readMemCb(address);
   }
 
-  readMem(address: number): number {
+  private readMem(address: number): number {
     this.addSystemTime(this.delay.MEM);
     this.cachePage = 0xffff;
     return this.readMemCb(address);
   }
 
-  writeMem(address: number, value: number): void {
+  private writeMem(address: number, value: number): void {
     this.addSystemTime(this.delay.MEM);
     this.cachePage = 0xffff;
     this.writeMemCb(address, value);
   }
 
-  readPort(port: number): number {
+  private readPort(port: number): number {
     this.regs.SH.set(port + 1);
     this.addSystemTime(this.delay.PREIO);
     this.delayVdpIO(port);
-    let value = this.readIoCb(port);
+    const value = this.readIoCb(port);
     this.addSystemTime(this.delay.POSTIO);
 
     return value;
   }
 
-  writePort(port: number, value: number): void {
+  private writePort(port: number, value: number): void {
     this.regs.SH.set(port + 1);
     this.addSystemTime(this.delay.PREIO);
     this.delayVdpIO(port);
@@ -650,11 +634,11 @@ class Z80 {
     this.addSystemTime(this.delay.POSTIO);
   }
 
-  delayVdpIO(port: number): void {
+  private delayVdpIO(port: number): void {
     if ((port & 0xfc) == 0x98) {
       this.addSystemTime(this.delay.T9769VDP);
     }
-    if (this.cpuMode == Z80Mode.R800) {
+    if (this.cpuMode === Z80Mode.R800) {
       this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) + 0x100000000 & 0xffffffff;
       if ((port & 0xf8) == 0x98) {
         if ((this.systemTime - this.lastVdpAccessTime & 0xffffff) < this.delay.S1990VDP)
@@ -664,33 +648,33 @@ class Z80 {
     }
   }
 
-  JR(): void {
+  private JR(): void {
     this.regs.SH.set(this.regs.PC.get() + 1 + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.regs.PC.set(this.regs.SH.get());
     this.addSystemTime(this.delay.ADD8);
   }
 
-  COND_JR(flag: number, isset: boolean): void {
+  private COND_JR(flag: number, isset: boolean): void {
     if (((this.regs.AF.l.get() & flag) == flag) == isset) this.JR();
     else this.readOpcode();
   }
 
-  DJNZ(): void {
+  private DJNZ(): void {
     this.addSystemTime(this.delay.DJNZ);
     this.regs.BC.h.dec() != 0 ? this.JR() : this.readOpcode();
   }
 
-  JP(): void {
+  private JP(): void {
     this.regs.SH.setLH(this.readOpcode(), this.readOpcode());
     this.regs.PC.set(this.regs.SH.get());
   }
 
-  COND_JP(flag: number, isset: boolean): void {
+  private COND_JP(flag: number, isset: boolean): void {
     if (((this.regs.AF.l.get() & flag) == flag) == isset) this.JP();
     else this.regs.SH.setLH(this.readOpcode(), this.readOpcode());
   }
 
-  CALL(): void {
+  private CALL(): void {
     this.regs.SH.setLH(this.readOpcode(), this.readOpcode());
     this.writeMem(this.regs.SP.dec(), this.regs.PC.h.get());
     this.writeMem(this.regs.SP.dec(), this.regs.PC.l.get());
@@ -698,263 +682,263 @@ class Z80 {
     this.addSystemTime(this.delay.CALL);
   }
 
-  COND_CALL(flag: number, isset: boolean): void {
+  private COND_CALL(flag: number, isset: boolean): void {
     if (((this.regs.AF.l.get() & flag) == flag) == isset) this.CALL();
     else this.regs.SH.setLH(this.readOpcode(), this.readOpcode());
   }
 
-  RET(): void {
+  private RET(): void {
     this.regs.SH.setLH(this.readMem(this.regs.SP.postInc()), this.regs.SP.postInc());
     this.regs.PC.set(this.regs.SH.get());
   }
 
-  COND_RET(flag: number, isset: boolean): void {
+  private COND_RET(flag: number, isset: boolean): void {
     this.addSystemTime(this.delay.RET);
     if (((this.regs.AF.l.get() & flag) == flag) == isset) this.RET();
   }
 
-  RETI(): void {
+  private RETI(): void {
     this.regs.iff1 = this.regs.iff2;
     this.RET();
   }
 
-  RETN(): void {
+  private RETN(): void {
     this.regs.iff1 = this.regs.iff2;
     this.RET();
   }
 
-
-  M1(): void {
-    let value = this.regs.R.get();
+  private M1(): void {
+    const value = this.regs.R.get();
     this.regs.R.set((value & 0x80) | ((value + 1) & 0x7f));
     this.addSystemTime(this.delay.M1);
   }
 
-  M1_nodelay(): void {
-    let value = this.regs.R.get();
+  private M1_nodelay(): void {
+    const value = this.regs.R.get();
     this.regs.R.set((value & 0x80) | ((value + 1) & 0x7f));
   }
 
-  LD_XBYTE_R(r: Register): void {
-    let addr = new RegisterPair();
+  private LD_XBYTE_R(r: Register): void {
+    const addr = new RegisterPair();
     addr.setLH(this.readOpcode(), this.readOpcode());
     r.set(this.readMem(addr.get()));
     this.regs.SH.set(r.get() << 8);
     this.writeMem(addr.get(), r.get());
   }
 
-  LD_R_XBYTE(r: Register): void {
-    let addr = new RegisterPair();
+  private LD_R_XBYTE(r: Register): void {
+    const addr = new RegisterPair();
     addr.setLH(this.readOpcode(), this.readOpcode());
     r.set(this.readMem(addr.get()));
     this.regs.SH.set(addr.inc());
   }
 
-  LD_XWORD_R(r: RegisterPair): void {
-    let addr = new RegisterPair();
+  private LD_XWORD_R(r: RegisterPair): void {
+    const addr = new RegisterPair();
     addr.setLH(this.readOpcode(), this.readOpcode());
     this.writeMem(addr.postInc(), r.l.get());
     this.writeMem(addr.get(), r.h.get());
     this.regs.SH.set(addr.get());
   }
 
-  LD_R_XWORD(r: RegisterPair): void {
-    let addr = new RegisterPair();
+  private LD_R_XWORD(r: RegisterPair): void {
+    const addr = new RegisterPair();
     addr.setLH(this.readOpcode(), this.readOpcode());
     r.setLH(this.readMem(addr.postInc()), this.readMem(addr.get()));
     this.regs.SH.set(addr.get());
   }
 
-  LD_R_XIn(r: Register, ar: RegisterPair) {
-    let addr = ar.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
+  private LD_R_XIn(r: Register, ar: RegisterPair) {
+    const addr = ar.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
     this.addSystemTime(this.delay.ADD8);
     this.regs.SH.set(addr);
     r.set(this.readMem(addr));
   }
-  LD_XIn_R(r: Register, ar: RegisterPair) {
-    let addr = ar.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
+
+  private LD_XIn_R(r: Register, ar: RegisterPair) {
+    const addr = ar.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
     this.addSystemTime(this.delay.ADD8);
     this.regs.SH.set(addr);
     this.writeMem(addr, r.get());
   }
 
-  INC(r: Register): void {
-    let v = r.inc();
+  private INC(r: Register): void {
+    const v = r.inc();
     this.regs.AF.l.set(this.ZSXYTable[v] | (this.regs.AF.l.get() & C_FLAG) | (v == 0x80 ? V_FLAG : 0) | (!(v & 0x0f) ? H_FLAG : 0));
   }
 
-  DEC(r: Register): void {
-    let v = r.dec();
+  private DEC(r: Register): void {
+    const v = r.dec();
     this.regs.AF.l.set(this.ZSXYTable[v] | (this.regs.AF.l.get() & C_FLAG) | (v == 0x7f ? V_FLAG : 0) | ((v & 0x0f) == 0x0f ? H_FLAG : 0) | N_FLAG);
   }
 
-  ADD(r: number): void {
-    let a = this.regs.AF.h.get();
-    let v = a + r;
+  private ADD(r: number): void {
+    const a = this.regs.AF.h.get();
+    const v = a + r;
     this.regs.AF.l.set(this.ZSXYTable[v & 0xff] | ((v >> 8) & C_FLAG) |
       ((a ^ r ^ v) & H_FLAG) | ((((a ^ r ^ 0x80) & (r ^ v)) >> 5) & V_FLAG));
     this.regs.AF.h.set(v & 0xff);
   }
 
-  ADD_XIn(r: RegisterPair): void {
+  private ADD_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.ADD(this.readMem(this.regs.SH.get()));
   }
 
-  ADC(r: number): void {
-    let a = this.regs.AF.h.get();
-    let v = a + r + (this.regs.AF.l.get() & C_FLAG);
+  private ADC(r: number): void {
+    const a = this.regs.AF.h.get();
+    const v = a + r + (this.regs.AF.l.get() & C_FLAG);
     this.regs.AF.l.set(this.ZSXYTable[v & 0xff] | ((v >> 8) & C_FLAG) |
       ((a ^ r ^ v) & H_FLAG) | ((((a ^ r ^ 0x80) & (r ^ v)) >> 5) & V_FLAG));
     this.regs.AF.h.set(v & 0xff);
   }
 
-  ADC_XIn(r: RegisterPair): void {
+  private ADC_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.ADC(this.readMem(this.regs.SH.get()));
   }
 
-  SUB(r: number): void {
-    let a = this.regs.AF.h.get();
-    let v = a - r;
+  private SUB(r: number): void {
+    const a = this.regs.AF.h.get();
+    const v = a - r;
     this.regs.AF.l.set(this.ZSXYTable[v & 0xff] | ((v >> 8) & C_FLAG) |
       ((a ^ r ^ v) & H_FLAG) | N_FLAG | ((((a ^ r) & (a ^ v)) >> 5) & V_FLAG));
     this.regs.AF.h.set(v & 0xff);
   }
 
-  SUB_XIn(r: RegisterPair): void {
+  private SUB_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.SUB(this.readMem(this.regs.SH.get()));
   }
 
-  SBC(r: number): void {
-    let a = this.regs.AF.h.get();
-    let v = a - r - (this.regs.AF.l.get() & C_FLAG);
+  private SBC(r: number): void {
+    const a = this.regs.AF.h.get();
+    const v = a - r - (this.regs.AF.l.get() & C_FLAG);
     this.regs.AF.l.set(this.ZSXYTable[v & 0xff] | ((v >> 8) & C_FLAG) |
       ((a ^ r ^ v) & H_FLAG) | N_FLAG | ((((a ^ r) & (a ^ v)) >> 5) & V_FLAG));
     this.regs.AF.h.set(v & 0xff);
   }
 
-  SBC_XIn(r: RegisterPair): void {
+  private SBC_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.SBC(this.readMem(this.regs.SH.get()));
   }
 
-  AND(r: number): void {
+  private AND(r: number): void {
     this.regs.AF.h.set(this.regs.AF.h.get() & r);
     this.regs.AF.l.set(this.ZSPXYTable[this.regs.AF.h.get()] | H_FLAG);
   }
 
-  AND_XIn(r: RegisterPair): void {
+  private AND_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.AND(this.readMem(this.regs.SH.get()));
   }
 
-  OR(r: number): void {
+  private OR(r: number): void {
     this.regs.AF.h.set(this.regs.AF.h.get() | r);
     this.regs.AF.l.set(this.ZSPXYTable[this.regs.AF.h.get()]);
   }
 
-  OR_XIn(r: RegisterPair): void {
+  private OR_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.OR(this.readMem(this.regs.SH.get()));
   }
 
-  XOR(r: number): void {
+  private XOR(r: number): void {
     this.regs.AF.h.set(this.regs.AF.h.get() ^ r);
     this.regs.AF.l.set(this.ZSPXYTable[this.regs.AF.h.get()]);
   }
 
-  XOR_XIn(r: RegisterPair): void {
+  private XOR_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.XOR(this.readMem(this.regs.SH.get()));
   }
 
-  CP(r: number): void {
-    let a = this.regs.AF.h.get();
-    let v = a - r;
+  private CP(r: number): void {
+    const a = this.regs.AF.h.get();
+    const v = a - r;
     this.regs.AF.l.set((this.ZSPXYTable[v & 0xff] & (Z_FLAG | S_FLAG)) |
       ((v >> 8) & C_FLAG) | ((a ^ r ^ v) & H_FLAG) | N_FLAG |
       ((((a ^ r) & (a ^ v)) >> 5) & V_FLAG) | (r & (X_FLAG | Y_FLAG)));
   }
 
-  CP_XIn(r: RegisterPair): void {
+  private CP_XIn(r: RegisterPair): void {
     this.regs.SH.set(r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff);
     this.addSystemTime(this.delay.ADD8);
     this.CP(this.readMem(this.regs.SH.get()));
   }
 
-  INCW(r: RegisterPair): void {
+  private INCW(r: RegisterPair): void {
     r.inc();
     this.addSystemTime(this.delay.INC16);
   }
 
-  DECW(r: RegisterPair): void {
+  private DECW(r: RegisterPair): void {
     r.dec();
     this.addSystemTime(this.delay.INC16);
   }
 
-  INCW_X(r: RegisterPair): void {
-    let v = this.readMem(r.get()) + 1 & 0xff;
+  private INCW_X(r: RegisterPair): void {
+    const v = this.readMem(r.get()) + 1 & 0xff;
     this.regs.AF.l.set(this.ZSXYTable[v] | (this.regs.AF.l.get() & C_FLAG) | (v == 0x80 ? V_FLAG : 0) | (!(v & 0x0f) ? H_FLAG : 0));
     this.addSystemTime(this.delay.INC);
     this.writeMem(r.get(), v);
   }
 
-  DECW_X(r: RegisterPair): void {
-    let v = this.readMem(r.get()) - 1 & 0xff;
+  private DECW_X(r: RegisterPair): void {
+    const v = this.readMem(r.get()) - 1 & 0xff;
     this.regs.AF.l.set(this.ZSXYTable[v] | (this.regs.AF.l.get() & C_FLAG) | (v == 0x7f ? V_FLAG : 0) | ((v & 0x0f) == 0x0f ? H_FLAG : 0) | N_FLAG);
     this.addSystemTime(this.delay.INC);
     this.writeMem(r.get(), v);
   }
 
-  INC_XIn(r: RegisterPair): void {
-    let addr = r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
+  private INC_XIn(r: RegisterPair): void {
+    const addr = r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
     this.addSystemTime(this.delay.ADD8);
-    let v = this.readMem(addr) + 1 & 0xff;
+    const v = this.readMem(addr) + 1 & 0xff;
     this.regs.AF.l.set(this.ZSXYTable[v] | (this.regs.AF.l.get() & C_FLAG) | (v == 0x80 ? V_FLAG : 0) | (!(v & 0x0f) ? H_FLAG : 0));
     this.addSystemTime(this.delay.INC);
     this.writeMem(addr, v);
     this.regs.SH.set(addr);
   }
 
-  DEC_XIn(r: RegisterPair): void {
-    let addr = r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
+  private DEC_XIn(r: RegisterPair): void {
+    const addr = r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
     this.addSystemTime(this.delay.ADD8);
-    let v = this.readMem(addr) - 1 & 0xff;
+    const v = this.readMem(addr) - 1 & 0xff;
     this.regs.AF.l.set(this.ZSXYTable[v] | (this.regs.AF.l.get() & C_FLAG) | (v == 0x7f ? V_FLAG : 0) | ((v & 0x0f) == 0x0f ? H_FLAG : 0) | N_FLAG);
     this.addSystemTime(this.delay.INC);
     this.writeMem(addr, v);
     this.regs.SH.set(addr);
   }
-  NEG(): void {
-    let v = this.regs.AF.h.get();
+
+  private NEG(): void {
+    const v = this.regs.AF.h.get();
     this.regs.AF.h.set(0);
     this.SUB(v);
   }
 
-  LD_XIn_BYTE(r: RegisterPair): void {
-    let addr = r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
-    let v = this.readOpcode();
+  private LD_XIn_BYTE(r: RegisterPair): void {
+    const addr = r.get() + this.byteToSignedInt(this.readOpcode()) & 0xffff;
+    const v = this.readOpcode();
     this.addSystemTime(this.delay.PARALLEL);
     this.regs.SH.set(addr);
     this.writeMem(addr, v);
   }
 
-  LD_I_A(): void {
+  private LD_I_A(): void {
     this.addSystemTime(this.delay.LD);
     this.regs.I.set(this.regs.AF.h.get());
   }
 
-  LD_A_I(): void {
-    // 
+  private LD_A_I(): void {
     this.addSystemTime(this.delay.LD);
     this.regs.AF.h.set(this.regs.I.get());
     this.regs.AF.l.set((this.regs.AF.l.get() & C_FLAG) | this.ZSXYTable[this.regs.AF.h.get()] | (this.regs.iff2 << 2));
@@ -962,12 +946,12 @@ class Z80 {
     if (this.cpuMode == Z80Mode.Z80 && ((this.intState == INT_LOW && this.regs.iff1) || this.nmiEdge)) this.regs.AF.l.set(this.regs.AF.l.get() & 0xfb);
   }
 
-  LD_R_A(): void {
+  private LD_R_A(): void {
     this.addSystemTime(this.delay.LD);
     this.regs.R.set(this.regs.AF.h.get());
   }
 
-  LD_A_R(): void {
+  private LD_A_R(): void {
     this.addSystemTime(this.delay.LD);
     this.regs.AF.h.set((this.regs.R.get() & 0x7f) | (this.regs.R2.get() & 0x80));
     this.regs.AF.l.set((this.regs.AF.l.get() & C_FLAG) | this.ZSXYTable[this.regs.AF.h.get()] | (this.regs.iff2 << 2));
@@ -975,8 +959,8 @@ class Z80 {
     if (this.cpuMode == Z80Mode.Z80 && ((this.intState == INT_LOW && this.regs.iff1) || this.nmiEdge)) this.regs.AF.l.set(this.regs.AF.l.get() & 0xfb);
   }
 
-  ADDW(a: RegisterPair, b: RegisterPair): void {
-    let v = a.get() + b.get();
+  private ADDW(a: RegisterPair, b: RegisterPair): void {
+    const v = a.get() + b.get();
     this.regs.SH.set(a.get() + 1 & 0xffff);
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | V_FLAG)) | (((a.get() ^ b.get() ^ v) >> 8) & H_FLAG) |
       ((v >> 16) & C_FLAG) | ((v >> 8) & (X_FLAG | Y_FLAG)));
@@ -984,8 +968,8 @@ class Z80 {
     this.addSystemTime(this.delay.ADD16);
   }
 
-  ADCW(r: RegisterPair): void {
-    let v = this.regs.HL.get() + r.get() + (this.regs.AF.l.get() & C_FLAG) & 0xffff;
+  private ADCW(r: RegisterPair): void {
+    const v = this.regs.HL.get() + r.get() + (this.regs.AF.l.get() & C_FLAG) & 0xffff;
     this.regs.SH.set(this.regs.HL.get() + 1 & 0xffff);
     this.regs.AF.l.set((((this.regs.HL.get() ^ r.get() ^ v) >> 8) & H_FLAG) |
       ((v >> 16) & C_FLAG) | ((v & 0xffff) ? 0 : Z_FLAG) |
@@ -995,8 +979,8 @@ class Z80 {
     this.addSystemTime(this.delay.ADD16);
   }
 
-  SBCW(r: RegisterPair): void {
-    let v = this.regs.HL.get() - r.get() - (this.regs.AF.l.get() & C_FLAG) & 0xffff;
+  private SBCW(r: RegisterPair): void {
+    const v = this.regs.HL.get() - r.get() - (this.regs.AF.l.get() & C_FLAG) & 0xffff;
     this.regs.SH.set((((this.regs.HL.get() ^ r.get() ^ v) >> 8) & H_FLAG) | N_FLAG |
       ((v >> 16) & C_FLAG) | ((v & 0xffff) ? 0 : Z_FLAG) |
       ((((this.regs.HL.get() ^ r.get()) & (this.regs.HL.get() ^ v)) >> 13) & V_FLAG) |
@@ -1005,45 +989,45 @@ class Z80 {
     this.addSystemTime(this.delay.ADD16);
   }
 
-  RRA(): void {
-    let v = this.regs.AF.h.get();
+  private RRA(): void {
+    const v = this.regs.AF.h.get();
     this.regs.AF.h.set((v >> 1) | ((this.regs.AF.l.get() & C_FLAG) << 7));
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG)) | (v & C_FLAG) | (this.regs.AF.h.get() & (X_FLAG | Y_FLAG)));
   }
 
-  RLA(): void {
-    let v = this.regs.AF.h.get();
+  private RLA(): void {
+    const v = this.regs.AF.h.get();
     this.regs.AF.h.set((v << 1) & 0xff | (this.regs.AF.l.get() & C_FLAG));
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG)) | ((v >> 7) & C_FLAG) | (this.regs.AF.h.get() & (X_FLAG | Y_FLAG)));
   }
 
-  RRCA(): void {
-    let v = this.regs.AF.h.get();
+  private RRCA(): void {
+    const v = this.regs.AF.h.get();
     this.regs.AF.h.set((v >> 1) | ((v & 1) << 7));
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG)) | (v & C_FLAG) | (this.regs.AF.h.get() & (X_FLAG | Y_FLAG)));
   }
 
-  RLCA(): void {
-    let v = this.regs.AF.h.get();
+  private RLCA(): void {
+    const v = this.regs.AF.h.get();
     this.regs.AF.h.set((v << 1) & 0xff | (v >> 7));
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG)) | (this.regs.AF.h.get() & (Y_FLAG | X_FLAG | C_FLAG)));
   }
 
-  SLA(r: Register): void {
-    let v = (r.get() << 1) & 0xff;
+  private SLA(r: Register): void {
+    const v = (r.get() << 1) & 0xff;
     this.regs.AF.l.set(this.ZSPXYTable[v] | ((r.get() >> 7) & C_FLAG));
     r.set(v);
   }
 
-  SLA_XHL(): void {
-    let r = new Register();
+  private SLA_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.SLA(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  SLA_XNN(addr: number, r: Register): void {
+  private SLA_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.SLA(r);
@@ -1052,21 +1036,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  SLL(r: Register): void {
-    let v = (r.get() << 1) & 0xff | 1;
+  private SLL(r: Register): void {
+    const v = (r.get() << 1) & 0xff | 1;
     this.regs.AF.l.set(this.ZSPXYTable[v] | ((r.get() >> 7) & C_FLAG));
     r.set(v);
   }
 
-  SLL_XHL(): void {
-    let r = new Register();
+  private SLL_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.SLL(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  SLL_XNN(addr: number, r: Register): void {
+  private SLL_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.SLL(r);
@@ -1075,21 +1059,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  SRA(r: Register): void {
-    let v = (r.get() >> 1) | (r.get() & 0x80);
+  private SRA(r: Register): void {
+    const v = (r.get() >> 1) | (r.get() & 0x80);
     this.regs.AF.l.set(this.ZSPXYTable[v] | (r.get() & C_FLAG));
     r.set(v);
   }
 
-  SRA_XHL(): void {
-    let r = new Register();
+  private SRA_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.SRA(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  SRA_XNN(addr: number, r: Register): void {
+  private SRA_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.SRA(r);
@@ -1098,21 +1082,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  SRL(r: Register): void {
-    let v = r.get() >> 1;
+  private SRL(r: Register): void {
+    const v = r.get() >> 1;
     this.regs.AF.l.set(this.ZSPXYTable[v] | (r.get() & C_FLAG));
     r.set(v);
   }
 
-  SRL_XHL(): void {
-    let r = new Register();
+  private SRL_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.SRL(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  SRL_XNN(addr: number, r: Register): void {
+  private SRL_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.SRL(r);
@@ -1121,21 +1105,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  RL(r: Register): void {
-    let v = (r.get() << 1) & 0xff | (this.regs.AF.l.get() & 0x01);
+  private RL(r: Register): void {
+    const v = (r.get() << 1) & 0xff | (this.regs.AF.l.get() & 0x01);
     this.regs.AF.l.set(this.ZSPXYTable[v] | ((r.get() >> 7) & C_FLAG));
     r.set(v);
   }
 
-  RL_XHL(): void {
-    let r = new Register();
+  private RL_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.RL(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  RL_XNN(addr: number, r: Register): void {
+  private RL_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.RL(r);
@@ -1144,21 +1128,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  RLC(r: Register): void {
-    let v = (r.get() << 1) & 0xff | (r.get() >> 7);
+  private RLC(r: Register): void {
+    const v = (r.get() << 1) & 0xff | (r.get() >> 7);
     this.regs.AF.l.set(this.ZSPXYTable[v] | (v & C_FLAG));
     r.set(v);
   }
 
-  RLC_XHL(): void {
-    let r = new Register();
+  private RLC_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.RLC(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  RLC_XNN(addr: number, r: Register): void {
+  private RLC_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.RLC(r);
@@ -1167,21 +1151,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  RR(r: Register): void {
-    let v = (r.get() >> 1) | ((this.regs.AF.l.get() & 1) << 7);
+  private RR(r: Register): void {
+    const v = (r.get() >> 1) | ((this.regs.AF.l.get() & 1) << 7);
     this.regs.AF.l.set(this.ZSPXYTable[v] | (r.get() & C_FLAG));
     r.set(v);
   }
 
-  RR_XHL(): void {
-    let r = new Register();
+  private RR_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.RR(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  RR_XNN(addr: number, r: Register): void {
+  private RR_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.RR(r);
@@ -1190,21 +1174,21 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  RRC(r: Register): void {
-    let v = (r.get() >> 1) | ((r.get() & 1) << 7);
+  private RRC(r: Register): void {
+    const v = (r.get() >> 1) | ((r.get() & 1) << 7);
     this.regs.AF.l.set(this.ZSPXYTable[v] | ((v >> 7) & C_FLAG));
     r.set(v);
   }
 
-  RRC_XHL(): void {
-    let r = new Register();
+  private RRC_XHL(): void {
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.RRC(r);
     this.addSystemTime(this.delay.INC);
     this.writeMem(this.regs.HL.get(), r.get());
   }
 
-  RRC_XNN(addr: number, r: Register): void {
+  private RRC_XNN(addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.RRC(r);
@@ -1213,17 +1197,17 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  BIT(bit: number, r: Register): void {
+  private BIT(bit: number, r: Register): void {
     this.regs.AF.l.set(this.ZSPHTable[r.get() & (1 << bit)] | (this.regs.AF.l.get() & C_FLAG) | (r.get() & (X_FLAG | Y_FLAG)));
   }
 
-  BIT_XHL(bit: number): void {
+  private BIT_XHL(bit: number): void {
     this.addSystemTime(this.delay.BIT);
-    let v = this.readMem(this.regs.HL.get()) & (1 << bit);
+    const v = this.readMem(this.regs.HL.get()) & (1 << bit);
     this.regs.AF.l.set(this.ZSPHTable[v] | (this.regs.AF.l.get() & C_FLAG) | (this.regs.SH.h.get() & (X_FLAG | Y_FLAG)));
   }
 
-  BIT_XNN(bit: number, addr: number): void {
+  private BIT_XNN(bit: number, addr: number): void {
     this.regs.SH.set(addr);
     this.addSystemTime(this.delay.BIT);
     this.regs.AF.l.set((this.regs.AF.l.get() & C_FLAG) |
@@ -1231,17 +1215,17 @@ class Z80 {
       this.ZSPHTable[this.readMem(addr) & (1 << bit)]);
   }
 
-  RES(bit: number, r: Register): void {
+  private RES(bit: number, r: Register): void {
     r.set(r.get() & ~(1 << bit));
   }
 
-  RES_XHL(bit: number): void {
+  private RES_XHL(bit: number): void {
     this.addSystemTime(this.delay.INC);
-    let v = this.readMem(this.regs.HL.get()) & ~(1 << bit);
+    const v = this.readMem(this.regs.HL.get()) & ~(1 << bit);
     this.writeMem(this.regs.HL.get(), v);
   }
 
-  RES_XNN(bit: number, addr: number, r: Register): void {
+  private RES_XNN(bit: number, addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.RES(bit, r);
@@ -1250,17 +1234,17 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  SET(bit: number, r: Register): void {
+  private SET(bit: number, r: Register): void {
     r.set(r.get() | (1 << bit));
   }
 
-  SET_XHL(bit: number): void {
+  private SET_XHL(bit: number): void {
     this.addSystemTime(this.delay.INC);
-    let v = this.readMem(this.regs.HL.get()) | (1 << bit);
+    const v = this.readMem(this.regs.HL.get()) | (1 << bit);
     this.writeMem(this.regs.HL.get(), v);
   }
 
-  SET_XNN(bit: number, addr: number, r: Register): void {
+  private SET_XNN(bit: number, addr: number, r: Register): void {
     r.set(this.readMem(addr));
     this.regs.SH.set(addr);
     this.SET(bit, r);
@@ -1269,7 +1253,7 @@ class Z80 {
     this.writeMem(addr, r.get());
   }
 
-  MULU(r: Register): void {
+  private MULU(r: Register): void {
     if (this.cpuMode != Z80Mode.R800) {
       return;
     }
@@ -1279,7 +1263,7 @@ class Z80 {
     this.addSystemTime(this.delay.MUL8);
   }
 
-  MULUW(r: RegisterPair): void {
+  private MULUW(r: RegisterPair): void {
     if (this.cpuMode != Z80Mode.R800) {
       return;
     }
@@ -1292,82 +1276,82 @@ class Z80 {
     this.addSystemTime(this.delay.MUL16);
   }
 
-  MULU_XHL(): void {
+  private MULU_XHL(): void {
     if (this.cpuMode != Z80Mode.R800) {
       return;
     }
-    let r = new Register();
+    const r = new Register();
     r.set(this.readMem(this.regs.HL.get()));
     this.MULU(r);
   }
 
-  DAA(): void {
+  private DAA(): void {
     this.regs.AF.set(this.DAATable[this.regs.AF.h.get() | ((this.regs.AF.l.get() & 3) << 8) | ((this.regs.AF.l.get() & 0x10) << 6)]);
   }
 
-  CPL(): void {
+  private CPL(): void {
     this.regs.AF.h.set(this.regs.AF.h.get() ^ 0xff);
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG | C_FLAG)) | H_FLAG | N_FLAG | (this.regs.AF.h.get() & (X_FLAG | Y_FLAG)));
   }
 
-  SCF(): void {
+  private SCF(): void {
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG)) |
       C_FLAG | ((this.regs.AF.l.get() | this.regs.AF.h.get()) & (X_FLAG | Y_FLAG)));
   }
 
-  CCF(): void {
+  private CCF(): void {
     this.regs.AF.l.set(((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | P_FLAG | C_FLAG)) |
       ((this.regs.AF.l.get() & C_FLAG) << 4) |
       ((this.regs.AF.l.get() | this.regs.AF.h.get()) & (X_FLAG | Y_FLAG))) ^ C_FLAG);
   }
 
-  HALT(): void {
+  private HALT(): void {
     this.regs.halt = (this.intState == INT_LOW && this.regs.iff1 != 0) || this.nmiEdge;
     if (this.regs.halt) this.regs.PC.dec();
   }
 
-  OUT_BYTE_A(): void {
-    let port = new RegisterPair();
+  private OUT_BYTE_A(): void {
+    const port = new RegisterPair();
     port.setLH(this.readOpcode(), this.regs.AF.h.get());
     this.writePort(port.get(), this.regs.AF.h.get());
   }
 
-  IN_BYTE_A(): void {
-    let port = new RegisterPair();
+  private IN_BYTE_A(): void {
+    const port = new RegisterPair();
     port.setLH(this.readOpcode(), this.regs.AF.h.get());
     this.regs.AF.h.set(this.readPort(port.get()));
   }
 
-  PUSH(r: RegisterPair): void {
+  private PUSH(r: RegisterPair): void {
     this.addSystemTime(this.delay.PUSH);
     this.writeMem(this.regs.SP.dec(), r.h.get());
     this.writeMem(this.regs.SP.dec(), r.l.get());
   }
 
-  POP(r: RegisterPair): void {
+  private POP(r: RegisterPair): void {
     r.setLH(this.readMem(this.regs.SP.postInc()), this.readMem(this.regs.SP.postInc()));
   }
 
-  RST(v: number): void {
+  private RST(v: number): void {
     this.PUSH(this.regs.PC);
     this.regs.PC.set(v);
     this.regs.SH.set(v);
   }
 
-  EX(a: RegisterPair, b: RegisterPair): void {
-    let v = a.get();
+  private EX(a: RegisterPair, b: RegisterPair): void {
+    const v = a.get();
     a.set(b.get());
     b.set(v);
   }
 
-  EXX(): void {
+  private EXX(): void {
     this.EX(this.regs.BC, this.regs.BC1);
     this.EX(this.regs.DE, this.regs.DE1);
     this.EX(this.regs.HL, this.regs.HL1);
   }
 
-  EX_SP(r: RegisterPair): void {
-    let addr = new RegisterPair();
+  private EX_SP(r: RegisterPair): void {
+    const addr = new RegisterPair();
     addr.setLH(this.readMem(this.regs.SP.postInc()), this.readMem(this.regs.SP.postInc()));
     this.writeMem(this.regs.SP.dec(), r.h.get());
     this.writeMem(this.regs.SP.dec(), r.l.get());
@@ -1376,19 +1360,19 @@ class Z80 {
     this.addSystemTime(this.delay.EXSPHL);
   }
 
-  DI(): void {
+  private DI(): void {
     this.regs.iff1 = 1;
     this.regs.iff2 = 1;
   }
 
-  EI(): void {
+  private EI(): void {
     this.regs.iff2 = 1;
     this.regs.iff1 = 1;
     this.regs.eiMode = 1;
   }
 
-  RLD(): void {
-    let v = this.readMem(this.regs.HL.get());
+  private RLD(): void {
+    const v = this.readMem(this.regs.HL.get());
     this.regs.SH.set(this.regs.HL.get() + 1 & 0xffff);
     this.addSystemTime(this.delay.RLD);
     this.writeMem(this.regs.HL.get(), (v << 4) & 0xff | (this.regs.AF.h.get() & 0x0f));
@@ -1396,8 +1380,8 @@ class Z80 {
     this.regs.AF.l.set(this.ZSPXYTable[this.regs.AF.h.get()] | (this.regs.AF.l.get() & C_FLAG));
   }
 
-  RRD(): void {
-    let v = this.readMem(this.regs.HL.get());
+  private RRD(): void {
+    const v = this.readMem(this.regs.HL.get());
     this.regs.SH.set(this.regs.HL.get() + 1 & 0xffff);
     this.addSystemTime(this.delay.RLD);
     this.writeMem(this.regs.HL.get(), (v >> 4) | (this.regs.AF.h.get() << 4) & 0xff);
@@ -1405,17 +1389,17 @@ class Z80 {
     this.regs.AF.l.set(this.ZSPXYTable[this.regs.AF.h.get()] | (this.regs.AF.l.get() & C_FLAG));
   }
 
-  IN_C(r: Register): void {
+  private IN_C(r: Register): void {
     r.set(this.readPort(this.regs.BC.get()));
     this.regs.AF.l.set(this.ZSPXYTable[r.get()] | (this.regs.AF.l.get() & C_FLAG));
   }
 
-  OUT_C(r: Register): void {
+  private OUT_C(r: Register): void {
     this.writePort(this.regs.BC.get(), r.get());
   }
 
-  CPI(): void {
-    let val = this.readMem(this.regs.HL.postInc());
+  private CPI(): void {
+    const val = this.readMem(this.regs.HL.postInc());
     let rv = this.regs.AF.h.get() - val & 0xff;
     this.addSystemTime(this.delay.BLOCK);
     this.regs.BC.dec();
@@ -1427,7 +1411,7 @@ class Z80 {
       (this.regs.BC.get() != 0 ? P_FLAG : 0));
   }
 
-  CPIR(): void {
+  private CPIR(): void {
     this.CPI();
     if (this.regs.BC.get() != 0 && !(this.regs.AF.l.get() & Z_FLAG)) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1435,8 +1419,8 @@ class Z80 {
     }
   }
 
-  CPD(): void {
-    let val = this.readMem(this.regs.HL.postDec());
+  private CPD(): void {
+    const val = this.readMem(this.regs.HL.postDec());
     let rv = this.regs.AF.h.get() - val & 0xff;
     this.addSystemTime(this.delay.BLOCK);
     this.regs.BC.dec();
@@ -1448,7 +1432,7 @@ class Z80 {
       (this.regs.BC.get() != 0 ? P_FLAG : 0));
   }
 
-  CPDR(): void {
+  private CPDR(): void {
     this.CPD();
     if (this.regs.BC.get() != 0 && !(this.regs.AF.l.get() & Z_FLAG)) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1456,8 +1440,8 @@ class Z80 {
     }
   }
 
-  LDI(): void {
-    let val = this.readMem(this.regs.HL.postInc());
+  private LDI(): void {
+    const val = this.readMem(this.regs.HL.postInc());
     this.writeMem(this.regs.DE.postInc(), val);
     this.addSystemTime(this.delay.LDI);
     this.regs.BC.dec();
@@ -1466,7 +1450,7 @@ class Z80 {
       ((this.regs.AF.h.get() + val) & X_FLAG) | (this.regs.BC.get() ? P_FLAG : 0));
   }
 
-  LDIR(): void {
+  private LDIR(): void {
     this.LDI();
     if (this.regs.BC.get() != 0) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1474,8 +1458,8 @@ class Z80 {
     }
   }
 
-  LDD(): void {
-    let val = this.readMem(this.regs.HL.postDec());
+  private LDD(): void {
+    const val = this.readMem(this.regs.HL.postDec());
     this.writeMem(this.regs.DE.postDec(), val);
     this.addSystemTime(this.delay.LDI);
     this.regs.BC.dec();
@@ -1484,7 +1468,7 @@ class Z80 {
       ((this.regs.AF.h.get() + val) & X_FLAG) | (this.regs.BC.get() ? P_FLAG : 0));
   }
 
-  LDDR(): void {
+  private LDDR(): void {
     this.LDD();
     if (this.regs.BC.get() != 0) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1492,18 +1476,18 @@ class Z80 {
     }
   }
 
-  INI(): void {
+  private INI(): void {
     this.addSystemTime(this.delay.INOUT);
     this.regs.BC.h.dec();
-    let val = this.readPort(this.regs.BC.get());
+    const val = this.readPort(this.regs.BC.get());
     this.writeMem(this.regs.HL.postInc(), val);
     this.regs.AF.l.set((this.ZSXYTable[this.regs.BC.h.get()]) | ((val >> 6) & N_FLAG));
-    let tmp = val + ((this.regs.BC.l.get() + 1) & 0xff);
+    const tmp = val + ((this.regs.BC.l.get() + 1) & 0xff);
     this.regs.AF.l.set(this.regs.AF.l.get() | (tmp >> 8) * (H_FLAG | C_FLAG) |
       (this.ZSPXYTable[(tmp & 0x07) ^ this.regs.BC.h.get()] & P_FLAG));
   }
 
-  INIR(): void {
+  private INIR(): void {
     this.INI();
     if (this.regs.BC.h.get() != 0) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1511,18 +1495,18 @@ class Z80 {
     }
   }
 
-  IND(): void {
+  private IND(): void {
     this.addSystemTime(this.delay.INOUT);
     this.regs.BC.h.dec();
-    let val = this.readPort(this.regs.BC.get());
+    const val = this.readPort(this.regs.BC.get());
     this.writeMem(this.regs.HL.postDec(), val);
     this.regs.AF.l.set((this.ZSXYTable[this.regs.BC.h.get()]) | ((val >> 6) & N_FLAG));
-    let tmp = val + ((this.regs.BC.l.get() - 1) & 0xff);
+    const tmp = val + ((this.regs.BC.l.get() - 1) & 0xff);
     this.regs.AF.l.set(this.regs.AF.l.get() | (tmp >> 8) * (H_FLAG | C_FLAG) |
       (this.ZSPXYTable[(tmp & 0x07) ^ this.regs.BC.h.get()] & P_FLAG));
   }
 
-  INDR(): void {
+  private INDR(): void {
     this.IND();
     if (this.regs.BC.h.get() != 0) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1530,18 +1514,18 @@ class Z80 {
     }
   }
 
-  OUTI(): void {
+  private OUTI(): void {
     this.addSystemTime(this.delay.INOUT);
-    let val = this.readMem(this.regs.HL.postInc());
+    const val = this.readMem(this.regs.HL.postInc());
     this.writePort(this.regs.BC.get(), val);
     this.regs.BC.h.dec();
     this.regs.AF.l.set((this.ZSXYTable[this.regs.BC.h.get()]) | ((val >> 6) & N_FLAG));
-    let tmp = val + this.regs.HL.l.get();
+    const tmp = val + this.regs.HL.l.get();
     this.regs.AF.l.set(this.regs.AF.l.get() | (tmp >> 8) * (H_FLAG | C_FLAG) |
       (this.ZSPXYTable[(tmp & 0x07) ^ this.regs.BC.h.get()] & P_FLAG));
   }
 
-  OTIR(): void {
+  private OTIR(): void {
     this.OUTI();
     if (this.regs.BC.h.get() != 0) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1549,18 +1533,18 @@ class Z80 {
     }
   }
 
-  OUTD(): void {
+  private OUTD(): void {
     this.addSystemTime(this.delay.INOUT);
-    let val = this.readMem(this.regs.HL.postDec());
+    const val = this.readMem(this.regs.HL.postDec());
     this.writePort(this.regs.BC.get(), val);
     this.regs.BC.h.dec();
     this.regs.AF.l.set((this.ZSXYTable[this.regs.BC.h.get()]) | ((val >> 6) & N_FLAG));
-    let tmp = val + this.regs.HL.l.get();
+    const tmp = val + this.regs.HL.l.get();
     this.regs.AF.l.set(this.regs.AF.l.get() | (tmp >> 8) * (H_FLAG | C_FLAG) |
       (this.ZSPXYTable[(tmp & 0x07) ^ this.regs.BC.h.get()] & P_FLAG));
   }
 
-  OTDR(): void {
+  private OTDR(): void {
     this.OUTD();
     if (this.regs.BC.h.get() != 0) {
       this.addSystemTime(this.delay.BLOCK);
@@ -1568,7 +1552,7 @@ class Z80 {
     }
   }
 
-  executeInstruction(opcode: number): void {
+  private executeInstruction(opcode: number): void {
     this.M1();
     switch (opcode & 0xff) {
       case 0x00: /* nop */ break;
@@ -1827,10 +1811,12 @@ class Z80 {
       case 0xfd: /* fd */ this.executeFdInstruction(this.readOpcode()); break;
       case 0xfe: /* cp_byte */ this.CP(this.readOpcode()); break;
       case 0xff: /* rst_38 */ this.RST(0x38); break;
+      default:
+        throw new Error('Invalid opcode');
     }
   }
 
-  executeCbInstruction(opcode: number): void {
+  private executeCbInstruction(opcode: number): void {
     this.M1();
     switch (opcode & 0xff) {
       case 0x00: /* rlc_b */ this.RLC(this.regs.BC.h); break;
@@ -2089,10 +2075,12 @@ class Z80 {
       case 0xfd: /* set_7_l */ this.SET(7, this.regs.HL.l); break;
       case 0xfe: /* set_7_xhl */ this.SET_XHL(7); break;
       case 0xff: /* set_7_a */ this.SET(7, this.regs.AF.h); break;
+      default:
+        throw new Error('Invalid opcode');
     }
   }
 
-  executeDdInstruction(opcode: number): void {
+  private executeDdInstruction(opcode: number): void {
     this.M1();
     switch (opcode & 0xff) {
       case 0x00: /* nop */ break;
@@ -2351,10 +2339,12 @@ class Z80 {
       case 0xfd: /* fd */ this.executeFdInstruction(this.readOpcode()); break;
       case 0xfe: /* cp_byte */ this.CP(this.readOpcode()); break;
       case 0xff: /* rst_38 */ this.RST(0x38); break;
+      default:
+        throw new Error('Invalid opcode');
     }
   }
 
-  executeEdInstruction(opcode: number): void {
+  private executeEdInstruction(opcode: number): void {
     this.M1();
     switch (opcode & 0xff) {
       case 0x00: /* nop */ break;
@@ -2613,10 +2603,12 @@ class Z80 {
       case 0xfd: /* nop */ break;
       case 0xfe: /* patch */ break;
       case 0xff: /* nop */ break;
+      default:
+        throw new Error('Invalid opcode');
     }
   }
 
-  executeFdInstruction(opcode: number): void {
+  private executeFdInstruction(opcode: number): void {
     this.M1();
     switch (opcode & 0xff) {
       case 0x00: /* nop */ break;
@@ -2875,10 +2867,12 @@ class Z80 {
       case 0xfd: /* fd */ this.executeFdInstruction(this.readOpcode()); break;
       case 0xfe: /* cp_byte */ this.CP(this.readOpcode()); break;
       case 0xff: /* rst_38 */ this.RST(0x38); break;
+      default:
+        throw new Error('Invalid opcode');
     }
   }
 
-  executeNnCbInstruction(): void {
+  private executeNnCbInstruction(): void {
     let addr = this.regs.IX.get() + this.byteToSignedInt(this.readOpcode());
     let opcode = this.readOpcode();
     this.addSystemTime(this.delay.M1);
@@ -3139,6 +3133,8 @@ class Z80 {
       case 0xfd: /* res_7_xnn_l */ this.SET_XNN(7, addr, this.regs.HL.l); break;
       case 0xfe: /* res_7_xnn */ { let r = new Register(); this.SET_XNN(7, addr, r); } break;
       case 0xff: /* res_7_xnn_a */ this.SET_XNN(7, addr, this.regs.AF.h); break;
+      default:
+        throw new Error('Invalid opcode');
     }
   }
 }

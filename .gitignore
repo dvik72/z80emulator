@@ -328,3 +328,12 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+/css/default.css
+/images
+/js/main.js
+/src/z80/z80.js
+/src/z80/z80.js.map
+/index.html
+/package.appxmanifest
+/z80emulator.jsproj
+/z80emulator.sln
