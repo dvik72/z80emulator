@@ -17,7 +17,6 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //
 //////////////////////////////////////////////////////////////////////////////
-
 // Frequency of the system clock.
 const MASTER_FREQUENCY = 21477270;
 
@@ -56,17 +55,20 @@ class Register {
 }
 
 class RegisterPair {
-  get(): number { return this.h.get() << 8 | this.l.get(); }
-  set(v: number): void { this.h.set(v >> 8); this.l.set(v); }
-  setLH(l: number, h: number): void { this.l.set(l); this.h.set(h); }
-  inc(): number { this.l.inc() && this.h.inc(); return this.get(); }
-  dec(): number { this.l.get() && this.h.dec(); this.l.dec(); return this.get(); }
+  get(): number { return this.regH.get() << 8 | this.regL.get(); }
+  set(v: number): void { this.regH.set(v >> 8); this.regL.set(v); }
+  setLH(l: number, h: number): void { this.regL.set(l); this.regH.set(h); }
+  inc(): number { this.regL.inc() && this.regH.inc(); return this.get(); }
+  dec(): number { this.regL.get() && this.regH.dec(); this.regL.dec(); return this.get(); }
 
   postInc(): number { const r = this.get(); this.inc(); return r; }
   postDec(): number { const r = this.get(); this.dec(); return r; }
 
-  h: Register;
-  l: Register;
+  get h(): Register { return this.regH; }
+  get l(): Register { return this.regL; }
+
+  private regH: Register;
+  private regL: Register;
 }
 
 class RegisterBank {
@@ -75,40 +77,57 @@ class RegisterBank {
   }
 
   reset(): void {
-    this.AF.set(0xffff);
-    this.BC.set(0xffff);
-    this.DE.set(0xffff);
-    this.HL.set(0xffff);
-    this.IX.set(0xffff);
-    this.IY.set(0xffff);
-    this.AF1.set(0xffff);
-    this.BC1.set(0xffff);
-    this.DE1.set(0xffff);
-    this.HL1.set(0xffff);
-    this.SH.set(0xffff);
-    this.SP.set(0xffff);
-    this.PC.set(0x0000);
-    this.I.set(0);
-    this.R.set(0);
-    this.R2.set(0);
+    this.af.set(0xffff);
+    this.bc.set(0xffff);
+    this.de.set(0xffff);
+    this.hl.set(0xffff);
+    this.ix.set(0xffff);
+    this.iy.set(0xffff);
+    this.af1.set(0xffff);
+    this.bc1.set(0xffff);
+    this.de1.set(0xffff);
+    this.hl1.set(0xffff);
+    this.sh.set(0xffff);
+    this.sp.set(0xffff);
+    this.pc.set(0x0000);
+    this.i.set(0);
+    this.r.set(0);
+    this.r2.set(0);
   }
 
-  AF: RegisterPair;
-  BC: RegisterPair;
-  DE: RegisterPair;
-  HL: RegisterPair;
-  IX: RegisterPair;
-  IY: RegisterPair;
-  PC: RegisterPair;
-  SP: RegisterPair;
-  AF1: RegisterPair;
-  BC1: RegisterPair;
-  DE1: RegisterPair;
-  HL1: RegisterPair;
-  SH: RegisterPair;
-  I: Register;
-  R: Register;
-  R2: Register;
+  get AF(): RegisterPair { return this.af; }
+  get BC(): RegisterPair { return this.bc; }
+  get DE(): RegisterPair { return this.de; }
+  get HL(): RegisterPair { return this.hl; }
+  get IX(): RegisterPair { return this.ix; }
+  get IY(): RegisterPair { return this.iy; }
+  get PC(): RegisterPair { return this.pc; }
+  get SP(): RegisterPair { return this.sp; }
+  get AF1(): RegisterPair { return this.af1; }
+  get BC1(): RegisterPair { return this.bc1; }
+  get DE1(): RegisterPair { return this.de1; }
+  get HL1(): RegisterPair { return this.hl1; }
+  get SH(): RegisterPair { return this.sh; }
+  get I(): Register { return this.i; }
+  get R(): Register { return this.r; }
+  get R2(): Register { return this.r2; }
+
+  private af: RegisterPair;
+  private bc: RegisterPair;
+  private de: RegisterPair;
+  private hl: RegisterPair;
+  private ix: RegisterPair;
+  private iy: RegisterPair;
+  private pc: RegisterPair;
+  private sp: RegisterPair;
+  private af1: RegisterPair;
+  private bc1: RegisterPair;
+  private de1: RegisterPair;
+  private hl1: RegisterPair;
+  private sh: RegisterPair;
+  private i: Register;
+  private r: Register;
+  private r2: Register;
 
   iff1: number = 0;
   iff2: number = 0;
