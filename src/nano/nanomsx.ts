@@ -261,7 +261,7 @@ export class NanoMsx {
       this.emuTime += diffTime;
     }
 
-    this.z80Timeout += this.z80Frequency / 50 | 0;
+    this.z80Timeout = this.z80Timeout + this.z80Frequency / 50 & 0xfffffff;
     this.z80.setTimeoutAt(this.z80Timeout);
   }
 
@@ -290,7 +290,7 @@ export class NanoMsx {
     }
 
     for (let page = 0; page < 4; page++) {
-      this.ram[page] = this.memory[0][page];
+      this.mappedMemory[page] = this.memory[0][page];
     }
   }
 

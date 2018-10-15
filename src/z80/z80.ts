@@ -377,7 +377,7 @@ export class Z80 {
   // Executes CPU instructions until the stopExecution method is called.
   execute(): void {
     while (!this.terminateFlag) {
-      if ((this.timeout - this.systemTime >> 31) > 0) {
+      if (((this.timeout - this.systemTime & 0xfffffff) >> 27) > 0) {
         this.timeoutCb();
       }
 
@@ -488,7 +488,7 @@ export class Z80 {
 
   private addSystemTime(delta: number): void {
     this.systemTime += delta;
-    this.systemTime &= 0xffffffff;
+    this.systemTime &= 0xfffffff;
   }
 
   private initTables(): void {
@@ -619,7 +619,7 @@ export class Z80 {
       this.addSystemTime(this.delay.T9769VDP);
     }
     if (this.cpuMode === Z80Mode.R800) {
-      this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) + 0x100000000 & 0xffffffff;
+      this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) & 0xfffffff;
       if ((port & 0xf8) == 0x98) {
         if ((this.systemTime - this.lastVdpAccessTime & 0xffffff) < this.delay.S1990VDP)
           this.systemTime = this.lastVdpAccessTime + this.delay.S1990VDP;
