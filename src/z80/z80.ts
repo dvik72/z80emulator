@@ -43,6 +43,8 @@
 // - R800 vs Z80 timing sheet, Tobias Keizer 2004
 
 
+import { Z80Dasm } from "./z80dasm";
+
 // CPU modes
 export enum Z80Mode { UNKNOWN, Z80, R800 }
 
@@ -84,8 +86,8 @@ class RegisterPair {
   get(): number { return this.regH.get() << 8 | this.regL.get(); }
   set(v: number): void { this.regH.set(v >> 8); this.regL.set(v); }
   setLH(l: number, h: number): void { this.regL.set(l); this.regH.set(h); }
-  inc(): number { this.regL.inc() && this.regH.inc(); return this.get(); }
-  dec(): number { this.regL.get() && this.regH.dec(); this.regL.dec(); return this.get(); }
+  inc(): number { this.regL.inc() || this.regH.inc(); return this.get(); }
+  dec(): number { this.regL.get() || this.regH.dec(); this.regL.dec(); return this.get(); }
 
   postInc(): number { const r = this.get(); this.inc(); return r; }
   postDec(): number { const r = this.get(); this.dec(); return r; }
@@ -392,6 +394,11 @@ export class Z80 {
         }
       }
 
+      // TODO: This is just debug support. Remove when done.
+      //const dasm = new Z80Dasm(this.readMemCb);
+      //const asm = dasm.dasm(this.regs.PC.get());
+      //console.log(asm);
+      
       this.executeInstruction(this.readOpcode());
 
       if (this.regs.halt) {

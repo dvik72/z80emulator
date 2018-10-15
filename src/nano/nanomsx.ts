@@ -159,6 +159,8 @@ export class NanoMsx {
   }
 
   private writeIoPort(port: number, value: number): void {
+    //console.log('Write Io:  ' + ('0000' + port.toString(16)).slice(-4) + ' : ' + ('00' + (port).toString(16)).slice(-2));
+
     switch (port & 0xff) {
       case 0xa8:
         this.ppi.regs[0] = value;
@@ -210,6 +212,7 @@ export class NanoMsx {
   }
 
   private readMemory(address: number): number {
+    //console.log('Read Mem: ' + ('0000' + address.toString(16)).slice(-4) + ' : ' + ('00' + (this.mappedMemory[address >> 14][address & 0x3fff]).toString(16)).slice(-2));
     return this.mappedMemory[address >> 14][address & 0x3fff];
   }
 
@@ -289,13 +292,13 @@ export class NanoMsx {
       }
     }
 
-    for (let page = 0; page < 4; page++) {
-      this.mappedMemory[page] = this.memory[0][page];
-    }
+    this.updadeSlots();
   }
 
   private mapSystemRom(rom: number[]): void {
     this.memory[0][0] = rom;
+
+    this.updadeSlots();
   }
 
   private pollkbd(): number {
@@ -327,7 +330,7 @@ export class NanoMsx {
       buf += '\n';
     }
 
-    if (buf == this.screenBuffer) {
+    if (buf != this.screenBuffer) {
       this.screenBuffer = buf;
       document.body.innerHTML = this.screenBuffer;
     }
