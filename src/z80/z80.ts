@@ -1,7 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Description: Emulation of the Z80 / R800 processor
-//
 // This program is free software; you can redistribute it and / or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
@@ -45,11 +43,17 @@
 // - R800 vs Z80 timing sheet, Tobias Keizer 2004
 
 
-// Frequency of the system clock.
-const MASTER_FREQUENCY = 21477270;
-
 // CPU modes
-enum Z80Mode { UNKNOWN, Z80, R800 }
+export enum Z80Mode { UNKNOWN, Z80, R800 }
+
+// Interrupt states
+const INT_LOW = 0;
+const INT_EDGE = 1;
+const INT_HIGH = 2;
+
+// CPU flags
+export const CPU_VDP_IO_DELAY = 1;
+export const CPU_ENABLE_M1 = 2;
 
 // Status flags.
 const C_FLAG = 0x01;
@@ -62,14 +66,8 @@ const Y_FLAG = 0x20;
 const Z_FLAG = 0x40;
 const S_FLAG = 0x80;
 
-// Interrupt states
-const INT_LOW = 0;
-const INT_EDGE = 1;
-const INT_HIGH = 2;
-
-// CPU flags
-const CPU_VDP_IO_DELAY = 1;
-const CPU_ENABLE_M1 = 2;
+// Frequency of the system clock.
+const MASTER_FREQUENCY = 21477270;
 
 class Register {
   get(): number { return this.v; }
@@ -95,8 +93,8 @@ class RegisterPair {
   get h(): Register { return this.regH; }
   get l(): Register { return this.regL; }
 
-  private regH: Register;
-  private regL: Register;
+  private regH: Register = new Register();
+  private regL: Register = new Register();
 }
 
 class RegisterBank {
@@ -140,22 +138,22 @@ class RegisterBank {
   get R(): Register { return this.r; }
   get R2(): Register { return this.r2; }
 
-  private af: RegisterPair;
-  private bc: RegisterPair;
-  private de: RegisterPair;
-  private hl: RegisterPair;
-  private ix: RegisterPair;
-  private iy: RegisterPair;
-  private pc: RegisterPair;
-  private sp: RegisterPair;
-  private af1: RegisterPair;
-  private bc1: RegisterPair;
-  private de1: RegisterPair;
-  private hl1: RegisterPair;
-  private sh: RegisterPair;
-  private i: Register;
-  private r: Register;
-  private r2: Register;
+  private af: RegisterPair = new RegisterPair();
+  private bc: RegisterPair = new RegisterPair();
+  private de: RegisterPair = new RegisterPair();
+  private hl: RegisterPair = new RegisterPair();
+  private ix: RegisterPair = new RegisterPair();
+  private iy: RegisterPair = new RegisterPair();
+  private pc: RegisterPair = new RegisterPair();
+  private sp: RegisterPair = new RegisterPair();
+  private af1: RegisterPair = new RegisterPair();
+  private bc1: RegisterPair = new RegisterPair();
+  private de1: RegisterPair = new RegisterPair();
+  private hl1: RegisterPair = new RegisterPair();
+  private sh: RegisterPair = new RegisterPair();
+  private i: Register = new Register();
+  private r: Register = new Register();
+  private r2: Register = new Register();
 
   iff1: number = 0;
   iff2: number = 0;
@@ -166,41 +164,121 @@ class RegisterBank {
 
 // Instruction delay constants. 
 class Z80Delay {
-  MEM: number;
-  MEMOP: number;
-  MEMPAGE: number;
-  PREIO: number;
-  POSTIO: number;
-  M1: number;
-  XD: number;
-  IM: number;
-  IM2: number;
-  NMI: number;
-  PARALLEL: number;
-  BLOCK: number;
-  ADD8: number;
-  ADD16: number;
-  BIT: number;
-  CALL: number;
-  DJNZ: number;
-  EXSPHL: number;
-  LD: number;
-  LDI: number;
-  INC: number;
-  INC16: number;
-  INOUT: number;
-  MUL8: number;
-  MUL16: number;
-  PUSH: number;
-  RET: number;
-  RLD: number;
-  S1990VDP: number;
-  T9769VDP: number;
-  LDSPHL: number;
-  BITIX: number;
+  MEM: number = 0;
+  MEMOP: number = 0;
+  MEMPAGE: number = 0;
+  PREIO: number = 0;
+  POSTIO: number = 0;
+  M1: number = 0;
+  XD: number = 0;
+  IM: number = 0;
+  IM2: number = 0;
+  NMI: number = 0;
+  PARALLEL: number = 0;
+  BLOCK: number = 0;
+  ADD8: number = 0;
+  ADD16: number = 0;
+  BIT: number = 0;
+  CALL: number = 0;
+  DJNZ: number = 0;
+  EXSPHL: number = 0;
+  LD: number = 0;
+  LDI: number = 0;
+  INC: number = 0;
+  INC16: number = 0;
+  INOUT: number = 0;
+  MUL8: number = 0;
+  MUL16: number = 0;
+  PUSH: number = 0;
+  RET: number = 0;
+  RLD: number = 0;
+  S1990VDP: number = 0;
+  T9769VDP: number = 0;
+  LDSPHL: number = 0;
+  BITIX: number = 0;
+
+  reset(cpuMode: Z80Mode, cpuFrequency: number, cpuFlags: number): void {
+    switch (cpuMode) {
+      case Z80Mode.Z80:
+      default: {
+        const freqAdjust = MASTER_FREQUENCY / (cpuFrequency - 1);
+
+        this.MEM = freqAdjust * 3;
+        this.MEMOP = freqAdjust * 3;
+        this.MEMPAGE = freqAdjust * 0;
+        this.PREIO = freqAdjust * 1;
+        this.POSTIO = freqAdjust * 3;
+        this.M1 = freqAdjust * ((cpuFlags & CPU_ENABLE_M1) ? 2 : 0);
+        this.XD = freqAdjust * 1;
+        this.IM = freqAdjust * 2; // should be 4, but currently will break vdp timing
+        this.IM2 = freqAdjust * 19;
+        this.NMI = freqAdjust * 11;
+        this.PARALLEL = freqAdjust * 2;
+        this.BLOCK = freqAdjust * 5;
+        this.ADD8 = freqAdjust * 5;
+        this.ADD16 = freqAdjust * 7;
+        this.BIT = freqAdjust * 1;
+        this.CALL = freqAdjust * 1;
+        this.DJNZ = freqAdjust * 1;
+        this.EXSPHL = freqAdjust * 3;
+        this.LD = freqAdjust * 1;
+        this.LDI = freqAdjust * 2;
+        this.INC = freqAdjust * 1;
+        this.INC16 = freqAdjust * 2;
+        this.INOUT = freqAdjust * 1;
+        this.MUL8 = freqAdjust * 0;
+        this.MUL16 = freqAdjust * 0;
+        this.PUSH = freqAdjust * 1;
+        this.RET = freqAdjust * 1;
+        this.RLD = freqAdjust * 4;
+        this.S1990VDP = freqAdjust * 0;
+        this.T9769VDP = freqAdjust * ((cpuFlags & CPU_VDP_IO_DELAY) ? 1 : 0);
+        this.LDSPHL = freqAdjust * 2;
+        this.BITIX = freqAdjust * 2;
+        break;
+      }
+      case Z80Mode.R800: {
+        const freqAdjust = MASTER_FREQUENCY / (cpuFrequency * 2 - 1);
+
+        this.MEM = freqAdjust * 2;
+        this.MEMOP = freqAdjust * 1;
+        this.MEMPAGE = freqAdjust * 1;
+        this.PREIO = freqAdjust * 0;
+        this.POSTIO = freqAdjust * 3;
+        this.M1 = freqAdjust * 0;
+        this.XD = freqAdjust * 0;
+        this.IM = freqAdjust * 0;
+        this.IM2 = freqAdjust * 3;
+        this.NMI = freqAdjust * 0;
+        this.PARALLEL = freqAdjust * 0;
+        this.BLOCK = freqAdjust * 1;
+        this.ADD8 = freqAdjust * 1;
+        this.ADD16 = freqAdjust * 0;
+        this.BIT = freqAdjust * 0;
+        this.CALL = freqAdjust * 0;
+        this.DJNZ = freqAdjust * 0;
+        this.EXSPHL = freqAdjust * 0;
+        this.LD = freqAdjust * 0;
+        this.LDI = freqAdjust * 0;
+        this.INC = freqAdjust * 1;
+        this.INC16 = freqAdjust * 0;
+        this.INOUT = freqAdjust * 0;
+        this.MUL8 = freqAdjust * 12;
+        this.MUL16 = freqAdjust * 34;
+        this.PUSH = freqAdjust * 1;
+        this.RET = freqAdjust * 0;
+        this.RLD = freqAdjust * 1;
+        this.S1990VDP = freqAdjust * 57;
+        this.T9769VDP = freqAdjust * ((cpuFlags & CPU_VDP_IO_DELAY) ? 1 : 0);
+        this.LDSPHL = freqAdjust * 0;
+        this.BITIX = freqAdjust * 0;
+        break;
+      }
+    }
+  }
 }
 
-class Z80 {
+export class Z80 {
   constructor(
     cpuFlags: number,
     readMemCb: (a: number) => number,
@@ -211,20 +289,11 @@ class Z80 {
   ) {
     this.cpuFlags = cpuFlags;
 
-    this.systemTime = 0;
-    this.lastVdpAccessTime = 0;
-    this.lastRefreshTime = 0;
-
     this.readMemCb = readMemCb;
     this.writeMemCb = writeMemCb;
     this.readIoCb = readIoCb;
     this.writeIoCb = writeIoCb;
     this.timeoutCb = timeoutCb;
-
-    this.frequencyZ80 = 3579545;
-    this.frequencyR800 = 7159090;
-
-    this.terminateFlag = false;
 
     this.initTables();
     this.reset();
@@ -384,33 +453,31 @@ class Z80 {
     this.terminateFlag = true;
   }
 
-  private regs: RegisterBank;
-  private regBankZ80: RegisterBank;
-  private regBankR800: RegisterBank;
-  private systemTime: number;
-  private lastRefreshTime: number;
-  private lastVdpAccessTime: number;
-  private cachePage: number;
-  private dataBus: number;
-  private defaultDataBus: number;
+  private regs: RegisterBank = new RegisterBank();
+  private regBankZ80: RegisterBank = new RegisterBank();
+  private regBankR800: RegisterBank = new RegisterBank();
+  private systemTime: number = 0;
+  private lastRefreshTime: number = 0;
+  private lastVdpAccessTime: number = 0;
+  private cachePage: number = 0;
+  private dataBus: number = 0;
+  private defaultDataBus: number = 0;
   private cpuFlags: number;
-  private intState: number;
-  private nmiState: number;
-  private nmiEdge: boolean;
-  private frequencyZ80: number;
-  private frequencyR800: number;
-  private cpuMode: Z80Mode;
-  private oldCpuMode: Z80Mode;
-  private instCount: number;
-  private terminateFlag: boolean;
-  private timeout: number;
+  private intState: number = 0;
+  private nmiState: number = 0;
+  private nmiEdge: boolean = false;
+  private frequencyZ80: number = 3579545;
+  private cpuMode: Z80Mode = Z80Mode.Z80;
+  private oldCpuMode: Z80Mode = Z80Mode.UNKNOWN;
+  private terminateFlag: boolean = false;
+  private timeout: number = 0;
 
-  private delay: Z80Delay;
+  private delay: Z80Delay = new Z80Delay();
 
-  private ZSXYTable: number[];
-  private ZSPXYTable: number[];
-  private ZSPHTable: number[];
-  private DAATable: number[];
+  private ZSXYTable: number[] = new Array<number>(256);
+  private ZSPXYTable: number[] = new Array<number>(256);
+  private ZSPHTable: number[] = new Array<number>(256);
+  private DAATable: number[] = new Array<number>(0x800);
 
   // Callback functions for reading and writing memory and IO
   private readMemCb: (a: number) => number;
@@ -494,90 +561,10 @@ class Z80 {
 
     this.oldCpuMode = Z80Mode.UNKNOWN;
 
-    this.initFrequencies();
+    this.delay.reset(this.cpuMode, this.frequencyZ80, this.cpuFlags);
   }
 
-  private initFrequencies(): void {
-    switch (this.cpuMode) {
-      case Z80Mode.Z80:
-      default: {
-        const freqAdjust = MASTER_FREQUENCY / (this.frequencyZ80 - 1);
-
-        this.delay.MEM = freqAdjust * 3;
-        this.delay.MEMOP = freqAdjust * 3;
-        this.delay.MEMPAGE = freqAdjust * 0;
-        this.delay.PREIO = freqAdjust * 1;
-        this.delay.POSTIO = freqAdjust * 3;
-        this.delay.M1 = freqAdjust * ((this.cpuFlags & CPU_ENABLE_M1) ? 2 : 0);
-        this.delay.XD = freqAdjust * 1;
-        this.delay.IM = freqAdjust * 2; // should be 4, but currently will break vdp timing
-        this.delay.IM2 = freqAdjust * 19;
-        this.delay.NMI = freqAdjust * 11;
-        this.delay.PARALLEL = freqAdjust * 2;
-        this.delay.BLOCK = freqAdjust * 5;
-        this.delay.ADD8 = freqAdjust * 5;
-        this.delay.ADD16 = freqAdjust * 7;
-        this.delay.BIT = freqAdjust * 1;
-        this.delay.CALL = freqAdjust * 1;
-        this.delay.DJNZ = freqAdjust * 1;
-        this.delay.EXSPHL = freqAdjust * 3;
-        this.delay.LD = freqAdjust * 1;
-        this.delay.LDI = freqAdjust * 2;
-        this.delay.INC = freqAdjust * 1;
-        this.delay.INC16 = freqAdjust * 2;
-        this.delay.INOUT = freqAdjust * 1;
-        this.delay.MUL8 = freqAdjust * 0;
-        this.delay.MUL16 = freqAdjust * 0;
-        this.delay.PUSH = freqAdjust * 1;
-        this.delay.RET = freqAdjust * 1;
-        this.delay.RLD = freqAdjust * 4;
-        this.delay.S1990VDP = freqAdjust * 0;
-        this.delay.T9769VDP = freqAdjust * ((this.cpuFlags & CPU_VDP_IO_DELAY) ? 1 : 0);
-        this.delay.LDSPHL = freqAdjust * 2;
-        this.delay.BITIX = freqAdjust * 2;
-        break;
-      }
-      case Z80Mode.R800: {
-        const freqAdjust = MASTER_FREQUENCY / (this.frequencyR800 - 1);
-
-        this.delay.MEM = freqAdjust * 2;
-        this.delay.MEMOP = freqAdjust * 1;
-        this.delay.MEMPAGE = freqAdjust * 1;
-        this.delay.PREIO = freqAdjust * 0;
-        this.delay.POSTIO = freqAdjust * 3;
-        this.delay.M1 = freqAdjust * 0;
-        this.delay.XD = freqAdjust * 0;
-        this.delay.IM = freqAdjust * 0;
-        this.delay.IM2 = freqAdjust * 3;
-        this.delay.NMI = freqAdjust * 0;
-        this.delay.PARALLEL = freqAdjust * 0;
-        this.delay.BLOCK = freqAdjust * 1;
-        this.delay.ADD8 = freqAdjust * 1;
-        this.delay.ADD16 = freqAdjust * 0;
-        this.delay.BIT = freqAdjust * 0;
-        this.delay.CALL = freqAdjust * 0;
-        this.delay.DJNZ = freqAdjust * 0;
-        this.delay.EXSPHL = freqAdjust * 0;
-        this.delay.LD = freqAdjust * 0;
-        this.delay.LDI = freqAdjust * 0;
-        this.delay.INC = freqAdjust * 1;
-        this.delay.INC16 = freqAdjust * 0;
-        this.delay.INOUT = freqAdjust * 0;
-        this.delay.MUL8 = freqAdjust * 12;
-        this.delay.MUL16 = freqAdjust * 34;
-        this.delay.PUSH = freqAdjust * 1;
-        this.delay.RET = freqAdjust * 0;
-        this.delay.RLD = freqAdjust * 1;
-        this.delay.S1990VDP = freqAdjust * 57;
-        this.delay.T9769VDP = freqAdjust * ((this.cpuFlags & CPU_VDP_IO_DELAY) ? 1 : 0);
-        this.delay.LDSPHL = freqAdjust * 0;
-        this.delay.BITIX = freqAdjust * 0;
-        break;
-      }
-    }
-  }
-
-  private  byteToSignedInt(v: number): number {
+  private byteToSignedInt(v: number): number {
     if (v > 127) v -= 256;
     return v;
   }
