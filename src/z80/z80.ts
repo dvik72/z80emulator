@@ -370,11 +370,11 @@ export class Z80 {
 
   // Sets a timeout at the given time. When CPU execution reaches
   // the time, the timer callback method will be called.
-  setTimeoutAt(time: number) {
+  setTimeoutAt(time: number): void {
     this.timeout = time;
   }
 
-  // Execites CPU instructions until the stopExecution method is called.
+  // Executes CPU instructions until the stopExecution method is called.
   execute(): void {
     while (!this.terminateFlag) {
       if ((this.timeout - this.systemTime >> 31) > 0) {
@@ -449,7 +449,7 @@ export class Z80 {
   }
 
   // Stops the execution of the z80 emulation.
-  stopExecution() {
+  stopExecution(): void {
     this.terminateFlag = true;
   }
 
