@@ -23,11 +23,11 @@ export class MapperRamNormal {
   constructor(slotManager: SlotManager, slot: number, sslot: number, startPage: number, size: number) {
     let pages = size / 0x2000;
     while (pages--) {
-      let slotInfo = new Slot();
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = 0xff;
       }
+      let slotInfo = new Slot('RAM Normal - ' + startPage);
       slotInfo.map(true, true, pageData);
       slotManager.registerSlot(slot, sslot, startPage, slotInfo);
       startPage++;

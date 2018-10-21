@@ -20,9 +20,10 @@ const EMPTY_RAM: number[] = new Array<number>(0x4000);
 
 export class Slot {
   constructor(
-    readCb?: (a: number) => number,
-    writeCb?: (a: number, v: number) => void,
-    ejectCb?: () => void) {
+    private description: string,
+    public readCb?: (a: number) => number,
+    public writeCb?: (a: number, v: number) => void,
+    public ejectCb?: () => void) {
     this.readCb = readCb;
     this.writeCb = writeCb;
     this.ejectCb = ejectCb;
@@ -40,19 +41,15 @@ export class Slot {
     this.readEnable = false;
   }
 
-  readCb?: (a: number) => number;
-  writeCb?: (a: number, v: number) => void;
-  ejectCb?: () => void;
-
-  pageData = EMPTY_RAM;
-  writeEnable = false;
-  readEnable = false;
+  public pageData = EMPTY_RAM;
+  public writeEnable = false;
+  public readEnable = false;
 }
 
 class RamSlot {
   slot = 0;
   sslot = 0;
-  slotInfo = new Slot();
+  slotInfo = new Slot('Undefined');
 }
 
 class SlotState {
@@ -85,7 +82,7 @@ export class SlotManager {
       for (let j = 0; j < 4; j++) {
         this.slotTable[i][j] = new Array<Slot>(8);
         for (let k = 0; k < 8; k++) {
-          this.slotTable[i][j][k] = new Slot();
+          this.slotTable[i][j][k] = new Slot('Unmapped');
         }
       }
     }

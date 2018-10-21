@@ -23,11 +23,11 @@ export class MapperRomBasic {
     let pages = romData.length + 0x1fff >> 13;
     let romIndex = 0;
     while (pages--) {
-      let slotInfo = new Slot();
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romData[romIndex++] | 0;
       }
+      let slotInfo = new Slot('ROM Basic - ' + startPage);
       slotInfo.map(true, false, pageData);
       slotManager.registerSlot(slot, sslot, startPage, slotInfo);
       startPage++;

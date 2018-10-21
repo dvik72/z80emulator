@@ -44,7 +44,7 @@ export class NanoMsx {
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomBasic(this.slotManager, 0, 0, 0, msxDosRom);
-    this.ram = new MapperRamNormal(this.slotManager, 0, 3, 0, 0x10000);
+    this.ram = new MapperRamNormal(this.slotManager, 3, 0, 0, 0x10000);
 
     this.z80Timeout = this.z80Frequency / 50 | 0;
     this.emuTime = this.gettime();
