@@ -81,8 +81,6 @@ export class NanoMsx {
   private frameCounter = 0;
   private syncTime = 0;
   private emuTime = 0;
-  private keyPressed = 0xffff;
-  private verbose = 0;
   private normalSpeed = 0;
   private vramDirtyFlag = 1;
 

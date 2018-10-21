@@ -21,7 +21,7 @@ import { I8255 } from './i8255';
 
 export class MsxPpi {
   constructor(
-    private mapMemorySlot: (s: number, p: number) => void, ) {
+    private mapMemorySlot?: (s: number, p: number) => void, ) {
     this.readA = this.readA.bind(this);
     this.readB = this.readB.bind(this);
     this.readCLo = this.readCLo.bind(this);
@@ -59,7 +59,7 @@ export class MsxPpi {
     if (value != this.regA) {
       this.regA = value;
       for (let i = 0; i < 4; i++) {
-        this.mapMemorySlot(i, value & 3);
+        this.mapMemorySlot ? this.mapMemorySlot(i, value & 3) : 0;
         value >>= 2;
       }
     }

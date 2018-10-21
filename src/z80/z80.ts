@@ -395,13 +395,13 @@ export class Z80 {
       }
 
       // TODO: This is just debug support. Remove when done.
-      const dasm = new Z80Dasm(this.readMemCb);
-      const asm = ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ': ' + dasm.dasm(this.regs.PC.get());
-      const regs = ' AF: ' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC: ' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
-        ' DE: ' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL: ' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
-        ' IX: ' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY: ' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
-        ' I: ' + ('0000' + this.regs.I.get().toString(16)).slice(-2) + ' R: ' + ('0000' + this.regs.R.get().toString(16)).slice(-2);
-      if (1) {
+      if (0) {
+        const dasm = new Z80Dasm(this.readMemCb);
+        const asm = ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ': ' + dasm.dasm(this.regs.PC.get());
+        const regs = ' AF: ' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC: ' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
+          ' DE: ' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL: ' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
+          ' IX: ' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY: ' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
+          ' I: ' + ('0000' + this.regs.I.get().toString(16)).slice(-2) + ' R: ' + ('0000' + this.regs.R.get().toString(16)).slice(-2);
         console.log('     ' + regs);
         console.log(asm);
       }

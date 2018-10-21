@@ -19,7 +19,14 @@
 const EMPTY_RAM: number[] = new Array<number>(0x4000);
 
 export class Slot {
-  constructor(readCb?: (a: number) => number, writeCb?: (a: number, v: number) => void, ejectCb?: () => void) { }
+  constructor(
+    readCb?: (a: number) => number,
+    writeCb?: (a: number, v: number) => void,
+    ejectCb?: () => void) {
+    this.readCb = readCb;
+    this.writeCb = writeCb;
+    this.ejectCb = ejectCb;
+  }
 
   map(readEnable: boolean, writeEnable: boolean, pageData?: number[]) {
     this.pageData = pageData ? pageData : EMPTY_RAM;
@@ -33,9 +40,9 @@ export class Slot {
     this.readEnable = false;
   }
 
-  get readCb(): (a: number) => number { return this.readCb; }
-  get writeCb(): (a: number, v: number) => void { return this.writeCb; }
-  get ejectCb(): () => void { return this.ejectCb; }
+  readCb?: (a: number) => number;
+  writeCb?: (a: number, v: number) => void;
+  ejectCb?: () => void;
 
   pageData = EMPTY_RAM;
   writeEnable = false;
@@ -53,16 +60,17 @@ class SlotState {
     subslotted: boolean,
     state: number,
     substate: number,
-    sslReg: number) { }
-
-  get subslotted(): boolean { return this.subslotted; }
-  set subslotted(state: boolean) { this.subslotted = state; }
-  get state(): number { return this.state; }
-  set state(value: number) { this.state = value; }
-  get substate(): number { return this.substate; }
-  set substate(value: number) { this.substate = value; }
-  get sslReg(): number { return this.sslReg; }
-  set sslReg(value: number) { this.sslReg = value; }
+    sslReg: number) {
+    this.subslotted = subslotted;
+    this.state = state;
+    this.substate = substate;
+    this.sslReg = sslReg;
+  }
+  
+  subslotted = false;
+  state = 0;
+  substate = 0;
+  sslReg = 0;
 }
 
 export class SlotManager {
@@ -73,8 +81,8 @@ export class SlotManager {
       this.slotTable[i] = new Array<Slot[]>(4);
       for (let j = 0; j < 4; j++) {
         this.slotTable[i][j] = new Array<Slot>(8);
-        for (let k = 0; k < 4; k++) {
-          this.slotTable[i][j][k] = new Slot(undefined, undefined, undefined);
+        for (let k = 0; k < 8; k++) {
+          this.slotTable[i][j][k] = new Slot();
         }
       }
     }
