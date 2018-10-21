@@ -379,7 +379,7 @@ export class Z80 {
   // Executes CPU instructions until the stopExecution method is called.
   execute(): void {
     while (!this.terminateFlag) {
-      if (((this.timeout - this.systemTime & 0xfffffff) >> 27) > 0) {
+      if (((this.timeout - this.systemTime & 0xfffffff) >> 25) > 0) {
         this.timeoutCb();
       }
 
@@ -388,17 +388,23 @@ export class Z80 {
       }
 
       if (this.cpuMode === Z80Mode.R800) {
-        if ((this.systemTime - this.lastRefreshTime | 0) > 222 * 3) {
+        if ((this.systemTime - this.lastRefreshTime & 0xfffffff) > 222 * 3) {
           this.lastRefreshTime = this.systemTime;
           this.addSystemTime(20 * 3);
         }
       }
 
       // TODO: This is just debug support. Remove when done.
-      //const dasm = new Z80Dasm(this.readMemCb);
-      //const asm = dasm.dasm(this.regs.PC.get());
-      //console.log(asm);
-      
+      const dasm = new Z80Dasm(this.readMemCb);
+      const asm = ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ': ' + dasm.dasm(this.regs.PC.get());
+      const regs = ' AF: ' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC: ' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
+        ' DE: ' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL: ' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
+        ' IX: ' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY: ' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
+        ' I: ' + ('0000' + this.regs.I.get().toString(16)).slice(-2) + ' R: ' + ('0000' + this.regs.R.get().toString(16)).slice(-2);
+      if (1) {
+        console.log('     ' + regs);
+        console.log(asm);
+      }
       this.executeInstruction(this.readOpcode());
 
       if (this.regs.halt) {
@@ -628,7 +634,7 @@ export class Z80 {
     if (this.cpuMode === Z80Mode.R800) {
       this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) & 0xfffffff;
       if ((port & 0xf8) == 0x98) {
-        if ((this.systemTime - this.lastVdpAccessTime & 0xffffff) < this.delay.S1990VDP)
+        if ((this.systemTime - this.lastVdpAccessTime & 0xfffffff) < this.delay.S1990VDP)
           this.systemTime = this.lastVdpAccessTime + this.delay.S1990VDP;
         this.lastVdpAccessTime = this.systemTime;
       }
