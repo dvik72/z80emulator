@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Slot, SlotManager } from './slotmanager';
+import { Slot, SlotManager } from '../core/slotmanager';
 
 export class MapperRomBasic {
   constructor(slotManager: SlotManager, slot: number, sslot: number, startPage: number, romData: number[]) {

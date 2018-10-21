@@ -75,6 +75,9 @@ class SlotState {
 
 export class SlotManager {
   constructor() {
+    this.read = this.read.bind(this);
+    this.write = this.write.bind(this);
+
     for (let i = 0; i < 4; i++) this.pslot[i] = new SlotState(false, 0, 0, 0);
 
     for (let i = 0; i < 4; i++) {

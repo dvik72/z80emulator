@@ -25,7 +25,10 @@ export class I8255 {
     private readCLo: () => number,
     private writeCLo: (v: number) => void,
     private readCHi: () => number,
-    private writeCHi: (v: number) => void) { }
+    private writeCHi: (v: number) => void) {
+    this.read = this.read.bind(this);
+    this.write = this.write.bind(this);
+  }
 
   private regs = [0, 0, 0, 0];
 

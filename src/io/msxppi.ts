@@ -16,12 +16,15 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { IoManager, Port } from '../core/iomanager';
+import { SlotManager } from '../core/slotmanager';
 import { I8255 } from './i8255';
 
 
 export class MsxPpi {
   constructor(
-    private mapMemorySlot?: (s: number, p: number) => void, ) {
+    private ioManager: IoManager, 
+    private slotManager: SlotManager) {
     this.readA = this.readA.bind(this);
     this.readB = this.readB.bind(this);
     this.readCLo = this.readCLo.bind(this);
@@ -31,15 +34,11 @@ export class MsxPpi {
     this.writeCLo = this.writeCLo.bind(this);
     this.writeCHi = this.writeCHi.bind(this);
 
-    this.i8255 = new I8255(this.readA, this.writeA, this.readB, this.writeB, this.readCLo, this.writeCLo, this.readCHi, this.writeCHi)
-  }
-
-  read(port: number): number {
-    return this.i8255.read(port);
-  }
-
-  write(port: number, value: number): void {
-    this.i8255.write(port, value);
+    this.i8255 = new I8255(this.readA, this.writeA, this.readB, this.writeB, this.readCLo, this.writeCLo, this.readCHi, this.writeCHi);
+    this.ioManager.registerPort(0xa8, new Port(this.i8255.read, this.i8255.write));
+    this.ioManager.registerPort(0xa9, new Port(this.i8255.read, this.i8255.write));
+    this.ioManager.registerPort(0xaa, new Port(this.i8255.read, this.i8255.write));
+    this.ioManager.registerPort(0xab, new Port(this.i8255.read, this.i8255.write));
   }
 
   private row = 0;
@@ -59,7 +58,7 @@ export class MsxPpi {
     if (value != this.regA) {
       this.regA = value;
       for (let i = 0; i < 4; i++) {
-        this.mapMemorySlot ? this.mapMemorySlot(i, value & 3) : 0;
+        this.slotManager.setRamSlot(i, value & 3);
         value >>= 2;
       }
     }

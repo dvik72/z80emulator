@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Slot, SlotManager } from './slotmanager';
+import { Slot, SlotManager } from '../core/slotmanager';
 
 
 export class MapperRamNormal {
