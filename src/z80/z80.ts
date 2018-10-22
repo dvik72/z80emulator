@@ -376,6 +376,8 @@ export class Z80 {
     this.timeout = time;
   }
 
+  xxx = ['xx'];
+
   // Executes CPU instructions until the stopExecution method is called.
   execute(): void {
     while (!this.terminateFlag) {
@@ -395,9 +397,13 @@ export class Z80 {
       }
 
       // TODO: This is just debug support. Remove when done.
-      if (0) {
+      const dasm = new Z80Dasm(this.readMemCb);
+      const asmtxt = dasm.dasm(this.regs.PC.get());
+      let qq = false; for (let ww of this.xxx)ww == asmtxt?qq=true:0;
+      if (!qq) {this.xxx.push(asmtxt);
+//      if (0) {
         const dasm = new Z80Dasm(this.readMemCb);
-        const asm = ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ': ' + dasm.dasm(this.regs.PC.get());
+        const asm = ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ': ' + asmtxt;
         const regs = ' AF: ' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC: ' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
           ' DE: ' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL: ' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
           ' IX: ' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY: ' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
@@ -681,7 +687,7 @@ export class Z80 {
   }
 
   private RET(): void {
-    this.regs.SH.setLH(this.readMem(this.regs.SP.postInc()), this.regs.SP.postInc());
+    this.regs.SH.setLH(this.readMem(this.regs.SP.postInc()), this.readMem(this.regs.SP.postInc()));
     this.regs.PC.set(this.regs.SH.get());
   }
 
