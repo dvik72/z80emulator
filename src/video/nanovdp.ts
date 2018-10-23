@@ -28,6 +28,10 @@ export class NanoVdp {
     this.read = this.read.bind(this);
     this.write = this.write.bind(this);
 
+    for (let i = 0; i < 0x4000; i++) {
+      this.vram[i] = 0;
+    }
+
     this.ioManager.registerPort(0x98, new Port(this.read, this.write));
     this.ioManager.registerPort(0x99, new Port(this.read, this.write));
   }

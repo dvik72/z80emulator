@@ -23,6 +23,7 @@ import { MsxPpi } from '../io/msxppi';
 import { MapperRomBasic } from '../mappers/rombasic';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { NanoVdp } from '../video/nanovdp';
+import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxDosRom';
 
 
@@ -38,7 +39,8 @@ export class NanoMsx {
     
     this.timeout = this.timeout.bind(this);
     this.z80 = new Z80(CPU_VDP_IO_DELAY, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeout);
-    this.vdp = new NanoVdp(this.ioManager, this.z80);
+//    this.vdp = new NanoVdp(this.ioManager, this.z80);
+    this.vdp = new Vdp(this.ioManager, this.z80, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
   }
 
   run(): void {
@@ -52,6 +54,7 @@ export class NanoMsx {
     this.z80.setTimeoutAt(this.z80Timeout);
 
     this.msxPpi.reset();
+    this.vdp.reset();
 
     this.z80.reset();
     this.z80.execute();
@@ -59,7 +62,8 @@ export class NanoMsx {
 
   private ram?: MapperRamNormal;
   private msxRom?: MapperRomBasic;
-  private vdp: NanoVdp;
+//  private vdp: NanoVdp;
+  private vdp: Vdp;
 
   private z80Timeout = 0;
   private z80Frequency = 3579545;
@@ -81,10 +85,7 @@ export class NanoMsx {
       this.z80.setInt();
     }
 
-    if (this.vdp.isDirty() && (this.frameCounter & 3) == 0) {
-      this.vdp.clearDirty();
-      this.renderScreen();
-    }
+    this.renderScreen();
 
     if (this.normalSpeed) {
       const diffTime = this.syncTime - this.gettime();
@@ -135,12 +136,12 @@ export class NanoMsx {
       if (width == 32) {
         buf += '        ';
       }
-      buf += '\n';
+      buf += '#\n';
     }
 
     if (buf != this.screenBuffer) {
       this.screenBuffer = buf;
-      document.body.innerHTML = this.screenBuffer;
+      document.body.innerHTML = '<PRE STYLE="font-family: Courier; font-size: 12pt;">' + this.screenBuffer + '</PRE>';
     }
   }
 }

@@ -33,6 +33,9 @@ define(["require", "exports", "../core/iomanager"], function (require, exports, 
             this.vram = new Array(0x4000);
             this.read = this.read.bind(this);
             this.write = this.write.bind(this);
+            for (var i = 0; i < 0x4000; i++) {
+                this.vram[i] = 0;
+            }
             this.ioManager.registerPort(0x98, new iomanager_1.Port(this.read, this.write));
             this.ioManager.registerPort(0x99, new iomanager_1.Port(this.read, this.write));
         }
