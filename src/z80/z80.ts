@@ -1365,8 +1365,8 @@ export class Z80 {
   }
 
   private DI(): void {
-    this.regs.iff1 = 1;
-    this.regs.iff2 = 1;
+    this.regs.iff1 = 0;
+    this.regs.iff2 = 0;
   }
 
   private EI(): void {
