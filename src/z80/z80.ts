@@ -140,28 +140,28 @@ class RegisterBank {
   get R(): Register { return this.r; }
   get R2(): Register { return this.r2; }
 
-  private af: RegisterPair = new RegisterPair();
-  private bc: RegisterPair = new RegisterPair();
-  private de: RegisterPair = new RegisterPair();
-  private hl: RegisterPair = new RegisterPair();
-  private ix: RegisterPair = new RegisterPair();
-  private iy: RegisterPair = new RegisterPair();
-  private pc: RegisterPair = new RegisterPair();
-  private sp: RegisterPair = new RegisterPair();
-  private af1: RegisterPair = new RegisterPair();
-  private bc1: RegisterPair = new RegisterPair();
-  private de1: RegisterPair = new RegisterPair();
-  private hl1: RegisterPair = new RegisterPair();
-  private sh: RegisterPair = new RegisterPair();
-  private i: Register = new Register();
-  private r: Register = new Register();
-  private r2: Register = new Register();
+  private af = new RegisterPair();
+  private bc = new RegisterPair();
+  private de = new RegisterPair();
+  private hl = new RegisterPair();
+  private ix = new RegisterPair();
+  private iy = new RegisterPair();
+  private pc = new RegisterPair();
+  private sp = new RegisterPair();
+  private af1 = new RegisterPair();
+  private bc1 = new RegisterPair();
+  private de1 = new RegisterPair();
+  private hl1 = new RegisterPair();
+  private sh = new RegisterPair();
+  private i = new Register();
+  private r = new Register();
+  private r2 = new Register();
 
-  iff1: number = 0;
-  iff2: number = 0;
-  im: number = 0;
-  halt: boolean = false;
-  eiMode: number = 0;
+  iff1 = 0;
+  iff2 = 0;
+  im = 0;
+  halt = false;
+  interruptsEnabled = false;
 }
 
 // Instruction delay constants. 
@@ -330,6 +330,7 @@ export class Z80 {
     this.intState = INT_HIGH;
     this.nmiState = INT_HIGH;
     this.nmiEdge = false;
+    this.interruptsEnabled = false;
   }
 
   // Sets the CPU mode to either Z80 or R800
@@ -421,8 +422,8 @@ export class Z80 {
         continue;
       }
 
-      if (this.regs.eiMode) {
-        this.regs.eiMode = 0;
+      if (this.regs.interruptsEnabled) {
+        this.regs.interruptsEnabled = false;
         continue;
       }
 
@@ -476,24 +477,25 @@ export class Z80 {
     this.terminateFlag = true;
   }
 
-  private regs: RegisterBank = new RegisterBank();
-  private regBankZ80: RegisterBank = new RegisterBank();
-  private regBankR800: RegisterBank = new RegisterBank();
-  private systemTime: number = 0;
-  private lastRefreshTime: number = 0;
-  private lastVdpAccessTime: number = 0;
-  private cachePage: number = 0;
-  private dataBus: number = 0;
-  private defaultDataBus: number = 0;
-  private cpuFlags: number;
-  private intState: number = 0;
-  private nmiState: number = 0;
-  private nmiEdge: boolean = false;
-  private frequencyZ80: number = 3579545;
-  private cpuMode: Z80Mode = Z80Mode.Z80;
-  private oldCpuMode: Z80Mode = Z80Mode.UNKNOWN;
-  private terminateFlag: boolean = false;
-  private timeout: number = 0;
+  private regs = new RegisterBank();
+  private regBankZ80 = new RegisterBank();
+  private regBankR800 = new RegisterBank();
+  private systemTime = 0;
+  private lastRefreshTime = 0;
+  private lastVdpAccessTime = 0;
+  private cachePage = 0;
+  private dataBus = 0;
+  private defaultDataBus = 0;
+  private cpuFlags = 0;
+  private intState = 0;
+  private nmiState = 0;
+  private nmiEdge = false;
+  private interruptsEnabled = false;
+  private frequencyZ80 = 3579545;
+  private cpuMode = Z80Mode.Z80;
+  private oldCpuMode = Z80Mode.UNKNOWN;
+  private terminateFlag = false;
+  private timeout = 0;
 
   private delay: Z80Delay = new Z80Delay();
 
@@ -1370,7 +1372,7 @@ export class Z80 {
   private EI(): void {
     this.regs.iff2 = 1;
     this.regs.iff1 = 1;
-    this.regs.eiMode = 1;
+    this.regs.interruptsEnabled = true;
   }
 
   private RLD(): void {
