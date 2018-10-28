@@ -376,7 +376,7 @@ export class Z80 {
     this.timeout = time;
   }
 
-  xxx = ['xx'];
+  yyyy = 0; // TODO: Debug support
 
   // Executes CPU instructions until the stopExecution method is called.
   execute(): void {
@@ -397,22 +397,24 @@ export class Z80 {
       }
 
       // TODO: This is just debug support. Remove when done.
-      if (0) {
-        const dasm = new Z80Dasm(this.readMemCb);
-        const asmtxt = dasm.dasm(this.regs.PC.get());
-        let qq = false; for (let ww of this.xxx) ww == asmtxt ? qq = true : 0;
-        if (!qq) {
-          this.xxx.push(asmtxt);
-          const dasm = new Z80Dasm(this.readMemCb);
-          const asm = ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ': ' + asmtxt;
-          const regs = ' AF: ' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC: ' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
-            ' DE: ' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL: ' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
-            ' IX: ' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY: ' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
-            ' I: ' + ('0000' + this.regs.I.get().toString(16)).slice(-2) + ' R: ' + ('0000' + this.regs.R.get().toString(16)).slice(-2);
-          console.log('     ' + regs);
-          console.log(asm);
+      if (1) {
+        const start = 550000;
+        if (this.yyyy < start + 10000) {
+          if (this.yyyy >= start) {
+            const dasm = new Z80Dasm(this.readMemCb);
+            const asm = dasm.dasm(this.regs.PC.get());
+            const regs =
+              ' AF:' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC:' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
+              ' DE:' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL:' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
+              ' IX:' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY:' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
+              ' PC:' + ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ' SH:' + ('0000' + this.regs.SH.get().toString(16)).slice(-4) +
+              ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2);
+            console.log(asm + ' ' + regs);
+          }
+          this.yyyy++;
         }
       }
+
       this.executeInstruction(this.readOpcode());
 
       if (this.regs.halt) {
@@ -722,7 +724,6 @@ export class Z80 {
   private LD_XBYTE_R(r: Register): void {
     const addr = new RegisterPair();
     addr.setLH(this.readOpcode(), this.readOpcode());
-    r.set(this.readMem(addr.get()));
     this.regs.SH.set(r.get() << 8);
     this.writeMem(addr.get(), r.get());
   }
@@ -1600,8 +1601,8 @@ export class Z80 {
       case 0x29: /* add_hl_hl */ this.ADDW(this.regs.HL, this.regs.HL); break;
       case 0x2a: /* ld_hl_xword */ this.LD_R_XWORD(this.regs.HL); break;
       case 0x2b: /* dec_hl */ this.DECW(this.regs.HL); break;
-      case 0x2c: /* inc_h */ this.INC(this.regs.HL.l); break;
-      case 0x2d: /* dec_h */ this.DEC(this.regs.HL.l); break;
+      case 0x2c: /* inc_l */ this.INC(this.regs.HL.l); break;
+      case 0x2d: /* dec_l */ this.DEC(this.regs.HL.l); break;
       case 0x2e: /* ld_l_byte */ this.regs.HL.l.set(this.readOpcode()); break;
       case 0x2f: /* cpl */ this.CPL(); break;
       case 0x30: /* jr_nc */ this.COND_JR(C_FLAG, false); break;

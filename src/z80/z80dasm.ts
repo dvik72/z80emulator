@@ -271,13 +271,13 @@ export class Z80Dasm {
           dest += r;
           break;
         case '!':
-          dest += 'db     #ED, #' + this.hex(val1, 2);
+          dest += 'db     #ED, ' + this.hex(val1, 2);
           return dest; // 2
         case '@':
-          dest += 'db     #' + this.hex(val0, 2);
+          dest += 'db     ' + this.hex(val0, 2);
           return dest; // 1
         case '#':
-          dest += 'db     #' + this.hex(val0, 2) + ', #CB, #' + this.hex(val2, 2);
+          dest += 'db     ' + this.hex(val0, 2) + ', #CB, ' + this.hex(val2, 2);
           return dest; // 2
         case ' ': {
           let k = dest.length;
@@ -292,7 +292,7 @@ export class Z80Dasm {
     }
 
     let k = dest.length;
-    k = k < 6 ? 7 - k : 1;
+    k = k < 17 ? 18 - k : 1;
     dest += '                    '.substr(0, k);
 
     return dest;
@@ -307,7 +307,7 @@ export class Z80Dasm {
   }
 
   private hex(val: number, presicion: number): string {
-    return ('0000' + val.toString(16)).slice(-presicion);
+    return '#' + ('0000' + val.toString(16)).slice(-presicion);
   }
 
   private abs(val: number): number {
