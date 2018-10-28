@@ -16,8 +16,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Z80 } from '../z80/z80';
-import { IoManager, Port } from '../core/iomanager';
+import { Board } from '../core/board';
+import { Timer } from '../core/timeoutmanager';
+import { Port } from '../core/iomanager';
 
 
 export enum VdpVersion { V9938, V9958, TMS9929A, TMS99x8A };
@@ -50,14 +51,35 @@ const registerValueMaskMSX2p = [
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 ];
 
+const HPERIOD = 1368;
+
 export class Vdp {
   constructor(
-    private ioManager: IoManager,
-    private z80: Z80,
+    private board: Board,
     private version: VdpVersion,
     private syncMode: VdpSyncMode,
     private connectorType: VdpConnectorType,
-    private vramPages: number) {
+    private vramPages: number
+  ) {
+
+    this.onFrameChange = this.onFrameChange.bind(this);
+    this.frameTimer = board.getTimeoutManager().createTimer('Frame Change', this.onFrameChange);
+
+    this.onScreenModeChange = this.onScreenModeChange.bind(this);
+    this.screenModeChangeTimer = board.getTimeoutManager().createTimer('Screen Mode Change', this.onScreenModeChange);
+
+    this.onVStart = this.onVStart.bind(this);
+    this.vStartTimer = board.getTimeoutManager().createTimer('VStart', this.onVStart);
+
+    this.onVInt = this.onVInt.bind(this);
+    this.vIntTimer = board.getTimeoutManager().createTimer('VInt', this.onVInt);
+
+    this.onDrawAreaStart = this.onDrawAreaStart.bind(this);
+    this.drawAreaStartTimer = board.getTimeoutManager().createTimer('Draw Area Start', this.onDrawAreaStart);
+
+    this.onDrawAreaEnd = this.onDrawAreaEnd.bind(this);
+    this.drawAreaEndTimer = board.getTimeoutManager().createTimer('Draw Area End', this.onDrawAreaEnd);
+    
     this.vramSize       = this.vramPages << 14;
     this.vram192 = this.vramPages == 12;
     this.vram16 = this.vramPages == 1;
@@ -74,7 +96,7 @@ export class Vdp {
       this.vramPages = 8;
     }
 
-    this.vram128       = this.vramPages >= 8 ? 0x10000 : 0;
+    this.vram128 = this.vramPages >= 8 ? 0x10000 : 0;
     this.mask = (this.vramPages << 14) - 1;
 
     if (this.syncMode == VdpSyncMode.SYNC_AUTO) {
@@ -125,34 +147,34 @@ export class Vdp {
     this.writeLatch = this.writeLatch.bind(this);
     this.writePaletteLatch = this.writePaletteLatch.bind(this);
     this.writeRegister = this.writeRegister.bind(this);
-
+    
     switch (this.connectorType) {
       case VdpConnectorType.MSX:
-        this.ioManager.registerPort(0x98, new Port(this.read, this.write));
-        this.ioManager.registerPort(0x99, new Port(this.readStatus, this.writeLatch));
+        this.board.getIoManager().registerPort(0x98, new Port(this.read, this.write));
+        this.board.getIoManager().registerPort(0x99, new Port(this.readStatus, this.writeLatch));
         if (this.version == VdpVersion.V9938 || this.version == VdpVersion.V9958) {
-          this.ioManager.registerPort(0x9a, new Port(undefined, this.writePaletteLatch));
-          this.ioManager.registerPort(0x9b, new Port(undefined, this.writeRegister));
+          this.board.getIoManager().registerPort(0x9a, new Port(undefined, this.writePaletteLatch));
+          this.board.getIoManager().registerPort(0x9b, new Port(undefined, this.writeRegister));
         }
         break;
 
       case VdpConnectorType.SVI:
-        this.ioManager.registerPort(0x80, new Port(undefined, this.write));
-        this.ioManager.registerPort(0x81, new Port(undefined, this.writeLatch));
-        this.ioManager.registerPort(0x84, new Port(this.read, undefined));
-        this.ioManager.registerPort(0x85, new Port(this.readStatus, undefined));
+        this.board.getIoManager().registerPort(0x80, new Port(undefined, this.write));
+        this.board.getIoManager().registerPort(0x81, new Port(undefined, this.writeLatch));
+        this.board.getIoManager().registerPort(0x84, new Port(this.read, undefined));
+        this.board.getIoManager().registerPort(0x85, new Port(this.readStatus, undefined));
         break;
 
       case VdpConnectorType.COLECO:
         for (let i = 0xa0; i < 0xc0; i += 2) {
-          this.ioManager.registerPort(i, new Port(this.read, this.write));
-          this.ioManager.registerPort(i + 1, new Port(this.readStatus, this.writeLatch));
+          this.board.getIoManager().registerPort(i, new Port(this.read, this.write));
+          this.board.getIoManager().registerPort(i + 1, new Port(this.readStatus, this.writeLatch));
         }
         break;
 
       case VdpConnectorType.SG1000:
-        this.ioManager.registerPort(0xbe, new Port(this.read, this.write));
-        this.ioManager.registerPort(0xbf, new Port(this.readStatus, this.writeLatch));
+        this.board.getIoManager().registerPort(0xbe, new Port(this.read, this.write));
+        this.board.getIoManager().registerPort(0xbf, new Port(this.readStatus, this.writeLatch));
         break;
     }
   }
@@ -187,6 +209,11 @@ export class Vdp {
     this.vramAddress = 0;
     this.screenMode = 0;
     this.vramOffset = this.offsets[0];
+
+    this.isDrawArea = false;
+
+    this.onScreenModeChange();
+    this.onFrameChange();
   }
 
   private readVram(addr: number): number {
@@ -207,6 +234,8 @@ export class Vdp {
     }
     this.vdpKey = 0;
 
+//    console.log('R: ' + ('0000' + this.vramAddress.toString(16)).slice(-4) + ': "' + (value >= 32 && value < 126 ? String.fromCharCode(value) : value == 0xff ? '_' : ' ') + '"');
+
     return value;
   }
 
@@ -218,7 +247,8 @@ export class Vdp {
     if (this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A) {
       const status = this.status[0];
       this.status[0] &= 0x1f;
-      this.z80.clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+      this.board.getZ80().clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+//      console.log('RS: ' + ('0000' + status.toString(16)).slice(-2));
       return status;
     }
     
@@ -227,7 +257,7 @@ export class Vdp {
     switch (this.regs[15]) {
       case 0:
         this.status[0] &= 0x1f;
-        this.z80.clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+        this.board.getZ80().clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
         break;
       default:
         break;
@@ -243,6 +273,7 @@ export class Vdp {
     if (this.enable) {
       const index = this.getVramIndex((this.regs[14] << 14) | this.vramAddress);
       if (!(index & ~this.accMask)) {
+//        console.log('W: ' + ('0000' + index.toString(16)).slice(-4) + ': "' + (value >= 32 && value < 126 ? String.fromCharCode(value) : value == 0xff ? '_' : ' ') + '"');
         this.vram[index] = value;
       }
     }
@@ -258,6 +289,7 @@ export class Vdp {
     if (this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A) {
       if (this.vdpKey) {
         this.vramAddress = (value << 8 | (this.vramAddress & 0xff)) & 0x3fff;
+//        console.log('Addr HI ' + ('0000' + this.vramAddress.toString(16)).slice(-4));
         if (!(value & 0x40)) {
           if (value & 0x80) this.updateRegisters(value, this.vdpDataLatch);
           else this.read(port);
@@ -266,6 +298,7 @@ export class Vdp {
       }
       else {
         this.vramAddress = (this.vramAddress & 0x3f00) | value;
+//        console.log('Addr LO ' + ('0000' + this.vramAddress.toString(16)).slice(-4));
         this.vdpDataLatch = value;
         this.vdpKey = 1;
       }
@@ -312,10 +345,10 @@ export class Vdp {
       case 1:
         if (this.status[0] & 0x80) {
           if (value & 0x20) {
-            this.z80.setInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+            this.board.getZ80().setInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
           }
           else {
-            this.z80.clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+            this.board.getZ80().clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
           }
         }
 
@@ -332,7 +365,92 @@ export class Vdp {
     }
   }
 
+  private getCurrentScanline(): number {
+    return this.board.getTimeSince(this.frameStartTime) / HPERIOD | 0;
+  }
+
   private scheduleScrModeChange(): void {
+    const timeout = this.frameStartTime + HPERIOD * (1 + this.getCurrentScanline());
+    this.screenModeChangeTimer.setTimeout(timeout);
+  }
+
+  private scheduleNextFrame(): void {
+    const timeout = this.frameStartTime + HPERIOD * this.scanLineCount;
+    this.frameTimer.setTimeout(timeout);
+  }
+
+  private scheduleVStart(): void {
+    const timeout = this.frameStartTime + HPERIOD * (this.firstLine - 1) + this.leftBorder - 10;
+    this.vStartTimer.setTimeout(timeout);
+  }
+
+  private scheduleVInt(): void {
+    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 80) ? 212 : 192)) + this.leftBorder - 10;
+    this.vIntTimer.setTimeout(timeout);
+  }
+
+  private scheduleDrawAreaEnd(): void {
+    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 80) ? 212 : 192));
+    this.drawAreaEndTimer.setTimeout(timeout);
+  }
+
+  private scheduleDrawAreaStart(): void {
+    const timeout = this.frameStartTime + HPERIOD * ((this.isDrawArea ? 3 + 13 : this.firstLine) - 1) + this.leftBorder +
+      this.displayArea + 13;
+    this.drawAreaStartTimer.setTimeout(timeout);
+  }
+
+  private isPalVideo(): boolean {
+    return (this.regs[9] & 0x02) != 0;
+  }
+
+  private onFrameChange(): void {
+    const isPal = this.isPalVideo();
+
+    const adjust = -(this.regs[18] >> 4);
+    this.vAdjust = adjust < -8 ? adjust + 16 : adjust;
+    this.scanLineCount = isPal ? 313 : 262;
+    this.displayOffest = isPal ? 27 : 0;
+    const has212Scanlines = (this.regs[9] & 0x80) != 0;
+    this.firstLine = this.displayOffest + (has212Scanlines ? 14 : 24) + this.vAdjust;
+
+    if (!(this.regs[0] & 0x10)) {
+      //boardClearInt(INT_IE1);
+    }
+
+    this.status[2] ^= 0x02;
+    this.frameStartTime = this.frameTimer.timeout;
+
+    this.scheduleNextFrame();
+    this.scheduleVStart();
+    this.scheduleVInt();
+    this.scheduleDrawAreaStart();
+    this.scheduleDrawAreaEnd();
+  }
+
+  private onVInt(): void {
+    this.status[0] |= 0x80;
+    this.status[2] |= 0x40;
+
+    if (this.regs[1] & 0x20) {
+      this.board.getZ80().setInt();
+    }
+  }
+
+  private onVStart(): void {
+    this.status[2] &= ~0x40;
+  }
+
+  private onDrawAreaStart(): void {
+    this.isDrawArea = true;
+    this.status[2] &= ~0x40;
+  }
+
+  private onDrawAreaEnd(): void {
+    this.isDrawArea = false;
+  }
+  
+  private onScreenModeChange(): void {
     // TODO: Should schedule screen mode change at end of scanline. for now just switch right away.
     switch (((this.regs[0] & 0x0e) >> 1) | (this.regs[1] & 0x18)) {
       case 0x10: this.screenMode = 0; break;
@@ -356,6 +474,20 @@ export class Vdp {
         this.screenMode = 64;
         break;
     }
+
+    if (this.screenMode == 0 || this.screenMode == 13) {
+      this.displayArea = 960;
+      this.leftBorder = 102 + 92;
+    }
+    else {
+      this.displayArea = 1024;
+      this.leftBorder = 102 + 56;
+    }
+    
+    const adjust = -(this.regs[18] &0x0f);
+    this.hAdjust = adjust < -8 ? adjust + 16 : adjust;
+    this.leftBorder += this.hAdjust;
+
   }
 
   private writePaletteLatch(port: number, value: number): void {
@@ -388,5 +520,24 @@ export class Vdp {
   private screenMode = 1;
   private regs = new Array<number>(64);
   private status = new Array<number>(16);
+
+  private scanLineCount = 0;
+  private frameStartTime = 0;
+  private isDrawArea = false;
+  private firstLine = 0;
+  private lastLine = 0;
+  private displayOffest = 0;
+  private vAdjust = 0;
+  private hAdjust = 0;
+  private leftBorder = 0;
+  private displayArea = 0;
+  
+  private frameTimer: Timer;
+  private vIntTimer: Timer;
+  private vStartTimer: Timer;
+  private screenModeChangeTimer: Timer;
+  private drawAreaStartTimer: Timer;
+  private drawAreaEndTimer: Timer;
+
   private vram: number[];
 }

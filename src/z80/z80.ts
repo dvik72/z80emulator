@@ -48,6 +48,8 @@ import { Z80Dasm } from "./z80dasm";
 // CPU modes
 export enum Z80Mode { UNKNOWN, Z80, R800 }
 
+export const TIMER_RANGE = 0xfffffff;
+
 // Interrupt states
 const INT_LOW = 0;
 const INT_EDGE = 1;
@@ -69,7 +71,7 @@ const Z_FLAG = 0x40;
 const S_FLAG = 0x80;
 
 // Frequency of the system clock.
-const MASTER_FREQUENCY = 21477270;
+export const MASTER_FREQUENCY = 21477270;
 
 class Register {
   get(): number { return this.v; }
@@ -382,7 +384,7 @@ export class Z80 {
   // Executes CPU instructions until the stopExecution method is called.
   execute(): void {
     while (!this.terminateFlag) {
-      if (((this.timeout - this.systemTime & 0xfffffff) >> 25) > 0) {
+      if (((this.timeout - this.systemTime & TIMER_RANGE) >> 25) > 0) {
         this.timeoutCb();
       }
 
@@ -391,14 +393,14 @@ export class Z80 {
       }
 
       if (this.cpuMode === Z80Mode.R800) {
-        if ((this.systemTime - this.lastRefreshTime & 0xfffffff) > 222 * 3) {
+        if ((this.systemTime - this.lastRefreshTime & TIMER_RANGE) > 222 * 3) {
           this.lastRefreshTime = this.systemTime;
           this.addSystemTime(20 * 3);
         }
       }
 
       // TODO: This is just debug support. Remove when done.
-      if (1) {
+      if (0) {
         const start = 550000;
         if (this.yyyy < start + 10000) {
           if (this.yyyy >= start) {
@@ -512,8 +514,7 @@ export class Z80 {
   private timeoutCb: () => void;
 
   private addSystemTime(delta: number): void {
-    this.systemTime += delta;
-    this.systemTime &= 0xfffffff;
+    this.systemTime = this.systemTime + delta & TIMER_RANGE;
   }
 
   private initTables(): void {
@@ -644,9 +645,9 @@ export class Z80 {
       this.addSystemTime(this.delay.T9769VDP);
     }
     if (this.cpuMode === Z80Mode.R800) {
-      this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) & 0xfffffff;
+      this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) & TIMER_RANGE;
       if ((port & 0xf8) == 0x98) {
-        if ((this.systemTime - this.lastVdpAccessTime & 0xfffffff) < this.delay.S1990VDP)
+        if ((this.systemTime - this.lastVdpAccessTime & TIMER_RANGE) < this.delay.S1990VDP)
           this.systemTime = this.lastVdpAccessTime + this.delay.S1990VDP;
         this.lastVdpAccessTime = this.systemTime;
       }

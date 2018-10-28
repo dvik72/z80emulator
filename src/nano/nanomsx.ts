@@ -16,15 +16,18 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Z80, CPU_VDP_IO_DELAY } from '../z80/z80';
-import { IoManager, Port } from '../core/iomanager';
-import { SlotManager } from '../core/slotmanager';
+import { Board } from '../core/board';
+import { Timer } from '../core/timeoutmanager';
 import { MsxPpi } from '../io/msxppi';
+import { MsxPsg } from '../io/msxpsg';
 import { MapperRomBasic } from '../mappers/rombasic';
 import { MapperRamNormal } from '../mappers/ramnormal';
-import { NanoVdp } from '../video/nanovdp';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxDosRom';
+import { CPU_VDP_IO_DELAY, MASTER_FREQUENCY } from '../z80/z80';
+
+
+const REFRESH_FREQUENCY = MASTER_FREQUENCY / 50 | 0;
 
 
 // Minimal functional emulation of MSX. 
@@ -32,98 +35,45 @@ import { msxDosRom } from './msxDosRom';
 // to run dos programs and cartridges up to 64kB.
 export class NanoMsx {
   constructor() {
-    this.ioManager = new IoManager(true);
-    this.slotManager = new SlotManager();
+    this.renderScreen = this.renderScreen.bind(this);
+
+    this.board = new Board(CPU_VDP_IO_DELAY, false);
+
+    this.displayTimer = this.board.getTimeoutManager().createTimer('Render Screen', this.renderScreen);
+
+    this.msxPpi = new MsxPpi(this.board.getIoManager(), this.board.getSlotManager());
     
-    this.msxPpi = new MsxPpi(this.ioManager, this.slotManager);
-    
-    this.timeout = this.timeout.bind(this);
-    this.z80 = new Z80(CPU_VDP_IO_DELAY, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeout);
-//    this.vdp = new NanoVdp(this.ioManager, this.z80);
-    this.vdp = new Vdp(this.ioManager, this.z80, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
+    this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
+    this.msxpsg = new MsxPsg(this.board.getIoManager(), 2);
   }
 
   run(): void {
     // Initialize MSX 1 machine configuration
-    this.msxRom = new MapperRomBasic(this.slotManager, 0, 0, 0, msxDosRom);
-    this.ram = new MapperRamNormal(this.slotManager, 3, 0, 0, 0x10000);
-
-    this.z80Timeout = this.z80Frequency / 50 | 0;
-    this.emuTime = this.gettime();
-    this.syncTime = this.emuTime + 20000;
-    this.z80.setTimeoutAt(this.z80Timeout);
+    this.msxRom = new MapperRomBasic(this.board.getSlotManager(), 0, 0, 0, msxDosRom);
+    this.ram = new MapperRamNormal(this.board.getSlotManager(), 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();
     this.vdp.reset();
+    this.msxpsg.reset();
 
-    this.z80.reset();
-    this.z80.execute();
+    this.displayTimer.setTimeout(REFRESH_FREQUENCY);
+
+    this.board.run();
   }
 
+  private board: Board;
+  private displayTimer: Timer;
   private ram?: MapperRamNormal;
   private msxRom?: MapperRomBasic;
-//  private vdp: NanoVdp;
   private vdp: Vdp;
-
-  private z80Timeout = 0;
-  private z80Frequency = 3579545;
-  private frameCounter = 0;
-  private syncTime = 0;
-  private emuTime = 0;
-  private normalSpeed = 0;
-
-  private ioManager: IoManager;
-  private slotManager: SlotManager;
+  private msxpsg: MsxPsg;
   private msxPpi: MsxPpi;
-  private z80: Z80;
 
   private screenBuffer: string = '';
 
-  private timeout(): void {
-    this.vdp.setStatusBit(0x80);
-    if (this.vdp.getRegister(1) & 0x20) {
-      this.z80.setInt();
-    }
-
-    this.renderScreen();
-
-    if (this.normalSpeed) {
-      const diffTime = this.syncTime - this.gettime();
-      if (diffTime > 0) {
-        this.delay(diffTime / 1000);
-      }
-      this.syncTime += 20000;
-    }
-
-    if (++this.frameCounter == 50) {
-      const diffTime = this.gettime() - this.emuTime;
-
-      this.frameCounter = 0;
-
-      if (!this.normalSpeed) {
-//        this.z80Frequency = this.z80Frequency * 1000000 / diffTime;
-      }
-      this.emuTime += diffTime;
-    }
-
-    this.z80Timeout = this.z80Timeout + this.z80Frequency / 50 & 0xfffffff;
-    this.z80.setTimeoutAt(this.z80Timeout);
-  }
-
-  private pollkbd(): number {
-    return 0;
-  }
-
-  private gettime(): number {
-    return new Date().getTime();
-  }
-
-  private delay(ms: number): void {
-//    const wait = (ms) => new Promise(res => setTimeout(res, ms));
-//    await wait(ms);
-  }
-
   private renderScreen() {
+    this.displayTimer.addTimeout(REFRESH_FREQUENCY);
+
     const width = (this.vdp.getRegister(1) & 0x10) ? 40 : 32;
     let offset = (this.vdp.getRegister(2) & 0x0f) << 10;
     let buf = '';

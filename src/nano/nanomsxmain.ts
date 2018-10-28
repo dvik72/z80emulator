@@ -16,10 +16,11 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { NanoMsx } from "./nanomsx"
+import { NanoMsx } from "../nano/nanomsx"
 
 require(['NanoMsx'],
   (main: any) => {
+//    let i = 0; while (i == 0) { }
     let nanoMsx = new NanoMsx();
     nanoMsx.run();
   }
