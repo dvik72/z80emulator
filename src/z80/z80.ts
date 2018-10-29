@@ -382,8 +382,14 @@ export class Z80 {
   yyyy = 0; // TODO: Debug support
 
   // Executes CPU instructions until the stopExecution method is called.
-  execute(): void {
+  execute(cpuCycles?: number): void {
+    let startingSystemTime = this.systemTime;
+
     while (!this.terminateFlag) {
+      if (cpuCycles && (this.systemTime - startingSystemTime & TIMER_RANGE) >= cpuCycles) {
+        break;
+      }
+
       if (((this.timeout - this.systemTime & TIMER_RANGE) >> 25) > 0) {
         this.timeoutCb();
       }

@@ -27,26 +27,21 @@ import { msxDosRom } from './msxDosRom';
 import { CPU_VDP_IO_DELAY, MASTER_FREQUENCY } from '../z80/z80';
 
 
-const REFRESH_FREQUENCY = MASTER_FREQUENCY / 50 | 0;
-
-
 // Minimal functional emulation of MSX. 
 // The emulation is not complete, but it includes enough features
 // to run dos programs and cartridges up to 64kB.
 export class NanoMsx {
   constructor() {
-    this.renderScreen = this.renderScreen.bind(this);
+    this.runStep = this.runStep.bind(this);
 
     this.board = new Board(CPU_VDP_IO_DELAY, false);
-
-    this.displayTimer = this.board.getTimeoutManager().createTimer('Render Screen', this.renderScreen);
-
+    
     this.msxPpi = new MsxPpi(this.board.getIoManager(), this.board.getSlotManager());
     
     this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
     this.msxpsg = new MsxPsg(this.board.getIoManager(), 2);
   }
-
+  
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomBasic(this.board.getSlotManager(), 0, 0, 0, msxDosRom);
@@ -56,13 +51,24 @@ export class NanoMsx {
     this.vdp.reset();
     this.msxpsg.reset();
 
-    this.displayTimer.setTimeout(REFRESH_FREQUENCY);
+    this.board.reset();
 
-    this.board.run();
+    this.lastSyncTime = Date.now();
+    this.timerId = setInterval(this.runStep, 50)
+  }
+
+  private runStep() {
+    this.renderScreen();
+
+    const elapsedTime = Date.now() - this.lastSyncTime;
+    this.lastSyncTime += elapsedTime;
+
+    this.board.run(MASTER_FREQUENCY * elapsedTime / 1000 | 0);
   }
 
   private board: Board;
-  private displayTimer: Timer;
+  private timerId = 0;
+  private lastSyncTime = 0;
   private ram?: MapperRamNormal;
   private msxRom?: MapperRomBasic;
   private vdp: Vdp;
@@ -72,8 +78,6 @@ export class NanoMsx {
   private screenBuffer: string = '';
 
   private renderScreen() {
-    this.displayTimer.addTimeout(REFRESH_FREQUENCY);
-
     const width = (this.vdp.getRegister(1) & 0x10) ? 40 : 32;
     let offset = (this.vdp.getRegister(2) & 0x0f) << 10;
     let buf = '';

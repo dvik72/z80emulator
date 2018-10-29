@@ -60,9 +60,12 @@ export class Board {
     return this.z80.getSystemTime() - time & TIMER_RANGE;
   }
 
-  public run(): void {
+  public reset(): void {
     this.z80.reset();
-    this.z80.execute();
+  }
+
+  public run(cpuCycles?: number): void {
+    this.z80.execute(cpuCycles);
   }
 
   private ioManager: IoManager;
