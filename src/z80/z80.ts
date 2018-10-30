@@ -407,8 +407,8 @@ export class Z80 {
 
       // TODO: This is just debug support. Remove when done.
       if (0) {
-        const start = 550000;
-        if (this.yyyy < start + 10000) {
+        const start = 7 * 100000;
+        if (this.yyyy < start + 100000) {
           if (this.yyyy >= start) {
             const dasm = new Z80Dasm(this.readMemCb);
             const asm = dasm.dasm(this.regs.PC.get());
@@ -417,7 +417,8 @@ export class Z80 {
               ' DE:' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL:' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
               ' IX:' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY:' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
               ' PC:' + ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ' SH:' + ('0000' + this.regs.SH.get().toString(16)).slice(-4) +
-              ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2);
+              ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2) +
+              ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
             console.log(asm + ' ' + regs);
           }
           this.yyyy++;
@@ -1579,7 +1580,7 @@ export class Z80 {
       case 0x0a: /* ld_a_xbc */ this.regs.AF.h.set(this.readMem(this.regs.BC.get())); break;
       case 0x0b: /* dec_bc */ this.DECW(this.regs.BC); break;
       case 0x0c: /* inc_c */ this.INC(this.regs.BC.l); break;
-      case 0x0d: /* dec_c */ this.INC(this.regs.BC.l); break;
+      case 0x0d: /* dec_c */ this.DEC(this.regs.BC.l); break;
       case 0x0e: /* ld_c_byte */ this.regs.BC.l.set(this.readOpcode()); break;
       case 0x0f: /* rrca */ this.RRCA(); break;
       case 0x10: /* djnz */ this.DJNZ(); break;
@@ -2107,7 +2108,7 @@ export class Z80 {
       case 0x0a: /* ld_a_xbc */ this.regs.AF.h.set(this.readMem(this.regs.BC.get())); break;
       case 0x0b: /* dec_bc */ this.DECW(this.regs.BC); break;
       case 0x0c: /* inc_c */ this.INC(this.regs.BC.l); break;
-      case 0x0d: /* dec_c */ this.INC(this.regs.BC.l); break;
+      case 0x0d: /* dec_c */ this.DEC(this.regs.BC.l); break;
       case 0x0e: /* ld_c_byte */ this.regs.BC.l.set(this.readOpcode()); break;
       case 0x0f: /* rrca */ this.RRCA(); break;
       case 0x10: /* djnz */ this.DJNZ(); break;
@@ -2635,7 +2636,7 @@ export class Z80 {
       case 0x0a: /* ld_a_xbc */ this.regs.AF.h.set(this.readMem(this.regs.BC.get())); break;
       case 0x0b: /* dec_bc */ this.DECW(this.regs.BC); break;
       case 0x0c: /* inc_c */ this.INC(this.regs.BC.l); break;
-      case 0x0d: /* dec_c */ this.INC(this.regs.BC.l); break;
+      case 0x0d: /* dec_c */ this.DEC(this.regs.BC.l); break;
       case 0x0e: /* ld_c_byte */ this.regs.BC.l.set(this.readOpcode()); break;
       case 0x0f: /* rrca */ this.RRCA(); break;
       case 0x10: /* djnz */ this.DJNZ(); break;

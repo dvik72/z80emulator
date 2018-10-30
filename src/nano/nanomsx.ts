@@ -24,7 +24,7 @@ import { MapperRomBasic } from '../mappers/rombasic';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxDosRom';
-import { CPU_VDP_IO_DELAY, MASTER_FREQUENCY } from '../z80/z80';
+import { CPU_VDP_IO_DELAY, CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
 
 
 // Minimal functional emulation of MSX. 
@@ -34,7 +34,7 @@ export class NanoMsx {
   constructor() {
     this.runStep = this.runStep.bind(this);
 
-    this.board = new Board(CPU_VDP_IO_DELAY, false);
+    this.board = new Board(CPU_ENABLE_M1, false);
     
     this.msxPpi = new MsxPpi(this.board.getIoManager(), this.board.getSlotManager());
     
