@@ -220,7 +220,10 @@ export class NanoMsx {
 
     if (buf != this.screenBuffer) {
       this.screenBuffer = buf;
-      document.body.innerHTML = '<PRE STYLE="font-family: Courier; font-size: 12pt;">' + this.screenBuffer + '</PRE>';
+      const div = document.getElementById('textEmu');
+      if (div) {
+        div.innerHTML = '<PRE STYLE="font-family: Courier; font-size: 12pt;">' + this.screenBuffer + '</PRE>';
+      }
     }
   }
 }
