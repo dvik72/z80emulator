@@ -21,6 +21,20 @@ import { IoManager, Port } from './iomanager';
 import { SlotManager } from './slotmanager';
 import { TimeoutManager } from './timeoutmanager';
 
+export enum InterruptVector {
+  VDP_IE0 = 0x0001,
+  VDP_IE1 = 0x0002,
+  RS232 = 0x0004,
+  YMF262 = 0x0008,
+  Y8950 = 0x0010,
+  MSX_AUDIO = 0x0020,
+  MIDI_TMR = 0x0040,
+  MIDI_RXRDY = 0x0080,
+  NET = 0x0100,
+  VM2151 = 0x0200,
+  SFG05 = 0x0400,
+};
+
 
 // This class emulates a generic board with a Z80 processor with modular
 // interfaces to plug in IO devices and memory devices. The class also provides
@@ -61,7 +75,20 @@ export class Board {
   }
 
   public reset(): void {
+    this.interruptMask = 0;
     this.z80.reset();
+  }
+
+  public setInt(vector: InterruptVector): void {
+    this.interruptMask |= vector;
+    this.z80.setInt();
+  }
+
+  public clearInt(vector: InterruptVector): void {
+    this.interruptMask &= ~vector;
+    if (!this.interruptMask) {
+      this.z80.clearInt();
+    }
   }
 
   public run(cpuCycles?: number): void {
@@ -72,4 +99,5 @@ export class Board {
   private slotManager: SlotManager;
   private timeoutManager: TimeoutManager;
   private z80: Z80;
+  private interruptMask = 0;
 }

@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Board } from '../core/board';
+import { Board, InterruptVector } from '../core/board';
 import { Timer } from '../core/timeoutmanager';
 import { Port } from '../core/iomanager';
 
@@ -128,6 +128,9 @@ export class Vdp {
 
     this.onVInt = this.onVInt.bind(this);
     this.vIntTimer = board.getTimeoutManager().createTimer('VInt', this.onVInt);
+
+    this.onHInt = this.onHInt.bind(this);
+    this.hIntTimer = board.getTimeoutManager().createTimer('hInt', this.onHInt);
 
     this.onDrawAreaStart = this.onDrawAreaStart.bind(this);
     this.drawAreaStartTimer = board.getTimeoutManager().createTimer('Draw Area Start', this.onDrawAreaStart);
@@ -330,8 +333,7 @@ export class Vdp {
     if (this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A) {
       const status = this.status[0];
       this.status[0] &= 0x1f;
-      this.board.getZ80().clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
-//      console.log('RS: ' + ('0000' + status.toString(16)).slice(-2));
+      this.board.clearInt(InterruptVector.VDP_IE0);
       return status;
     }
     
@@ -340,7 +342,7 @@ export class Vdp {
     switch (this.regs[15]) {
       case 0:
         this.status[0] &= 0x1f;
-        this.board.getZ80().clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+        this.board.clearInt(InterruptVector.VDP_IE0);
         break;
       default:
         break;
@@ -428,7 +430,7 @@ export class Vdp {
     switch (reg) {
       case 0:
         if (!(value & 0x10)) {
-          // TODO: Clear INT_IE1 when MSX2 is supported
+          this.board.clearInt(InterruptVector.VDP_IE1);
         }
 
         if (change & 0x0e) {
@@ -444,10 +446,10 @@ export class Vdp {
       case 1:
         if (this.status[0] & 0x80) {
           if (value & 0x20) {
-            this.board.getZ80().setInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+            this.board.setInt(InterruptVector.VDP_IE0);
           }
           else {
-            this.board.getZ80().clearInt(); // TODO: Add Interrupt handling on board with masks; INT_IE0
+            this.board.clearInt(InterruptVector.VDP_IE0);
           }
         }
 
@@ -529,19 +531,19 @@ export class Vdp {
         break;
 
       case 19:
-        //boardClearInt(INT_IE1);
+        this.board.clearInt(InterruptVector.VDP_IE1);
         if (change) {
-          //scheduleHint(vdp);
+          this.scheduleHInt();
         }
         break;
 
       case 23:
         if (change) {
-          //scheduleHint(vdp);
+          this.scheduleHInt();
           //spriteLineInvalidate(vdp, (boardSystemTime() - vdp -> frameStartTime) / HPERIOD);
         }
         if (!(this.regs[0] & 0x10)) {
-          //boardClearInt(INT_IE1);
+          this.board.clearInt(InterruptVector.VDP_IE1);
         }
         break;
 
@@ -580,6 +582,11 @@ export class Vdp {
     this.vIntTimer.setTimeout(timeout);
   }
 
+  private scheduleHInt(): void {
+    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[19] - this.regs[23]) & 0xff)) + this.leftBorder + this.displayArea;
+    this.hIntTimer.setTimeout(timeout);
+  }
+
   private scheduleDrawAreaEnd(): void {
     const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 80) ? 212 : 192));
     this.drawAreaEndTimer.setTimeout(timeout);
@@ -612,7 +619,7 @@ export class Vdp {
     this.firstLine = this.displayOffest + (has212Scanlines ? 14 : 24) + this.vAdjust;
 
     if (!(this.regs[0] & 0x10)) {
-      //boardClearInt(INT_IE1);
+      this.board.clearInt(InterruptVector.VDP_IE1);
     }
     
     this.status[2] ^= 0x02;
@@ -621,6 +628,7 @@ export class Vdp {
     this.scheduleNextFrame();
     this.scheduleVStart();
     this.scheduleVInt();
+    this.scheduleHInt();
     this.scheduleDrawAreaStart();
     this.scheduleDrawAreaEnd();
   }
@@ -632,7 +640,15 @@ export class Vdp {
     this.status[2] |= 0x40;
 
     if (this.regs[1] & 0x20) {
-      this.board.getZ80().setInt();
+      this.board.setInt(InterruptVector.VDP_IE0);
+    }
+  }
+
+  private onHInt(): void {
+    this.sync();
+
+    if (this.regs[0] & 0x10) {
+      this.board.setInt(InterruptVector.VDP_IE1);
     }
   }
 
@@ -1232,6 +1248,7 @@ export class Vdp {
   // Timers
   private frameTimer: Timer;
   private vIntTimer: Timer;
+  private hIntTimer: Timer;
   private vStartTimer: Timer;
   private screenModeChangeTimer: Timer;
   private drawAreaStartTimer: Timer;
