@@ -850,7 +850,7 @@ export class Vdp {
 
   private sync(): void {
     let frameTime = this.board.getTimeSince(this.frameStartTime);
-    let scanLine = frameTime / HPERIOD;
+    let scanLine = frameTime / HPERIOD | 0;
     let lineTime = frameTime % HPERIOD - (this.leftBorder - 20);
 
     if (this.version == VdpVersion.V9938 || this.version == VdpVersion.V9958) {
