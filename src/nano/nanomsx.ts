@@ -25,6 +25,7 @@ import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxDosRom';
 import { CPU_VDP_IO_DELAY, CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
+import { WebGlRenderer } from '../video/webglrenderer';
 
 
 // Minimal functional emulation of MSX. 
@@ -59,7 +60,8 @@ export class NanoMsx {
     document.addEventListener('keyup', this.keyUp);
 
     this.lastSyncTime = Date.now();
-    this.timerId = setInterval(this.runStep, 50)
+
+    requestAnimationFrame(this.runStep);
   }
 
   private keyDown(event: KeyboardEvent): void {
@@ -183,12 +185,19 @@ export class NanoMsx {
   }
 
   private runStep() {
+    const frameBuffer = this.vdp.getFrameBuffer();
+    const width = this.vdp.getFrameBufferWidth();
+    const height = this.vdp.getFrameBufferHeight();
+    this.glRenderer.render(width, height, frameBuffer);
+
     this.renderScreen();
 
     const elapsedTime = Date.now() - this.lastSyncTime;
     this.lastSyncTime += elapsedTime;
 
     this.board.run(MASTER_FREQUENCY * elapsedTime / 1000 | 0);
+
+    requestAnimationFrame(this.runStep);
   }
 
   private board: Board;
@@ -199,6 +208,7 @@ export class NanoMsx {
   private vdp: Vdp;
   private msxpsg: MsxPsg;
   private msxPpi: MsxPpi;
+  private glRenderer = new WebGlRenderer();
 
   private screenBuffer: string = '';
 
