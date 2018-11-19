@@ -21,15 +21,17 @@ import { Timer } from '../core/timeoutmanager';
 import { MsxPpi, Key } from '../io/msxppi';
 import { MsxPsg } from '../io/msxpsg';
 import { MapperRomBasic } from '../mappers/rombasic';
+import { MapperRom64kMirrored } from '../mappers/rom64kmirrored';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
-import { msxDosRom } from './msxDosRom';
+import { msxDosRom } from './msxdosrom';
+import { gameRom } from './gamerom';
 import { CPU_VDP_IO_DELAY, CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
 import { WebGlRenderer } from '../video/webglrenderer';
 
 
 // Minimal functional emulation of MSX. 
-// The emulation is not complete, but it includes enough features
+// The emulation is not complete, but it includes enough feamstures
 // to run dos programs and cartridges up to 64kB.
 export class NanoMsx {
   constructor() {
@@ -48,6 +50,7 @@ export class NanoMsx {
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomBasic(this.board.getSlotManager(), 0, 0, 0, msxDosRom);
+    this.gameRom = new MapperRom64kMirrored(this.board.getSlotManager(), 1, 0, 0, gameRom);
     this.ram = new MapperRamNormal(this.board.getSlotManager(), 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();
@@ -205,6 +208,7 @@ export class NanoMsx {
   private lastSyncTime = 0;
   private ram?: MapperRamNormal;
   private msxRom?: MapperRomBasic;
+  private gameRom?: MapperRom64kMirrored;
   private vdp: Vdp;
   private msxpsg: MsxPsg;
   private msxPpi: MsxPpi;
