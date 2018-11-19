@@ -20,18 +20,82 @@ import { Slot, SlotManager } from '../core/slotmanager';
 
 export class MapperRom64kMirrored {
   constructor(slotManager: SlotManager, slot: number, sslot: number, startPage: number, romData: number[]) {
-    let romOffset = 0;
+    // Align ROM size up to next valid rom size
+    let size = 0x10000;
+    if (romData.length <= 0x2000) size = 0x2000;
+    else if (romData.length <= 0x4000) size = 0x4000;
+    else if (romData.length <= 0x8000) size = 0x8000;
+    else if (romData.length <= 0xc000) size = 0xc000;
+
+    const romStart = this.getRomStart(romData, size);
+
+    let offset = 0;
     for (let page = 0; page < 8; page++) {
+      switch (size) {
+        case 0x2000:
+          offset &= 0x1fff;
+          break;
+        case 0x4000:
+          offset &= 0x3fff;
+          break;
+        case 0x8000:
+          if (romStart == 0x4000 && page == 0) offset = 0x4000; 
+          offset &= 0x7fff;
+          break;
+        case 0xc000:
+          if (romStart == 0x4000 && page == 2) offset = 0; 
+          offset %= 0xc000; break;
+        default:
+          break;
+      }
+
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = romData[romOffset++] | 0;
+        pageData[i] = romData[offset++] | 0;
       }
-      if (romOffset >= romData.length) {
-        romOffset = 0;
-      }
+
       let slotInfo = new Slot('ROM 64k Mirrored - ' + startPage);
       slotInfo.map(true, false, pageData);
       slotManager.registerSlot(slot, sslot, page, slotInfo);
     }
+  }
+
+  private getRomStart(romData: number[], size: number): number {
+    let pages = [0, 0, 0];
+
+    for (let startPage = 0; startPage < 2; startPage++) {
+      let offset = 0x4000 * startPage;
+
+      if (romData.length < 0x4000 * startPage + 0x10) {
+        break;
+      }
+      if (romData[offset] == 0x41 && romData[offset + 1] == 0x42) {
+        for (let i = 0; i < 4; i++) {
+          const address = romData[offset + 2 * i + 2] + 256 * romData[offset + 2 * i + 3];
+
+          if (address > 0) {
+            const page = (address >> 14) - startPage;
+
+            if (page < 3) {
+              pages[page]++;
+            }
+          }
+        }
+      }
+    }
+
+    if (pages[1] && (pages[1] >= pages[0]) && (pages[1] >= pages[2])) {
+      return 0x4000;
+    }
+
+    if (pages[0] && pages[0] >= pages[2]) {
+      return 0x0000;
+    }
+
+    if (pages[2]) {
+      return 0x8000;
+    }
+
+    return 0x0000;
   }
 }

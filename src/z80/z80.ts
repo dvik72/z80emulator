@@ -408,7 +408,7 @@ export class Z80 {
 
       // TODO: This is just debug support. Remove when done.
       if (0) {
-        const start = 7 * 100000;
+        const start = 23 * 100000;
         if (this.yyyy < start + 100000) {
           if (this.yyyy >= start) {
             const dasm = new Z80Dasm(this.readMemCb);
@@ -1336,7 +1336,7 @@ export class Z80 {
   }
 
   private HALT(): void {
-    this.regs.halt = (this.intState == INT_LOW && this.regs.iff1 != 0) || this.nmiEdge;
+    this.regs.halt = !((this.intState == INT_LOW && this.regs.iff1) || this.nmiEdge);
     if (this.regs.halt) this.regs.PC.dec();
   }
 
