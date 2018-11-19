@@ -1035,7 +1035,6 @@ export class Vdp {
     y = y - this.firstLine + this.lineVScroll;
 
     const bgColor = this.palette[this.bgColor];
-    const fgColor = this.palette[this.fgColor];
 
     const leftBorder = x < 0;
     leftBorder && x++;
@@ -1153,6 +1152,123 @@ export class Vdp {
   }
 
   private refreshLine2(y: number, x: number, x2: number): void {
+    y = y - this.firstLine + this.lineVScroll;
+
+    const bgColor = this.palette[this.bgColor];
+
+    const leftBorder = x < 0;
+    leftBorder && x++;
+    const rightBorder = x2 > 32;
+    rightBorder && x2--;
+
+    if (leftBorder) {
+      this.updateSpritesLine();
+
+      this.lineHScroll = this.hScroll();
+      this.lineVScroll = this.vScroll();
+
+      this.refreshLeftBorder(y, bgColor, 0);
+
+      this.renderPage = this.chrTabBase / 0x8000 & 1;
+
+      for (let i = 0; i < (this.lineHScroll & 7); i++) {
+        this.frameBuffer[this.frameOffset++] = bgColor;
+      }
+
+      if (this.isEdgeMasked()) {
+        for (let count = 8; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        x++;
+        this.spriteLineOffset += 8;
+      }
+    }
+
+    const page = (this.chrTabBase >> 15) & 1;
+    let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + (this.lineHScroll & 7) + x;
+    let charTableBase = (~0 << 13) | ((y & 0xc0) << 5) | (y & 7);
+
+    if (leftBorder && (this.lineHScroll & 7) != 0) {
+      x++;
+
+      if (!this.screenOn || !this.isDrawArea) {
+        switch (this.lineHScroll & 7) {
+          case 1: this.frameBuffer[this.frameOffset++] = bgColor;
+          case 2: this.frameBuffer[this.frameOffset++] = bgColor;
+          case 3: this.frameBuffer[this.frameOffset++] = bgColor;
+          case 4: this.frameBuffer[this.frameOffset++] = bgColor;
+          case 5: this.frameBuffer[this.frameOffset++] = bgColor;
+          case 6: this.frameBuffer[this.frameOffset++] = bgColor;
+          case 7: this.frameBuffer[this.frameOffset++] = bgColor;
+            charTableOffset++;
+            if ((((this.lineHScroll += 8) >> 3) & 0x1f) == 0) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1];
+        }
+      }
+      else {
+        if (this.isEdgeMasked()) {
+          const index = charTableBase | this.vram[charTableOffset] * 8;
+          const colPattern = this.vram[this.colTabBase & index];
+          const colors = [this.palette[colPattern & 0x0f], this.palette[colPattern >> 4]];
+          const charPattern = this.vram[this.chrGenBase & index];
+
+          switch (this.lineHScroll & 7) {
+            case 1: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 6) & 1]; }
+            case 2: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 5) & 1]; }
+            case 3: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 4) & 1]; }
+            case 4: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 3) & 1]; }
+            case 5: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 2) & 1]; }
+            case 6: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 1) & 1]; }
+            case 7: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 0) & 1]; };
+              charTableOffset++;
+              if ((((this.lineHScroll += 8) >> 3) & 0x1f) == 0) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1];
+          }
+        }
+        else {
+          switch (this.lineHScroll & 7) {
+            case 1: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+            case 2: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+            case 3: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+            case 4: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+            case 5: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+            case 6: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+            case 7: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
+          }
+        }
+      }
+    }
+
+    if (!this.screenOn || !this.isDrawArea) {
+      while (x < x2) {
+        for (let count = 8; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        x++;
+      }
+    }
+    else {
+      while (x < x2) {
+        const index = charTableBase | this.vram[charTableOffset] * 8;
+        const colPattern = this.vram[this.colTabBase & index];
+        const colors = [this.palette[colPattern & 0x0f], this.palette[colPattern >> 4]];
+        const charPattern = this.vram[this.chrGenBase & index];
+
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 7) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 6) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 5) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 4) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 3) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 2) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 1) & 1]; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : colors[(charPattern >> 0) & 1]; }
+        charTableOffset++;
+        x++;
+      }
+    }
+
+    if (rightBorder) {
+      //      this.spritesLine();
+      this.refreshRightBorder(y, bgColor, 0);
+    }
   }
 
   private refreshLine3(y: number, x: number, x2: number): void {
