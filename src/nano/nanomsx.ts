@@ -74,7 +74,6 @@ export class NanoMsx {
 
   private keyUp(event: KeyboardEvent): void {
     this.msxPpi.keyUp(this.keyEventToKeyEnum(event));
-//    console.log('UP: ' + event.code);
   }
 
   private keyEventToKeyEnum(event: KeyboardEvent): Key {
@@ -193,8 +192,6 @@ export class NanoMsx {
     const height = this.vdp.getFrameBufferHeight();
     this.glRenderer.render(width, height, frameBuffer);
 
-    this.renderScreen();
-
     const elapsedTime = Date.now() - this.lastSyncTime;
     this.lastSyncTime += elapsedTime;
 
@@ -213,31 +210,4 @@ export class NanoMsx {
   private msxpsg: MsxPsg;
   private msxPpi: MsxPpi;
   private glRenderer = new WebGlRenderer();
-
-  private screenBuffer: string = '';
-
-  private renderScreen() {
-    const width = (this.vdp.getRegister(1) & 0x10) ? 40 : 32;
-    let offset = (this.vdp.getRegister(2) & 0x0f) << 10;
-    let buf = '';
-
-    for (let y = 0; y < 24; y++) {
-      for (let x = 0; x < width; x++) {
-        const val = this.vdp.getVram(offset++);
-        buf += val >= 32 && val < 126 ? String.fromCharCode(val) : val == 0xff ? '_' : ' ';
-      }
-      if (width == 32) {
-        buf += '        ';
-      }
-      buf += '#\n';
-    }
-
-    if (buf != this.screenBuffer) {
-      this.screenBuffer = buf;
-      const div = document.getElementById('textEmu');
-      if (div) {
-        div.innerHTML = '<PRE STYLE="font-family: Courier; font-size: 12pt;">' + this.screenBuffer + '</PRE>';
-      }
-    }
-  }
 }
