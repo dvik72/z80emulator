@@ -380,6 +380,7 @@ export class Z80 {
   }
 
   yyyy = 0; // TODO: Debug support
+  ihist = ['x'];
 
   // Executes CPU instructions until the stopExecution method is called.
   execute(cpuCycles?: number): void {
@@ -422,6 +423,23 @@ export class Z80 {
             console.log(asm + ' ' + regs);
           }
           this.yyyy++;
+        }
+      }
+
+      if (0) {
+        const dasm = new Z80Dasm(this.readMemCb);
+        const asm = dasm.dasm(this.regs.PC.get());
+        if (this.ihist.indexOf(asm) < 0) {
+          this.ihist.push(asm);
+          const regs =
+            ' AF:' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC:' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
+            ' DE:' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL:' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
+            ' IX:' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY:' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
+            ' PC:' + ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ' SH:' + ('0000' + this.regs.SH.get().toString(16)).slice(-4) +
+            ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2) +
+            ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
+          console.log(asm + ' ' + regs);
+
         }
       }
 
