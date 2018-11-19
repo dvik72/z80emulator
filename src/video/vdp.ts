@@ -237,12 +237,6 @@ export class Vdp {
     }
   }
 
-  // Temp hacks to allow the nano driver to work.
-  getStatus(): number { return this.status[0]; }
-  setStatusBit(value: number): void { this.status[0] |= value; }
-  getRegister(reg: number): number { return this.regs[reg]; }
-  getVram(index: number): number { return this.vram[index & 0x3fff]; }
-
   reset(): void {
     for (let i = 0; i < 64; i++) this.regs[i] = 0;
     for (let i = 0; i < 16; i++) this.status[i] = 0;
