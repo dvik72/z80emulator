@@ -18,18 +18,19 @@
 
 import { Slot, SlotManager } from '../core/slotmanager';
 
-export class MapperRomBasic {
+export class MapperRomNormal {
   constructor(slotManager: SlotManager, slot: number, sslot: number, startPage: number, romData: number[]) {
-    let romOffset = 0;
-
-    for (let page = 4; page < 8; page++) {
+    let pages = romData.length + 0x1fff >> 13;
+    let romIndex = 0;
+    while (pages--) {
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = romOffset < romData.length ? romData[romOffset++] : 0xff;
+        pageData[i] = romData[romIndex++] | 0;
       }
-      let slotInfo = new Slot('ROM Basic - ' + page);
+      let slotInfo = new Slot('ROM Normal - ' + startPage);
       slotInfo.map(true, false, pageData);
-      slotManager.registerSlot(slot, sslot, page, slotInfo);
+      slotManager.registerSlot(slot, sslot, startPage, slotInfo);
+      startPage++;
     }
   }
 }

@@ -21,6 +21,7 @@ import { Timer } from '../core/timeoutmanager';
 import { MsxPpi, Key } from '../io/msxppi';
 import { MsxPsg } from '../io/msxpsg';
 import { MapperRomBasic } from '../mappers/rombasic';
+import { MapperRomNormal } from '../mappers/romnormal';
 import { MapperRom64kMirrored } from '../mappers/rom64kmirrored';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
@@ -49,8 +50,8 @@ export class NanoMsx {
   
   run(): void {
     // Initialize MSX 1 machine configuration
-    this.msxRom = new MapperRomBasic(this.board.getSlotManager(), 0, 0, 0, msxDosRom);
-    this.gameRom = new MapperRom64kMirrored(this.board.getSlotManager(), 1, 0, 0, gameRom);
+    this.msxRom = new MapperRomNormal(this.board.getSlotManager(), 0, 0, 0, msxDosRom);
+    this.gameRom = new MapperRomBasic(this.board.getSlotManager(), 1, 0, 4, gameRom);
     this.ram = new MapperRamNormal(this.board.getSlotManager(), 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();
@@ -204,8 +205,8 @@ export class NanoMsx {
   private timerId = 0;
   private lastSyncTime = 0;
   private ram?: MapperRamNormal;
-  private msxRom?: MapperRomBasic;
-  private gameRom?: MapperRom64kMirrored;
+  private msxRom?: MapperRomNormal;
+  private gameRom?: MapperRomBasic;
   private vdp: Vdp;
   private msxpsg: MsxPsg;
   private msxPpi: MsxPpi;
