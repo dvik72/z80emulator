@@ -407,8 +407,8 @@ export class Z80 {
       }
 
       // TODO: This is just debug support. Remove when done.
-      if (0) {
-        const start = 23 * 100000;
+      if (1) {
+        const start = 26 * 100000;
         if (this.yyyy < start + 100000) {
           if (this.yyyy >= start) {
             const dasm = new Z80Dasm(this.readMemCb);
@@ -546,7 +546,7 @@ export class Z80 {
     for (let i = 0; i < 256; ++i) {
       let flags = i ^ 1;
       flags = flags ^ (flags >> 4);
-      flags = flags ^ (flags << 2);
+      flags = (flags ^ (flags << 2)) & 0xff;
       flags = flags ^ (flags >> 1);
       flags = (flags & V_FLAG) | H_FLAG | (i & (S_FLAG | X_FLAG | Y_FLAG)) |
         (i ? 0 : Z_FLAG);
@@ -561,7 +561,7 @@ export class Z80 {
       const flagN = i & 0x200;
       const flagH = i & 0x400;
       const a = i & 0xff;
-      const hi = a / 16;
+      const hi = a >> 4;
       const lo = a & 15;
       let diff = 0;
       let regA = 0;
@@ -582,7 +582,7 @@ export class Z80 {
           }
         }
       }
-      regA = flagN ? a - diff : a + diff;
+      regA = (flagN ? a - diff : a + diff) & 0xff;
       this.DAATable[i] = (regA << 8) |
         this.ZSPXYTable[regA] |
         (flagN ? N_FLAG : 0) |
@@ -1316,7 +1316,8 @@ export class Z80 {
   }
 
   private DAA(): void {
-    this.regs.AF.set(this.DAATable[this.regs.AF.h.get() | ((this.regs.AF.l.get() & 3) << 8) | ((this.regs.AF.l.get() & 0x10) << 6)]);
+    const val = this.regs.AF.l.get();
+    this.regs.AF.set(this.DAATable[this.regs.AF.h.get() | ((val & 3) << 8) | ((val & 0x10) << 6)]);
   }
 
   private CPL(): void {
@@ -1673,7 +1674,7 @@ export class Z80 {
       case 0x55: /* ld_d_l */ this.regs.DE.h.set(this.regs.HL.l.get()); break;
       case 0x56: /* ld_d_xhl */ this.regs.DE.h.set(this.readMem(this.regs.HL.get())); break;
       case 0x57: /* ld_d_a */ this.regs.DE.h.set(this.regs.AF.h.get()); break;
-      case 0x58: /* ld_e_b */ this.regs.DE.h.set(this.regs.BC.h.get()); break;
+      case 0x58: /* ld_e_b */ this.regs.DE.l.set(this.regs.BC.h.get()); break;
       case 0x59: /* ld_e_c */ this.regs.DE.l.set(this.regs.BC.l.get()); break;
       case 0x5a: /* ld_e_d */ this.regs.DE.l.set(this.regs.DE.h.get()); break;
       case 0x5b: /* ld_e_e */ this.regs.DE.l.set(this.regs.DE.l.get()); break;
