@@ -380,7 +380,7 @@ export class Z80 {
   }
 
   yyyy = 0; // TODO: Debug support
-  ihist = ['x'];
+  ihist = new Array<number>(2048);
 
   // Executes CPU instructions until the stopExecution method is called.
   execute(cpuCycles?: number): void {
@@ -408,7 +408,7 @@ export class Z80 {
 
       // TODO: This is just debug support. Remove when done.
       if (0) {
-        const start = 80 * 100000;
+        const start = 24 * 100000;
         if (this.yyyy < start + 100000) {
           if (this.yyyy >= start) {
             const dasm = new Z80Dasm(this.readMemCb);
@@ -427,10 +427,22 @@ export class Z80 {
       }
 
       if (0) {
-        const dasm = new Z80Dasm(this.readMemCb);
-        const asm = dasm.dasm(this.regs.PC.get());
-        if (this.ihist.indexOf(asm) < 0) {
-          this.ihist.push(asm);
+        let pc = this.regs.PC.get();
+        let val = this.readMemCb(pc++);
+        switch (val) {
+          case 0xcb:
+            val = 256 + this.readMemCb(pc++);
+            break;
+          case 0xed:
+            val = 512 + this.readMemCb(pc++);
+            break;
+          case 0xdd:
+            val = 768 + this.readMemCb(pc++);
+        }
+        if (!this.ihist[val]) {
+          this.ihist[val] = 1;
+          const dasm = new Z80Dasm(this.readMemCb);
+          const asm = dasm.dasm(this.regs.PC.get());
           const regs =
             ' AF:' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC:' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
             ' DE:' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL:' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
@@ -438,9 +450,9 @@ export class Z80 {
             ' PC:' + ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ' SH:' + ('0000' + this.regs.SH.get().toString(16)).slice(-4) +
             ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2) +
             ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
-          console.log(asm + ' ' + regs);
-
+          console.log(asm + ' ' + regs + 'IC: ' + this.yyyy);
         }
+        this.yyyy++;
       }
 
       this.executeInstruction(this.readOpcode());
@@ -994,29 +1006,29 @@ export class Z80 {
     this.regs.SH.set(a.get() + 1 & 0xffff);
     this.regs.AF.l.set((this.regs.AF.l.get() & (S_FLAG | Z_FLAG | V_FLAG)) | (((a.get() ^ b.get() ^ v) >> 8) & H_FLAG) |
       ((v >> 16) & C_FLAG) | ((v >> 8) & (X_FLAG | Y_FLAG)));
-    a.set(v);
+    a.set(v & 0xffff);
     this.addSystemTime(this.delay.ADD16);
   }
 
   private ADCW(r: RegisterPair): void {
-    const v = this.regs.HL.get() + r.get() + (this.regs.AF.l.get() & C_FLAG) & 0xffff;
+    const v = this.regs.HL.get() + r.get() + (this.regs.AF.l.get() & C_FLAG);
     this.regs.SH.set(this.regs.HL.get() + 1 & 0xffff);
     this.regs.AF.l.set((((this.regs.HL.get() ^ r.get() ^ v) >> 8) & H_FLAG) |
       ((v >> 16) & C_FLAG) | ((v & 0xffff) ? 0 : Z_FLAG) |
       ((((this.regs.HL.get() ^ r.get() ^ 0x8000) & (r.get() ^ v)) >> 13) & V_FLAG) |
       ((v >> 8) & (S_FLAG | X_FLAG | Y_FLAG)));
-    this.regs.HL.set(v);
+    this.regs.HL.set(v & 0xffff);
     this.addSystemTime(this.delay.ADD16);
   }
 
   private SBCW(r: RegisterPair): void {
-    const v = this.regs.HL.get() - r.get() - (this.regs.AF.l.get() & C_FLAG) & 0xffff;
+    const v = this.regs.HL.get() - r.get() - (this.regs.AF.l.get() & C_FLAG);
     this.regs.SH.set(this.regs.HL.get() + 1 & 0xffff);
     this.regs.AF.l.set((((this.regs.HL.get() ^ r.get() ^ v) >> 8) & H_FLAG) | N_FLAG |
       ((v >> 16) & C_FLAG) | ((v & 0xffff) ? 0 : Z_FLAG) |
       ((((this.regs.HL.get() ^ r.get()) & (this.regs.HL.get() ^ v)) >> 13) & V_FLAG) |
       ((v >> 8) & (S_FLAG | X_FLAG | Y_FLAG)));
-    this.regs.HL.set(v);
+    this.regs.HL.set(v & 0xffff);
     this.addSystemTime(this.delay.ADD16);
   }
 
