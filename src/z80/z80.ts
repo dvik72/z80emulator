@@ -407,8 +407,8 @@ export class Z80 {
       }
 
       // TODO: This is just debug support. Remove when done.
-      if (1) {
-        const start = 26 * 100000;
+      if (0) {
+        const start = 29 * 100000;
         if (this.yyyy < start + 100000) {
           if (this.yyyy >= start) {
             const dasm = new Z80Dasm(this.readMemCb);
@@ -1011,7 +1011,8 @@ export class Z80 {
 
   private SBCW(r: RegisterPair): void {
     const v = this.regs.HL.get() - r.get() - (this.regs.AF.l.get() & C_FLAG) & 0xffff;
-    this.regs.SH.set((((this.regs.HL.get() ^ r.get() ^ v) >> 8) & H_FLAG) | N_FLAG |
+    this.regs.SH.set(this.regs.HL.get() + 1 & 0xffff);
+    this.regs.AF.l.set((((this.regs.HL.get() ^ r.get() ^ v) >> 8) & H_FLAG) | N_FLAG |
       ((v >> 16) & C_FLAG) | ((v & 0xffff) ? 0 : Z_FLAG) |
       ((((this.regs.HL.get() ^ r.get()) & (this.regs.HL.get() ^ v)) >> 13) & V_FLAG) |
       ((v >> 8) & (S_FLAG | X_FLAG | Y_FLAG)));
@@ -1658,7 +1659,7 @@ export class Z80 {
       case 0x45: /* ld_b_l */ this.regs.BC.h.set(this.regs.HL.l.get()); break;
       case 0x46: /* ld_b_xhl */ this.regs.BC.h.set(this.readMem(this.regs.HL.get())); break;
       case 0x47: /* ld_b_a */ this.regs.BC.h.set(this.regs.AF.h.get()); break;
-      case 0x48: /* ld_c_b */ this.regs.BC.h.set(this.regs.BC.h.get()); break;
+      case 0x48: /* ld_c_b */ this.regs.BC.l.set(this.regs.BC.h.get()); break;
       case 0x49: /* ld_c_c */ this.regs.BC.l.set(this.regs.BC.l.get()); break;
       case 0x4a: /* ld_c_d */ this.regs.BC.l.set(this.regs.DE.h.get()); break;
       case 0x4b: /* ld_c_e */ this.regs.BC.l.set(this.regs.DE.l.get()); break;
@@ -1690,7 +1691,7 @@ export class Z80 {
       case 0x65: /* ld_h_l */ this.regs.HL.h.set(this.regs.HL.l.get()); break;
       case 0x66: /* ld_h_xhl */ this.regs.HL.h.set(this.readMem(this.regs.HL.get())); break;
       case 0x67: /* ld_h_a */ this.regs.HL.h.set(this.regs.AF.h.get()); break;
-      case 0x68: /* ld_l_b */ this.regs.HL.h.set(this.regs.BC.h.get()); break;
+      case 0x68: /* ld_l_b */ this.regs.HL.l.set(this.regs.BC.h.get()); break;
       case 0x69: /* ld_l_c */ this.regs.HL.l.set(this.regs.BC.l.get()); break;
       case 0x6a: /* ld_l_d */ this.regs.HL.l.set(this.regs.DE.h.get()); break;
       case 0x6b: /* ld_l_e */ this.regs.HL.l.set(this.regs.DE.l.get()); break;
