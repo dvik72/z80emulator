@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Board } from '../core/board';
-import { Timer } from '../core/timeoutmanager';
 import { MsxPpi, Key } from '../io/msxppi';
 import { MsxPsg } from '../io/msxpsg';
 import { MapperRomBasic } from '../mappers/rombasic';
@@ -27,7 +26,7 @@ import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxdosrom';
 import { gameRom } from './gamerom';
-import { CPU_VDP_IO_DELAY, CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
+import { CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
 import { WebGlRenderer } from '../video/webglrenderer';
 
 
@@ -51,7 +50,7 @@ export class NanoMsx {
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomNormal(this.board.getSlotManager(), 0, 0, 0, msxDosRom);
-    this.gameRom = new MapperRomBasic(this.board.getSlotManager(), 1, 0, 4, gameRom);
+    this.gameRom = new MapperRom64kMirrored(this.board.getSlotManager(), 1, 0, 4, gameRom);
     this.ram = new MapperRamNormal(this.board.getSlotManager(), 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();
@@ -206,7 +205,7 @@ export class NanoMsx {
   private lastSyncTime = 0;
   private ram?: MapperRamNormal;
   private msxRom?: MapperRomNormal;
-  private gameRom?: MapperRomBasic;
+  private gameRom?: MapperRom64kMirrored;
   private vdp: Vdp;
   private msxpsg: MsxPsg;
   private msxPpi: MsxPpi;
