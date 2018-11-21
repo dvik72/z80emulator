@@ -1394,6 +1394,53 @@ export class Vdp {
   }
 
   private refreshLine3(scanLine: number, x: number, x2: number): void {
+    const y = scanLine - this.firstLine + this.lineVScroll;
+
+    const bgColor = this.palette[this.bgColor];
+
+    const leftBorder = x < 0;
+    leftBorder && x++;
+    const rightBorder = x2 > 32;
+    rightBorder && x2--;
+
+    if (leftBorder) {
+      this.refreshLeftBorder(bgColor, 0);
+    }
+
+    if (!this.screenOn || !this.isDrawArea) {
+      while (x < x2) {
+        for (let count = 8; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        x++;
+      }
+    }
+    else {
+      let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + x;
+      let patternBase = this.chrGenBase & ((~0 << 11) | ((y >> 2) & 7));
+
+      while (x < x2) {
+        const colPattern = this.vram[patternBase | (this.vram[charTableOffset] * 8)];
+        const fc = this.palette[colPattern >> 4];
+        const bc = this.palette[colPattern & 0x0f];
+        
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
+        { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
+        charTableOffset++;
+        x++;
+      }
+    }
+
+    if (rightBorder) {
+      this.refreshRightBorder(bgColor, 0);
+      this.updateSpritesLine(scanLine);
+    }
   }
 
   private refreshLine4(scanLine: number, x: number, x2: number): void {
