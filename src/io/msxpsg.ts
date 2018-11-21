@@ -16,19 +16,19 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { IoManager, Port } from '../core/iomanager';
-import { Ay8910, Ay8910ConnectorType } from '../audio/ay8910';
+import { Board } from '../core/board';
+import { Ay8910, Ay8910ConnectorType, PsgType } from '../audio/ay8910';
 
 export class MsxPsg {
   constructor(
-    private ioManager: IoManager,
+    private board: Board,
     private maxPorts : number,
     private readCassetteLIne?: () => number
   ) {
     this.readIo = this.readIo.bind(this);
     this.writeIo = this.writeIo.bind(this);
 
-    this.ay8910 = new Ay8910(this.ioManager, Ay8910ConnectorType.MSX, this.readIo, this.writeIo);
+    this.ay8910 = new Ay8910(this.board, Ay8910ConnectorType.MSX, PsgType.AY8910, this.readIo, this.writeIo);
   }
 
   public reset(): void {

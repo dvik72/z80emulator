@@ -91,6 +91,9 @@ export class Board {
     }
   }
 
+  public syncAudio(): void {
+  }
+
   public run(cpuCycles?: number): void {
     this.z80.execute(cpuCycles);
   }

@@ -45,7 +45,7 @@ export class NanoMsx {
     this.msxPpi = new MsxPpi(this.board.getIoManager(), this.board.getSlotManager());
     
     this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
-    this.msxpsg = new MsxPsg(this.board.getIoManager(), 2);
+    this.msxpsg = new MsxPsg(this.board, 2);
   }
   
   run(): void {
