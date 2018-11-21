@@ -16,10 +16,14 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Slot, SlotManager } from '../core/slotmanager';
+import { Mapper } from './mapper';
+import { Board } from '../core/board';
+import { Slot } from '../core/slotmanager';
 
-export class MapperRomBasic {
-  constructor(slotManager: SlotManager, slot: number, sslot: number, startPage: number, romData: number[]) {
+export class MapperRomBasic extends Mapper {
+  constructor(board: Board, slot: number, sslot: number, startPage: number, romData: number[]) {
+    super('ROM Basic');
+
     let romOffset = 0;
 
     for (let page = 4; page < 8; page++) {
@@ -27,9 +31,9 @@ export class MapperRomBasic {
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romOffset < romData.length ? romData[romOffset++] : 0xff;
       }
-      let slotInfo = new Slot('ROM Basic - ' + page);
+      let slotInfo = new Slot(this.getName() + ' - ' + page);
       slotInfo.map(true, false, pageData);
-      slotManager.registerSlot(slot, sslot, page, slotInfo);
+      board.getSlotManager().registerSlot(slot, sslot, page, slotInfo);
     }
   }
 }

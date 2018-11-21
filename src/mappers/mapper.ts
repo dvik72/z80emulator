@@ -16,26 +16,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Mapper } from './mapper';
-import { Board } from '../core/board';
-import { Slot } from '../core/slotmanager';
+export class Mapper {
+  public constructor(
+    private name: string) {
+  }
 
-
-export class MapperRamNormal extends Mapper {
-  constructor(board: Board, slot: number, sslot: number, startPage: number, size: number) {
-    super('RAM Normal');
-
-    let pages = size / 0x2000;
-    while (pages--) {
-      let pageData = new Array<number>(0x2000);
-      for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = 0xff;
-      }
-      let slotInfo = new Slot(this.getName() + ' - ' + startPage);
-      slotInfo.map(true, true, pageData);
-      board.getSlotManager().registerSlot(slot, sslot, startPage, slotInfo);
-      startPage++;
-    }
+  public getName(): string {
+    return name;
   }
 }
-
