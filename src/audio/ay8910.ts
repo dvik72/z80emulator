@@ -16,6 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { AudioDevice } from './audiodevice';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 
@@ -31,7 +32,7 @@ const BASE_PHASE_STEP = 0x28959bec;
 
 const AUDIO_BUFFER_SIZE = 10000;
 
-export class Ay8910 {
+export class Ay8910 extends AudioDevice {
   constructor(
     private board: Board,
     connectorType: Ay8910ConnectorType,
@@ -39,6 +40,7 @@ export class Ay8910 {
     private readCb?: (port: number) => number,
     private writeCb?: (port: number, value: number) => void
   ) {
+    super('AY8910');
     this.writeAddress = this.writeAddress.bind(this);
     this.writeData = this.writeData.bind(this);
     this.readData = this.readData.bind(this);
@@ -169,6 +171,10 @@ export class Ay8910 {
       }
     }
     return this.regs[this.address];    
+  }
+
+  public sync(): Array<number> {
+    return this.buffer;
   }
 
   private regs = new Array<number>(16);
