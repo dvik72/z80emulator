@@ -27,3 +27,19 @@ export abstract class AudioDevice {
 
   public abstract sync(count: number): Array<number>;
 }
+
+export class AudioManager {
+  public constructor() {
+    this.audioDevices = [];
+  }
+
+  public registerAudioDevice(audioDevice: AudioDevice): void {
+    this.audioDevices.push(audioDevice);
+  }
+
+  public sync(): void {
+
+  }
+
+  private audioDevices: AudioDevice[];
+};

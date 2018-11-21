@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { AudioDevice } from './audiodevice';
+import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 
@@ -41,9 +41,13 @@ export class Ay8910 extends AudioDevice {
     private writeCb?: (port: number, value: number) => void
   ) {
     super(psgType.toString());
+    
     this.writeAddress = this.writeAddress.bind(this);
     this.writeData = this.writeData.bind(this);
     this.readData = this.readData.bind(this);
+    this.sync = this.sync.bind(this);
+
+    this.board.getAudioManager().registerAudioDevice(this);
 
     let v = 0x26a9;
     for (let i = 15; i >= 0; i--) {

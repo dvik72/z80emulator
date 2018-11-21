@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Z80, TIMER_RANGE } from '../z80/z80';
+import { AudioManager } from './audiomanager';
 import { IoManager, Port } from './iomanager';
 import { SlotManager } from './slotmanager';
 import { TimeoutManager } from './timeoutmanager';
@@ -45,6 +46,7 @@ export class Board {
     this.ioManager = new IoManager(enableSubslots);
     this.slotManager = new SlotManager();
     this.timeoutManager = new TimeoutManager();
+    this.audioManager = new AudioManager();
 
     this.z80 = new Z80(cpuFlags, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeoutManager.timeout);
     this.timeoutManager.initialize(this.z80);
@@ -91,7 +93,12 @@ export class Board {
     }
   }
 
+  public getAudioManager(): AudioManager {
+    return this.audioManager;
+  }
+
   public syncAudio(): void {
+    this.audioManager.sync();
   }
 
   public run(cpuCycles?: number): void {
@@ -101,6 +108,7 @@ export class Board {
   private ioManager: IoManager;
   private slotManager: SlotManager;
   private timeoutManager: TimeoutManager;
+  private audioManager: AudioManager;
   private z80: Z80;
   private interruptMask = 0;
 }
