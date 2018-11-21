@@ -28,8 +28,6 @@ const regMask = [
   0x1f, 0x1f, 0x1f, 0xff, 0xff, 0x0f, 0xff, 0xff
 ];
 
-const BASE_PHASE_STEP = 0x28959bec;
-
 export class Ay8910 extends AudioDevice {
   constructor(
     private board: Board,
@@ -46,19 +44,20 @@ export class Ay8910 extends AudioDevice {
     this.sync = this.sync.bind(this);
 
     this.board.getAudioManager().registerAudioDevice(this);
+    this.updateBasePhaseStep(44100);
 
-    let v = 0x26a9;
+    let v = 1;
     for (let i = 15; i >= 0; i--) {
-      this.voltTable[i] = v | 0;
-      this.voltEnvTable[2 * i + 0] = v | 0;
-      this.voltEnvTable[2 * i + 1] = v | 0;
+      this.voltTable[i] = v;
+      this.voltEnvTable[2 * i + 0] = v;
+      this.voltEnvTable[2 * i + 1] = v;
       v *= 0.707945784384;
     }
 
     if (psgType == PsgType.YM2149) {
-      let v = 0x26a9;
+      let v = 1;
       for (let i = 31; i >= 0; i--) {
-        this.voltEnvTable[i] = v | 0;
+        this.voltEnvTable[i] = v;
         v *= 0.84139514164529;
       }
     }
@@ -123,13 +122,13 @@ export class Ay8910 extends AudioDevice {
       case 4:
       case 5: {
         let period = this.regs[regIndex & 6] | ((this.regs[regIndex | 1]) << 8);
-          this.toneStep[regIndex >> 1] = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
+        this.toneStep[regIndex >> 1] = period > 0 ? this.basePhaseStep / period : 1 << 31;
         }
         break;
 
       case 6: {
           let period = value ? value : 1;
-          this.noiseStep = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
+        this.noiseStep = period > 0 ? this.basePhaseStep / period : 1 << 31;
         }
         break;
 
@@ -146,7 +145,7 @@ export class Ay8910 extends AudioDevice {
       case 11:
       case 12: {
           let period = 16 * (this.regs[11] | (this.regs[12] << 8));
-          this.envStep = BASE_PHASE_STEP / (period ? period : 8);
+        this.envStep = this.basePhaseStep / (period ? period : 8);
         }
         break;
 
@@ -175,7 +174,13 @@ export class Ay8910 extends AudioDevice {
     return this.regs[this.address];    
   }
 
-  public sync(count: number): Array<number> {
+  private updateBasePhaseStep(sampleRate: number): void {
+    this.basePhaseStep =(1 << 28) * 3579545 / 32 / sampleRate | 0;
+  }
+
+  public sync(sampleRate: number, count: number): Array<number> {
+    this.updateBasePhaseStep(sampleRate);
+
     for (let index = 0; index < count; index++) {
       let sampleVolume = [ 0, 0, 0 ];
 
@@ -222,24 +227,24 @@ export class Ay8910 extends AudioDevice {
 
         // Amplify sample using either envelope volume or channel volume
         if (this.ampVolume[channel] & 0x10) {
-          sampleVolume[channel] += tone * this.voltEnvTable[envVolume] >> 4;
+          sampleVolume[channel] += tone * this.voltEnvTable[envVolume] / 64;
         }
         else {
-          sampleVolume[channel] += tone * this.voltTable[this.ampVolume[channel]] >> 4;
+          sampleVolume[channel] += tone * this.voltTable[this.ampVolume[channel]] / 64;
         }
       }
       
       let sampleVolumes = sampleVolume[0] + sampleVolume[1] + sampleVolume[2];
 
       // Perform DC offset filtering
-      this.ctrlVolume[0] = sampleVolumes - this.oldSampleVolume[0] + 0x3fe7 * this.ctrlVolume[0] / 0x4000;
-      this.oldSampleVolume[0] = sampleVolumes;
+      this.ctrlVolume = sampleVolumes - this.oldSampleVolume + this.ctrlVolume * 0.9985;
+      this.oldSampleVolume = sampleVolumes;
 
       // Perform simple 1 pole low pass IIR filtering
-      this.daVolume[0] += 2 * (this.ctrlVolume[0] - this.daVolume[0]) / 3 | 0;
+      this.daVolume += 2 * (this.ctrlVolume - this.daVolume) / 3;
 
       // Store calclulated sample value
-      this.buffer[index] = 9 * this.daVolume[0];
+      this.buffer[index] = 9 * this.daVolume;
     }
 
     return this.buffer;
@@ -248,8 +253,8 @@ export class Ay8910 extends AudioDevice {
   private regs = new Array<number>(16);
   private address = 0;
 
-  private tonePhase = new Array<number>(3);
-  private toneStep = new Array<number>(3);
+  private tonePhase = [0, 0, 0];
+  private toneStep = [0, 0, 0];
   private noisePhase = 0;
   private noiseStep = 0;
   private noiseRand = 0;
@@ -259,11 +264,13 @@ export class Ay8910 extends AudioDevice {
   private envStep = 0;
   private envPhase = 0;
 
+  private basePhaseStep = 0;
+
   private enable = 0;
-  private ampVolume = new Array<number>(3);
-  private ctrlVolume = new Array<number>(2);
-  private oldSampleVolume = new Array<number>(2);
-  private daVolume = new Array<number>(2);
+  private ampVolume = [0, 0, 0];
+  private ctrlVolume = 0;
+  private oldSampleVolume = 0;
+  private daVolume = 0;
 
   private voltTable = new Array<number>(16);
   private voltEnvTable = new Array<number>(32);

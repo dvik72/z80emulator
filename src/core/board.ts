@@ -46,10 +46,11 @@ export class Board {
     this.ioManager = new IoManager(enableSubslots);
     this.slotManager = new SlotManager();
     this.timeoutManager = new TimeoutManager();
-    this.audioManager = new AudioManager(this);
 
     this.z80 = new Z80(cpuFlags, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeoutManager.timeout);
     this.timeoutManager.initialize(this.z80);
+
+    this.audioManager = new AudioManager(this);
   }
 
   public getIoManager(): IoManager {

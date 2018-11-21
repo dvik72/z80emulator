@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Board } from './board';
+import { Timer } from './timeoutmanager';
 
 export const SAMPLE_RATE = 44100;
 export const MAX_AUDIO_BUFFER_SIZE = 10000 * 2;
@@ -36,14 +37,14 @@ export abstract class AudioDevice {
   }
 
   public getVolumeLeft(): number {
-    return 100;
+    return 1.0;
   }
 
   public getVolumeRight(): number {
-    return 100;
+    return 1.0;
   }
 
-  public abstract sync(count: number): Array<number>;
+  public abstract sync(sampleRate: number, count: number): Array<number>;
 }
 
 export class AudioManager {
@@ -51,29 +52,71 @@ export class AudioManager {
     private board: Board)
   {
     this.audioDevices = [];
+
+    this.onSync = this.onSync.bind(this);
+    this.syncTimer = board.getTimeoutManager().createTimer('Audio Sync', this.onSync);
+    this.syncPeriod = this.board.getSystemFrequency() / 50 | 0;
+    this.onSync();
+
+    this.playingBuffer = undefined;
+    this.audioContext = new AudioContext();
+    this.sampleRate = this.audioContext.sampleRate;
+    this.gainNode = this.audioContext.createGain();
+    this.gainNode.connect(this.audioContext.destination);
+    this.audioBuffer = this.audioContext.createBuffer(2, this.fragmentSize, this.sampleRate);
+    this.audioDataLeft = this.audioBuffer.getChannelData(0);
+    this.audioDataRight = this.audioBuffer.getChannelData(1);
+    this.bufferSource = this.audioContext.createBufferSource();
+    this.bufferSource.connect(this.gainNode);
   }
 
   public setEnable(enable: boolean): void {
     this.enable = enable;
   }
 
+  public getSampleRate(): number {
+    return this.sampleRate;
+  }
+
   public registerAudioDevice(audioDevice: AudioDevice): void {
     this.audioDevices.push(audioDevice);
   }
 
+  private onSync(): void {
+    this.sync();
+    this.syncTimer.setTimeout(this.board.getSystemTime() + this.syncPeriod);
+  }
+
+  private playFragment() {
+    if (this.playingBuffer) {
+      this.playingBuffer.stop();
+    }
+
+    this.bufferSource.buffer = this.audioBuffer;
+    this.playingBuffer = this.bufferSource;
+    this.playingBuffer.start(0);
+
+    this.audioBuffer = this.audioContext.createBuffer(2, this.fragmentSize, this.sampleRate);
+    this.audioDataLeft = this.audioBuffer.getChannelData(0);
+    this.audioDataRight = this.audioBuffer.getChannelData(1);
+    this.bufferSource = this.audioContext.createBufferSource();
+    this.bufferSource.connect(this.gainNode);
+  }
+
   public sync(): void {
-    const elapsed = SAMPLE_RATE * this.board.getTimeSince(this.timeRef) + this.timeFrag;
+    const elapsed = this.sampleRate * this.board.getTimeSince(this.timeRef) + this.timeFrag;
     this.timeRef = this.board.getSystemTime();
     this.timeFrag = elapsed % this.board.getSystemFrequency();
     let count = elapsed / this.board.getSystemFrequency() | 0;
     
     if (!this.enable) {
       while (count--) {
-       this.buffer[this.index++] = 0;
-        this.buffer[this.index++] = 0;
+        this.audioDataLeft[this.index] = 0;
+        this.audioDataRight[this.index++] = 0;
 
         if (this.index == this.fragmentSize) {
           this.index = 0;
+          this.playFragment();
         }
       }
       return;
@@ -81,7 +124,7 @@ export class AudioManager {
 
     let chBuff: Array<Array<number>> = [];
     for (let i = 0; i < this.audioDevices.length; i++) {
-      chBuff[i] = this.audioDevices[i].sync(count);
+      chBuff[i] = this.audioDevices[i].sync(this.sampleRate, count);
     }
     for (let idx = 0; idx < count; idx++) {
       let left = 0;
@@ -103,20 +146,18 @@ export class AudioManager {
         left += chanLeft;
         right += chanRight;
       }
-
-      left = left / 4096 | 0;
-      right = right / 4096 | 0;
       
-      if (left > 32767) { left = 32767; }
-      if (left < -32767) { left = -32767; }
-      if (right > 32767) { right = 32767; }
-      if (right < -32767) { right = -32767; }
-
-      this.buffer[this.index++] = left;
-      this.buffer[this.index++] = right;
+      if (left > 1) { left = 1; }
+      if (left < -1) { left = -1; }
+      if (right > 1) { right = 1; }
+      if (right < -1) { right = -1; }
+      
+      this.audioDataLeft[this.index] = left;
+      this.audioDataRight[this.index++] = right;
 
       if (this.index == this.fragmentSize) {
         this.index = 0;
+        this.playFragment();
       }
     }
   }
@@ -125,8 +166,18 @@ export class AudioManager {
   private timeRef = 0;
   private timeFrag = 0;
   private index = 0;
-  private fragmentSize = 512;
   private enable = true;
+  
+  private audioContext: AudioContext;
+  private gainNode: GainNode;
+  private audioBuffer: AudioBuffer;
+  private playingBuffer?: AudioBufferSourceNode;
+  private bufferSource: AudioBufferSourceNode;
+  private fragmentSize = 8192;
+  private sampleRate = 44100;
+  private audioDataLeft: Float32Array;
+  private audioDataRight: Float32Array;
 
-  private buffer = new Array<number>(MAX_AUDIO_BUFFER_SIZE);
+  private syncTimer: Timer;
+  private syncPeriod = 0;
 };
