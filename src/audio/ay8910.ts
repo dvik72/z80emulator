@@ -21,7 +21,7 @@ import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 
 export enum Ay8910ConnectorType { MSX, SCCPLUS, SVI };
-export enum PsgType { AY8910, YM2149, SN76489 };
+export enum PsgType { AY8910 = 'AY8910', YM2149 = 'YM2149', SN76489 = 'SN76489' };
 
 const regMask = [
   0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x1f, 0x3f,
@@ -40,7 +40,7 @@ export class Ay8910 extends AudioDevice {
     private readCb?: (port: number) => number,
     private writeCb?: (port: number, value: number) => void
   ) {
-    super('AY8910');
+    super(psgType.toString());
     this.writeAddress = this.writeAddress.bind(this);
     this.writeData = this.writeData.bind(this);
     this.readData = this.readData.bind(this);
