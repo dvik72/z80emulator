@@ -173,7 +173,73 @@ export class Ay8910 extends AudioDevice {
     return this.regs[this.address];    
   }
 
-  public sync(): Array<number> {
+  public sync(count: number): Array<number> {
+    for (let index = 0; index < count; index++) {
+      let sampleVolume = [ 0, 0, 0 ];
+
+      // Update noise generator
+      this.noisePhase = this.noisePhase + this.noiseStep & 0xffffffff;
+      while (this.noisePhase >> 28) {
+        this.noisePhase  -= 0x10000000;
+        this.noiseVolume ^= ((this.noiseRand + 1) >> 1) & 1;
+        this.noiseRand = (this.noiseRand ^ (0x28000 * (this.noiseRand & 1))) >> 1;
+      }
+
+      // Update envelope phase
+      this.envPhase += this.envStep;
+      if ((this.envShape & 1) && (this.envPhase >> 28)) {
+        this.envPhase = 0x10000000;
+      }
+
+      // Calculate envelope volume
+      let envVolume = (this.envPhase >> 23) & 0x1f;
+      if (((this.envPhase >> 27) & (this.envShape + 1) ^ (~this.envShape >> 1)) & 2) {
+        envVolume ^= 0x1f;
+      }
+
+      // Calculate and add channel samples to buffer
+      for (let channel = 0; channel < 3; channel++) {
+        let enable = this.enable >> channel;
+        let noiseEnable = ((enable >> 3) | this.noiseVolume) & 1;
+        let phaseStep = (~enable & 1) * this.toneStep[channel];
+        let tonePhase = this.tonePhase[channel];
+        let tone = 0;
+        let count = 16;
+
+        // Perform 16x oversampling 
+        while (count--) {
+          // Update phase of tone
+          tonePhase += phaseStep;
+
+          // Calculate if tone is on or off
+          tone += (enable | (tonePhase >> 31)) & noiseEnable;
+        }
+
+        // Store phase
+        this.tonePhase[channel] = tonePhase;
+
+        // Amplify sample using either envelope volume or channel volume
+        if (this.ampVolume[channel] & 0x10) {
+          sampleVolume[channel] += tone * this.voltEnvTable[envVolume] >> 4;
+        }
+        else {
+          sampleVolume[channel] += tone * this.voltTable[this.ampVolume[channel]] >> 4;
+        }
+      }
+      
+      let sampleVolumes = sampleVolume[0] + sampleVolume[1] + sampleVolume[2];
+
+      // Perform DC offset filtering
+      this.ctrlVolume[0] = sampleVolumes - this.oldSampleVolume[0] + 0x3fe7 * this.ctrlVolume[0] / 0x4000;
+      this.oldSampleVolume[0] = sampleVolumes;
+
+      // Perform simple 1 pole low pass IIR filtering
+      this.daVolume[0] += 2 * (this.ctrlVolume[0] - this.daVolume[0]) / 3 | 0;
+
+      // Store calclulated sample value
+      this.buffer[index] = 9 * this.daVolume[0];
+    }
+
     return this.buffer;
   }
 

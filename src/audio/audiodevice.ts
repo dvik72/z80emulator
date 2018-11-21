@@ -25,5 +25,5 @@ export abstract class AudioDevice {
     return name;
   }
 
-  public abstract sync(): Array<number>;
+  public abstract sync(count: number): Array<number>;
 }
