@@ -38,7 +38,7 @@ export class Ay8910 extends AudioDevice {
     private readCb?: (port: number) => number,
     private writeCb?: (port: number, value: number) => void
   ) {
-    super(psgType.toString());
+    super(psgType.toString(), true);
     
     this.writeAddress = this.writeAddress.bind(this);
     this.writeData = this.writeData.bind(this);

@@ -23,11 +23,24 @@ export const MAX_AUDIO_BUFFER_SIZE = 10000 * 2;
 
 export abstract class AudioDevice {
   public constructor(
-    private name: string) {
+    private name: string,
+    private stereo: boolean) {
   }
 
   public getName(): string {
     return name;
+  }
+
+  public isStereo(): boolean {
+    return this.stereo;
+  }
+
+  public getVolumeLeft(): number {
+    return 100;
+  }
+
+  public getVolumeRight(): number {
+    return 100;
   }
 
   public abstract sync(count: number): Array<number>;
@@ -69,6 +82,42 @@ export class AudioManager {
     let chBuff: Array<Array<number>> = [];
     for (let i = 0; i < this.audioDevices.length; i++) {
       chBuff[i] = this.audioDevices[i].sync(count);
+    }
+    for (let idx = 0; idx < count; idx++) {
+      let left = 0;
+      let right = 0;
+
+      for (let i = 0; i < chBuff.length; i++) {
+        let chanLeft = 0;
+        let chanRight = 0;
+        const audioDevice = this.audioDevices[i];
+
+        if (audioDevice.isStereo()) {
+          chanLeft = audioDevice.getVolumeLeft() * chBuff[i][2 * idx];
+          chanRight = audioDevice.getVolumeRight() * chBuff[i][2* idx + 1];
+        }
+        else {
+          chanLeft = chanRight = audioDevice.getVolumeLeft() * chBuff[i][idx];
+        }
+
+        left += chanLeft;
+        right += chanRight;
+      }
+
+      left = left / 4096 | 0;
+      right = right / 4096 | 0;
+      
+      if (left > 32767) { left = 32767; }
+      if (left < -32767) { left = -32767; }
+      if (right > 32767) { right = 32767; }
+      if (right < -32767) { right = -32767; }
+
+      this.buffer[this.index++] = left;
+      this.buffer[this.index++] = right;
+
+      if (this.index == this.fragmentSize) {
+        this.index = 0;
+      }
     }
   }
 
