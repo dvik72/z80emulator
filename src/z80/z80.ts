@@ -283,7 +283,7 @@ class Z80Delay {
 }
 
 export class Z80 {
-  constructor(
+  public constructor(
     cpuFlags: number,
     readMemCb: (a: number) => number,
     writeMemCb: (a: number, v: number) => void,
@@ -304,20 +304,25 @@ export class Z80 {
   }
 
   // Returns the current system time.
-  getSystemTime(): number {
+  public getSystemTime(): number {
     return this.systemTime;
+  }
+
+  // Returns the system frequency.
+  public getSystemFrequency(): number {
+    return this.frequencyZ80;
   }
 
   // Sets the frequency of the CPU mode specified by the cpuMode argument.
   // The selected frequency must be an integer fraction of the master
   // frequency, e.g.R800_MASTER_FREQUENCY / 6. If a non integer fraction
   // is selected the timing tables will become invalid. 
-  setFrequency(frequency: number): void {
+  public setFrequency(frequency: number): void {
     this.frequencyZ80 = frequency;
   }
 
   // Resets the Z80.
-  reset(): void {
+  public reset(): void {
     this.cpuMode = Z80Mode.UNKNOWN;
     this.oldCpuMode = Z80Mode.UNKNOWN;
 
@@ -336,7 +341,7 @@ export class Z80 {
   }
 
   // Sets the CPU mode to either Z80 or R800
-  setMode(mode: Z80Mode): void {
+  public setMode(mode: Z80Mode): void {
     if (this.cpuMode === mode) {
       return;
     }
@@ -346,22 +351,22 @@ export class Z80 {
   }
 
   // Gets the current CPU mode
-  getMode(): Z80Mode {
+  public getMode(): Z80Mode {
     return this.cpuMode;
   }
 
   // Raises the interrupt line.
-  setInt(): void {
+  public setInt(): void {
     this.intState = INT_LOW;
   }
 
   // Clears the interrupt line.
-  clearInt(): void {
+  public clearInt(): void {
     this.intState = INT_HIGH;
   }
 
   // Raises the non maskable interrupt line.
-  setNmi(): void {
+  public setNmi(): void {
     if (this.nmiState === INT_HIGH) {
       this.nmiEdge = true;
     }
@@ -369,13 +374,13 @@ export class Z80 {
   }
 
   // Clears the non maskable interrupt line.
-  clearNmi(): void {
+  public clearNmi(): void {
     this.nmiState = INT_HIGH;
   }
 
   // Sets a timeout at the given time. When CPU execution reaches
   // the time, the timer callback method will be called.
-  setTimeoutAt(time: number): void {
+  public setTimeoutAt(time: number): void {
     this.timeout = time;
   }
 
@@ -383,7 +388,7 @@ export class Z80 {
   ihist = new Array<number>(2048);
 
   // Executes CPU instructions until the stopExecution method is called.
-  execute(cpuCycles?: number): void {
+  public execute(cpuCycles?: number): void {
     let startingSystemTime = this.systemTime;
 
     while (!this.terminateFlag) {
@@ -512,7 +517,7 @@ export class Z80 {
   }
 
   // Stops the execution of the z80 emulation.
-  stopExecution(): void {
+  public stopExecution(): void {
     this.terminateFlag = true;
   }
 

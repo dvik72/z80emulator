@@ -46,7 +46,7 @@ export class Board {
     this.ioManager = new IoManager(enableSubslots);
     this.slotManager = new SlotManager();
     this.timeoutManager = new TimeoutManager();
-    this.audioManager = new AudioManager();
+    this.audioManager = new AudioManager(this);
 
     this.z80 = new Z80(cpuFlags, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeoutManager.timeout);
     this.timeoutManager.initialize(this.z80);
@@ -70,6 +70,10 @@ export class Board {
 
   public getSystemTime(): number {
     return this.z80.getSystemTime();
+  }
+
+  public getSystemFrequency(): number {
+    return this.z80.getSystemFrequency();
   }
 
   public getTimeSince(time: number): number {

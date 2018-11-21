@@ -16,6 +16,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { Board } from './board';
+
+export const SAMPLE_RATE = 44100;
+
 export abstract class AudioDevice {
   public constructor(
     private name: string) {
@@ -29,7 +33,9 @@ export abstract class AudioDevice {
 }
 
 export class AudioManager {
-  public constructor() {
+  public constructor(
+    private board: Board)
+  {
     this.audioDevices = [];
   }
 
@@ -38,8 +44,13 @@ export class AudioManager {
   }
 
   public sync(): void {
-
+    const elapsed = SAMPLE_RATE * this.board.getTimeSince(this.timeRef) + this.timeFrag;
+    this.timeRef = this.board.getSystemTime();
+    this.timeFrag = elapsed % this.board.getSystemFrequency();
+    let count = elapsed / this.board.getSystemFrequency() | 0;
   }
 
   private audioDevices: AudioDevice[];
+  private timeRef = 0;
+  private timeFrag = 0
 };
