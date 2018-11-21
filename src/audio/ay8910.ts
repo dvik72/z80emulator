@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { AudioDevice } from '../core/audiomanager';
+import { AudioDevice, MAX_AUDIO_BUFFER_SIZE } from '../core/audiomanager';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 
@@ -29,8 +29,6 @@ const regMask = [
 ];
 
 const BASE_PHASE_STEP = 0x28959bec;
-
-const AUDIO_BUFFER_SIZE = 10000;
 
 export class Ay8910 extends AudioDevice {
   constructor(
@@ -270,5 +268,5 @@ export class Ay8910 extends AudioDevice {
   private voltTable = new Array<number>(16);
   private voltEnvTable = new Array<number>(32);
 
-  private buffer = new Array<number>(2 * AUDIO_BUFFER_SIZE);
+  private buffer = new Array<number>(MAX_AUDIO_BUFFER_SIZE);
 }
