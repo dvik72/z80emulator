@@ -310,7 +310,7 @@ export class Z80 {
 
   // Returns the system frequency.
   public getSystemFrequency(): number {
-    return this.frequencyZ80;
+    return MASTER_FREQUENCY;
   }
 
   // Sets the frequency of the CPU mode specified by the cpuMode argument.

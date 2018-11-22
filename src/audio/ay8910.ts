@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { AudioDevice, MAX_AUDIO_BUFFER_SIZE } from '../core/audiomanager';
+import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 
@@ -36,7 +36,7 @@ export class Ay8910 extends AudioDevice {
     private readCb?: (port: number) => number,
     private writeCb?: (port: number, value: number) => void
   ) {
-    super(psgType.toString(), true);
+    super(psgType.toString(), false);
     
     this.writeAddress = this.writeAddress.bind(this);
     this.writeData = this.writeData.bind(this);
@@ -178,8 +178,10 @@ export class Ay8910 extends AudioDevice {
     this.basePhaseStep =(1 << 28) * 3579545 / 32 / sampleRate | 0;
   }
 
-  public sync(sampleRate: number, count: number): Array<number> {
+  public sync(sampleRate: number, count: number): void {
     this.updateBasePhaseStep(sampleRate);
+
+    const audioBuffer = this.getAudioBufferMono();
 
     for (let index = 0; index < count; index++) {
       let sampleVolume = [ 0, 0, 0 ];
@@ -244,10 +246,8 @@ export class Ay8910 extends AudioDevice {
       this.daVolume += 2 * (this.ctrlVolume - this.daVolume) / 3;
 
       // Store calclulated sample value
-      this.buffer[index] = 9 * this.daVolume;
+      audioBuffer[index] = this.daVolume;
     }
-
-    return this.buffer;
   }
 
   private regs = new Array<number>(16);
@@ -274,6 +274,4 @@ export class Ay8910 extends AudioDevice {
 
   private voltTable = new Array<number>(16);
   private voltEnvTable = new Array<number>(32);
-
-  private buffer = new Array<number>(MAX_AUDIO_BUFFER_SIZE);
 }
