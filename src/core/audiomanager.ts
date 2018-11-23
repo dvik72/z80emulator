@@ -87,7 +87,7 @@ export abstract class AudioDevice {
   }
 
   public getName(): string {
-    return name;
+    return this.name;
   }
 
   public isStereo(): boolean {
@@ -203,26 +203,21 @@ export class AudioManager {
       let right = 0;
 
       for (let i = 0; i < this.audioDevices.length; i++) {
-        let chanLeft = 0;
-        let chanRight = 0;
         const audioDevice = this.audioDevices[i];
         const audioBufferLeft = audioDevice.getAudioBufferLeft();
         const audioBufferRight = audioDevice.getAudioBufferRight();
 
-        chanLeft = audioDevice.getVolumeLeft() * audioBufferLeft[idx];
-        chanRight = audioDevice.getVolumeRight() * audioBufferRight[idx];
-
-        left += chanLeft;
-        right += chanRight;
+        left += audioDevice.getVolumeLeft() * audioBufferLeft[idx];
+        right += audioDevice.getVolumeRight() * audioBufferRight[idx];
       }
 
       // Perform DC offset filtering
       this.volumeLeft *= 0.9985;
       this.volumeLeft += left - this.oldVolumeLeft;
-      this.volumeLeft = left;
+      this.oldVolumeLeft = left;
       this.volumeRight *= 0.9985;
       this.volumeRight += right - this.oldVolumeRight;
-      this.volumeRight = right;
+      this.oldVolumeRight = right;
       
       // Perform simple 1 pole low pass IIR filtering
       this.outVolumeLeft += 2 * (this.volumeLeft - this.outVolumeLeft) / 3;

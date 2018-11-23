@@ -22,6 +22,7 @@ import { MsxPsg } from '../io/msxpsg';
 import { Mapper } from '../mappers/mapper';
 import { MapperRomBasic } from '../mappers/rombasic';
 import { MapperRomAscii8 } from '../mappers/romascii8';
+import { MapperRomKonami5 } from '../mappers/romkonami5'
 import { MapperRomNormal } from '../mappers/romnormal';
 import { MapperRom64kMirrored } from '../mappers/rom64kmirrored';
 import { MapperRamNormal } from '../mappers/ramnormal';
@@ -52,7 +53,7 @@ export class NanoMsx {
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
-    this.gameRom = new MapperRom64kMirrored(this.board, 1, 0, 4, gameRom);
+    this.gameRom = new MapperRomKonami5(this.board, 1, 0, 4, gameRom);
     this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();

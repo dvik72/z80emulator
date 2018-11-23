@@ -44,6 +44,7 @@ export class Slot {
   public pageData = EMPTY_RAM;
   public writeEnable = false;
   public readEnable = false;
+  public fullAddress = false;
 }
 
 class RamSlot {
@@ -145,7 +146,8 @@ export class SlotManager {
     let slotInfo = this.slotTable[psl][ssl][address >> 13];
 
     if (slotInfo.readCb) {
-      return slotInfo.readCb(address & 0x1fff);
+      const mask = slotInfo.fullAddress ? 0xffff : 0x1fff;
+      return slotInfo.readCb(address & mask);
     }
 
     return 0xff;
@@ -189,7 +191,8 @@ export class SlotManager {
     let slotInfo = this.slotTable[psl][ssl][address >> 13];
 
     if (slotInfo.writeCb) {
-      slotInfo.writeCb(address & 0x1fff, value);
+      const mask = slotInfo.fullAddress ? 0xffff : 0x1fff;
+      slotInfo.writeCb(address & mask, value);
     }
   }
 

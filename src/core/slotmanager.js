@@ -28,6 +28,7 @@ define(["require", "exports"], function (require, exports) {
             this.pageData = EMPTY_RAM;
             this.writeEnable = false;
             this.readEnable = false;
+            this.fullAddress = false;
             this.readCb = readCb;
             this.writeCb = writeCb;
             this.ejectCb = ejectCb;
@@ -128,7 +129,8 @@ define(["require", "exports"], function (require, exports) {
             var ssl = this.pslot[psl].subslotted ? this.pslot[address >> 14].substate : 0;
             var slotInfo = this.slotTable[psl][ssl][address >> 13];
             if (slotInfo.readCb) {
-                return slotInfo.readCb(address & 0x1fff);
+                var mask = slotInfo.fullAddress ? 0xffff : 0x1fff;
+                return slotInfo.readCb(address & mask);
             }
             return 0xff;
         };
@@ -162,7 +164,8 @@ define(["require", "exports"], function (require, exports) {
             var ssl = this.pslot[psl].subslotted ? this.pslot[address >> 14].substate : 0;
             var slotInfo = this.slotTable[psl][ssl][address >> 13];
             if (slotInfo.writeCb) {
-                slotInfo.writeCb(address & 0x1fff, value);
+                var mask = slotInfo.fullAddress ? 0xffff : 0x1fff;
+                slotInfo.writeCb(address & mask, value);
             }
         };
         SlotManager.prototype.mapRamPage = function (slot, sslot, page) {
