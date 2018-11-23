@@ -16,8 +16,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { IoManager, Port } from '../core/iomanager';
-import { SlotManager } from '../core/slotmanager';
+import { Board } from '../core/board';
+import { Port } from '../core/iomanager';
+import { KeyClick } from '../audio/keyclick';
 import { I8255 } from './i8255';
 
 export enum Key {
@@ -132,8 +133,7 @@ export enum Key {
 
 export class MsxPpi {
   constructor(
-    private ioManager: IoManager, 
-    private slotManager: SlotManager) {
+    private board: Board) {
     this.readA = this.readA.bind(this);
     this.readB = this.readB.bind(this);
     this.readCLo = this.readCLo.bind(this);
@@ -144,14 +144,12 @@ export class MsxPpi {
     this.writeCHi = this.writeCHi.bind(this);
 
     this.i8255 = new I8255(this.readA, this.writeA, this.readB, this.writeB, this.readCLo, this.writeCLo, this.readCHi, this.writeCHi);
-    this.ioManager.registerPort(0xa8, new Port(this.i8255.read, this.i8255.write));
-    this.ioManager.registerPort(0xa9, new Port(this.i8255.read, this.i8255.write));
-    this.ioManager.registerPort(0xaa, new Port(this.i8255.read, this.i8255.write));
-    this.ioManager.registerPort(0xab, new Port(this.i8255.read, this.i8255.write));
+    this.board.getIoManager().registerPort(0xa8, new Port(this.i8255.read, this.i8255.write));
+    this.board.getIoManager().registerPort(0xa9, new Port(this.i8255.read, this.i8255.write));
+    this.board.getIoManager().registerPort(0xaa, new Port(this.i8255.read, this.i8255.write));
+    this.board.getIoManager().registerPort(0xab, new Port(this.i8255.read, this.i8255.write));
 
-    for (let i = 0; i < 128; i++) {
-      this.s[i] = 0;
-    }
+    this.keyClickAudio = new KeyClick(board);
   }
 
   private row = 0;
@@ -160,6 +158,10 @@ export class MsxPpi {
   private i8255: I8255;
 
   reset(): void {
+    for (let i = 0; i < 128; i++) {
+      this.s[i] = 0;
+    }
+
     this.row = 0;
     this.regA = 0;
     this.regCHi = 0;
@@ -179,7 +181,7 @@ export class MsxPpi {
     if (value != this.regA) {
       this.regA = value;
       for (let i = 0; i < 4; i++) {
-        this.slotManager.setRamSlot(i, value & 3);
+        this.board.getSlotManager().setRamSlot(i, value & 3);
         value >>= 2;
       }
     }
@@ -194,6 +196,8 @@ export class MsxPpi {
   private writeCHi(value: number) {
     if (value != this.regCHi) {
       this.regCHi = value;
+      
+      this.keyClickAudio.click((value & 0x08) != 0);
     }
   }
 
@@ -262,4 +266,5 @@ export class MsxPpi {
   }
 
   private s = new Array<number>(128);
+  private keyClickAudio: KeyClick;
 }

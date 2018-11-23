@@ -43,7 +43,7 @@ export class NanoMsx {
 
     this.board = new Board(CPU_ENABLE_M1, false);
     
-    this.msxPpi = new MsxPpi(this.board.getIoManager(), this.board.getSlotManager());
+    this.msxPpi = new MsxPpi(this.board);
     
     this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
     this.msxpsg = new MsxPsg(this.board, 2);
@@ -52,7 +52,7 @@ export class NanoMsx {
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
-    this.gameRom = new MapperRomAscii8(this.board, 1, 0, 4, gameRom);
+    //this.gameRom = new MapperRom64kMirrored(this.board, 1, 0, 4, gameRom);
     this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();

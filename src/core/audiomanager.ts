@@ -114,10 +114,17 @@ export abstract class AudioDevice {
     return this.stereo ? this.audioBufferRight : this.audioBufferLeft;
   }
 
-  public abstract sync(sampleRate: number, count: number): void;
+  public setSampleRate(sampleRate: number) {
+    this.sampleRate = sampleRate;
+  }
+
+  public abstract sync(count: number): void;
 
   protected audioBufferLeft = new Float32Array(MAX_AUDIO_BUFFER_SIZE);
   protected audioBufferRight = new Float32Array(MAX_AUDIO_BUFFER_SIZE);
+  protected sampleRate = 1;
+
+
 }
 
 export class AudioManager {
@@ -153,6 +160,7 @@ export class AudioManager {
   }
 
   public registerAudioDevice(audioDevice: AudioDevice): void {
+    audioDevice.setSampleRate(this.sampleRate);
     this.audioDevices.push(audioDevice);
   }
 
@@ -188,7 +196,7 @@ export class AudioManager {
     }
 
     for (let i = 0; i < this.audioDevices.length; i++) {
-      this.audioDevices[i].sync(this.sampleRate, count);
+      this.audioDevices[i].sync(count);
     }
     for (let idx = 0; idx < count; idx++) {
       let left = 0;

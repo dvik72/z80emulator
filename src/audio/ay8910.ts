@@ -44,7 +44,7 @@ export class Ay8910 extends AudioDevice {
     this.sync = this.sync.bind(this);
 
     this.board.getAudioManager().registerAudioDevice(this);
-    this.updateBasePhaseStep(44100);
+    this.basePhaseStep = (1 << 28) * (3579545 / 32 / this.sampleRate) | 0;
 
     let v = 1;
     for (let i = 15; i >= 0; i--) {
@@ -174,13 +174,7 @@ export class Ay8910 extends AudioDevice {
     return this.regs[this.address];    
   }
 
-  private updateBasePhaseStep(sampleRate: number): void {
-    this.basePhaseStep =(1 << 28) * 3579545 / 32 / sampleRate | 0;
-  }
-
-  public sync(sampleRate: number, count: number): void {
-    this.updateBasePhaseStep(sampleRate);
-
+  public sync(count: number): void {
     const audioBuffer = this.getAudioBufferMono();
 
     for (let index = 0; index < count; index++) {
