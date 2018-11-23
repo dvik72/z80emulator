@@ -230,17 +230,7 @@ export class Ay8910 extends AudioDevice {
         }
       }
       
-      let sampleVolumes = sampleVolume[0] + sampleVolume[1] + sampleVolume[2];
-
-      // Perform DC offset filtering
-      this.ctrlVolume = sampleVolumes - this.oldSampleVolume + this.ctrlVolume * 0.9985;
-      this.oldSampleVolume = sampleVolumes;
-
-      // Perform simple 1 pole low pass IIR filtering
-      this.daVolume += 2 * (this.ctrlVolume - this.daVolume) / 3;
-
-      // Store calclulated sample value
-      audioBuffer[index] = this.daVolume;
+      audioBuffer[index] = sampleVolume[0] + sampleVolume[1] + sampleVolume[2];
     }
   }
 
@@ -262,9 +252,6 @@ export class Ay8910 extends AudioDevice {
 
   private enable = 0;
   private ampVolume = [0, 0, 0];
-  private ctrlVolume = 0;
-  private oldSampleVolume = 0;
-  private daVolume = 0;
 
   private voltTable = new Array<number>(16);
   private voltEnvTable = new Array<number>(32);

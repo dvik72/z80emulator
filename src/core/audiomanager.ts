@@ -215,14 +215,27 @@ export class AudioManager {
         left += chanLeft;
         right += chanRight;
       }
+
+      // Perform DC offset filtering
+      this.volumeLeft *= 0.9985;
+      this.volumeLeft += left - this.oldVolumeLeft;
+      this.volumeLeft = left;
+      this.volumeRight *= 0.9985;
+      this.volumeRight += right - this.oldVolumeRight;
+      this.volumeRight = right;
       
-      if (left > 1) { console.log('clip: ' + left); left = 1; }
-      if (left < -1) { console.log('clip: ' + left); left = -1; }
-      if (right > 1) { console.log('clip: ' + right); right = 1; }
-      if (right < -1) { console.log('clip: ' + right); right = -1; }
+      // Perform simple 1 pole low pass IIR filtering
+      this.outVolumeLeft += 2 * (this.volumeLeft - this.outVolumeLeft) / 3;
+      this.outVolumeRight += 2 * (this.volumeRight - this.outVolumeRight) / 3;
+
+      // Clip volumes if needed
+      if (this.outVolumeLeft > 1) { console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = 1; }
+      if (this.outVolumeLeft < -1) { console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = -1; }
+      if (this.outVolumeRight > 1) { console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = 1; }
+      if (this.outVolumeRight < -1) { console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = -1; }
       
-      this.audioDataLeft[this.index] = left;
-      this.audioDataRight[this.index++] = right;
+      this.audioDataLeft[this.index] = this.outVolumeLeft;
+      this.audioDataRight[this.index++] = this.outVolumeRight;
 
       if (this.index == this.fragmentSize) {
         this.index = 0;
@@ -230,6 +243,13 @@ export class AudioManager {
       }
     }
   }
+
+  private volumeLeft = 0;
+  private oldVolumeLeft = 0;
+  private outVolumeLeft = 0;
+  private volumeRight = 0;
+  private oldVolumeRight = 0;
+  private outVolumeRight = 0;
 
   private audioDevices: AudioDevice[];
   private timeRef = 0;

@@ -52,7 +52,7 @@ export class NanoMsx {
   run(): void {
     // Initialize MSX 1 machine configuration
     this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
-    //this.gameRom = new MapperRom64kMirrored(this.board, 1, 0, 4, gameRom);
+    this.gameRom = new MapperRom64kMirrored(this.board, 1, 0, 4, gameRom);
     this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
 
     this.msxPpi.reset();

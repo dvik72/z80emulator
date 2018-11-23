@@ -47,21 +47,12 @@ export class KeyClick extends AudioDevice {
     }
     
     for (let index = 0; index < count; index++) {
-      // Perform DC offset filtering
-      this.ctrlVolume = this.sampleVolume - this.oldSampleVolume + this.ctrlVolume * 0.9985;
-      this.oldSampleVolume = this.sampleVolume;
-
-      // Perform simple 1 pole low pass IIR filtering
-      this.daVolume += 2 * (this.ctrlVolume - this.daVolume) / 3;
-      audioBuffer[index++] = this.daVolume;
+      audioBuffer[index++] = this.sampleVolume;
     }
   }
 
   private sampleVolume = 0;
   private sampleVolumeSum = 0;
-  private oldSampleVolume = 0;
-  private ctrlVolume = 0;
-  private daVolume = 0;
   private count = 0;
 
 }
