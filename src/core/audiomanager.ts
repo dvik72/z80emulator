@@ -140,12 +140,12 @@ export class AudioManager {
 
     this.audioContext = new AudioContext();
     this.sampleRate = this.audioContext.sampleRate;
-    this.fragmentSize = this.sampleRate / 100 | 0;
+    this.fragmentSize = this.sampleRate / 400 | 0;
 
     this.gainNode = this.audioContext.createGain();
     this.gainNode.connect(this.audioContext.destination);
 
-    this.soundBuffer = new SoundBuffer(this.audioContext, this.sampleRate, 40);
+    this.soundBuffer = new SoundBuffer(this.audioContext, this.sampleRate, 16);
     this.audioDataLeft = new Float32Array(this.fragmentSize);
     this.audioDataRight = new Float32Array(this.fragmentSize);
     return;

@@ -39,6 +39,7 @@ import { WebGlRenderer } from '../video/webglrenderer';
 export class NanoMsx {
   constructor() {
     this.runStep = this.runStep.bind(this);
+    this.refreshScreen = this.refreshScreen.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.keyUp = this.keyUp.bind(this);
 
@@ -67,7 +68,28 @@ export class NanoMsx {
 
     this.lastSyncTime = Date.now();
 
-    requestAnimationFrame(this.runStep);
+    this.runStep();
+    requestAnimationFrame(this.refreshScreen);
+  }
+
+  private runStep(): void {
+    const elapsedTime = Date.now() - this.lastSyncTime;
+    this.lastSyncTime += elapsedTime;
+    if (elapsedTime) {
+      this.board.run(MASTER_FREQUENCY * elapsedTime / 1000 | 0);
+    }
+
+    setTimeout(this.runStep, 1);
+  }
+
+  private refreshScreen(): void {
+    const frameBuffer = this.vdp.getFrameBuffer();
+    const width = this.vdp.getFrameBufferWidth();
+    const height = this.vdp.getFrameBufferHeight();
+
+    this.glRenderer.render(width, height, frameBuffer);
+
+    requestAnimationFrame(this.refreshScreen);
   }
 
   private keyDown(event: KeyboardEvent): void {
@@ -187,20 +209,6 @@ export class NanoMsx {
       case 'NumpadMultiply': return Key.EC_NUMMUL;
     }
     return Key.EC_NONE;
-  }
-
-  private runStep() {
-    const frameBuffer = this.vdp.getFrameBuffer();
-    const width = this.vdp.getFrameBufferWidth();
-    const height = this.vdp.getFrameBufferHeight();
-    this.glRenderer.render(width, height, frameBuffer);
-
-    const elapsedTime = Date.now() - this.lastSyncTime;
-    this.lastSyncTime += elapsedTime;
-
-    this.board.run(MASTER_FREQUENCY * elapsedTime / 1000 | 0);
-
-    requestAnimationFrame(this.runStep);
   }
 
   private board: Board;
