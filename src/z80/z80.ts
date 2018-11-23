@@ -1861,7 +1861,7 @@ export class Z80 {
       case 0xfe: /* cp_byte */ this.CP(this.readOpcode()); break;
       case 0xff: /* rst_38 */ this.RST(0x38); break;
       default:
-        throw new Error('Invalid opcode');
+        throw new Error('Invalid opcode: ' + (opcode & 0xff));
     }
   }
 
@@ -2125,7 +2125,7 @@ export class Z80 {
       case 0xfe: /* set_7_xhl */ this.SET_XHL(7); break;
       case 0xff: /* set_7_a */ this.SET(7, this.regs.AF.h); break;
       default:
-        throw new Error('Invalid opcode');
+        throw new Error('Invalid opcode: CB-' + (opcode & 0xff));
     }
   }
 
@@ -2389,7 +2389,7 @@ export class Z80 {
       case 0xfe: /* cp_byte */ this.CP(this.readOpcode()); break;
       case 0xff: /* rst_38 */ this.RST(0x38); break;
       default:
-        throw new Error('Invalid opcode');
+        throw new Error('Invalid opcode: DD-' + (opcode & 0xff));
     }
   }
 
@@ -2653,7 +2653,7 @@ export class Z80 {
       case 0xfe: /* patch */ break;
       case 0xff: /* nop */ break;
       default:
-        throw new Error('Invalid opcode');
+        throw new Error('Invalid opcode: ED-' + (opcode & 0xff));
     }
   }
 
@@ -2669,7 +2669,7 @@ export class Z80 {
       case 0x06: /* ld_b_byte */ this.regs.BC.h.set(this.readOpcode()); break;
       case 0x07: /* rlca */ this.RLCA(); break;
       case 0x08: /* ex_af_af */ this.EX(this.regs.AF, this.regs.AF1); break;
-      case 0x19: /* add_iy_bc */ this.ADDW(this.regs.IY, this.regs.BC); break;
+      case 0x09: /* add_iy_bc */ this.ADDW(this.regs.IY, this.regs.BC); break;
       case 0x0a: /* ld_a_xbc */ this.regs.AF.h.set(this.readMem(this.regs.BC.get())); break;
       case 0x0b: /* dec_bc */ this.DECW(this.regs.BC); break;
       case 0x0c: /* inc_c */ this.INC(this.regs.BC.l); break;
@@ -2917,7 +2917,7 @@ export class Z80 {
       case 0xfe: /* cp_byte */ this.CP(this.readOpcode()); break;
       case 0xff: /* rst_38 */ this.RST(0x38); break;
       default:
-        throw new Error('Invalid opcode');
+        throw new Error('Invalid opcode: FD-' + (opcode & 0xff));
     }
   }
 
@@ -3183,7 +3183,7 @@ export class Z80 {
       case 0xfe: /* res_7_xnn */ { let r = new Register(); this.SET_XNN(7, addr, r); } break;
       case 0xff: /* res_7_xnn_a */ this.SET_XNN(7, addr, this.regs.AF.h); break;
       default:
-        throw new Error('Invalid opcode');
+        throw new Error('Invalid opcode: nnCB' + (opcode & 0xff));
     }
   }
 }

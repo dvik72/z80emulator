@@ -21,7 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { Scc, SccMode } from '../audio/scc';
 
-export class MapperRomKonami5 extends Mapper {
+export class MapperRomKonamiScc extends Mapper {
   constructor(board: Board, slot: number, sslot: number, unusedStartPage: number, romData: number[]) {
     super('ROM Konami SCC');
 

@@ -135,7 +135,7 @@ export class AudioManager {
 
     this.onSync = this.onSync.bind(this);
     this.syncTimer = board.getTimeoutManager().createTimer('Audio Sync', this.onSync);
-    this.syncPeriod = this.board.getSystemFrequency() / 800 | 0;
+    this.syncPeriod = this.board.getSystemFrequency() / 1000 | 0;
     this.onSync();
 
     this.audioContext = new AudioContext();
@@ -145,7 +145,7 @@ export class AudioManager {
     this.gainNode = this.audioContext.createGain();
     this.gainNode.connect(this.audioContext.destination);
 
-    this.soundBuffer = new SoundBuffer(this.audioContext, this.sampleRate, 16);
+    this.soundBuffer = new SoundBuffer(this.audioContext, this.sampleRate, 24);
     this.audioDataLeft = new Float32Array(this.fragmentSize);
     this.audioDataRight = new Float32Array(this.fragmentSize);
     return;
