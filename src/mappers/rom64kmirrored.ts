@@ -33,29 +33,30 @@ export class MapperRom64kMirrored extends Mapper {
 
     const romStart = this.getRomStart(romData, size);
 
-    let offset = 0;
+    let romOffset = 0;
     for (let page = 0; page < 8; page++) {
       switch (size) {
         case 0x2000:
-          offset &= 0x1fff;
+          romOffset &= 0x1fff;
           break;
         case 0x4000:
-          offset &= 0x3fff;
+          romOffset &= 0x3fff;
           break;
         case 0x8000:
-          if (romStart == 0x4000 && page == 0) offset = 0x4000; 
-          offset &= 0x7fff;
+          if (romStart == 0x4000 && page == 0) romOffset = 0x4000; 
+          romOffset &= 0x7fff;
           break;
         case 0xc000:
-          if (romStart == 0x4000 && page == 2) offset = 0; 
-          offset %= 0xc000; break;
+          if (romStart == 0x4000 && page == 2) romOffset = 0; 
+          romOffset %= 0xc000; break;
         default:
           break;
       }
 
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = romData[offset++] | 0;
+        pageData[i] = romData[romOffset] || 0;
+        romOffset++;
       }
 
       let slotInfo = new Slot(this.getName() + ' - ' + startPage);

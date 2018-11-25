@@ -29,7 +29,8 @@ export class MapperRomBasic extends Mapper {
     for (let page = 4; page < 8; page++) {
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = romOffset < romData.length ? romData[romOffset++] : 0xff;
+        pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
+        romOffset++;
       }
       let slotInfo = new Slot(this.getName() + ' - ' + page);
       slotInfo.map(true, false, pageData);

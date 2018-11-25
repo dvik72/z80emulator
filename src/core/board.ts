@@ -21,6 +21,7 @@ import { AudioManager } from './audiomanager';
 import { IoManager, Port } from './iomanager';
 import { SlotManager } from './slotmanager';
 import { TimeoutManager } from './timeoutmanager';
+import { WebAudio } from '../audio/webaudio';
 
 export enum InterruptVector {
   VDP_IE0 = 0x0001,
@@ -42,7 +43,11 @@ export enum InterruptVector {
 // a timeout service for emulated devices to register callbacks at some given
 // time (in the emulated time space).
 export class Board {
-  constructor(cpuFlags: number, enableSubslots: boolean) {
+  constructor(
+    webAudio: WebAudio,
+    cpuFlags: number,
+    enableSubslots: boolean
+  ) {
     this.ioManager = new IoManager(enableSubslots);
     this.slotManager = new SlotManager();
     this.timeoutManager = new TimeoutManager();
@@ -50,7 +55,7 @@ export class Board {
     this.z80 = new Z80(cpuFlags, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeoutManager.timeout);
     this.timeoutManager.initialize(this.z80);
 
-    this.audioManager = new AudioManager(this);
+    this.audioManager = new AudioManager(webAudio, this);
   }
 
   public getIoManager(): IoManager {

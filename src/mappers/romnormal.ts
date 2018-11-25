@@ -25,11 +25,12 @@ export class MapperRomNormal extends Mapper {
     super('ROM Normal');
 
     let pages = romData.length + 0x1fff >> 13;
-    let romIndex = 0;
+    let romOffset = 0;
     while (pages--) {
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = romData[romIndex++] | 0;
+        pageData[i] = romData[romOffset] || 0;
+        romOffset++;
       }
       let slotInfo = new Slot(this.getName() + ' - ' + startPage);
       slotInfo.map(true, false, pageData);

@@ -18,65 +18,7 @@
 
 import { Board } from './board';
 import { Timer } from './timeoutmanager';
-
-class SoundBuffer {
-  private chunks: Array<AudioBufferSourceNode> = [];
-  private isPlaying: boolean = false;
-  private startTime: number = 0;
-  private lastChunkOffset: number = 0;
-
-  constructor(public ctx: AudioContext, public sampleRate: number, public bufferSize: number = 6) { }
-
-  private createChunk(chunkLeft: Float32Array, chunkRight: Float32Array) {
-    var audioBuffer = this.ctx.createBuffer(2, chunkLeft.length, this.sampleRate);
-    audioBuffer.getChannelData(0).set(chunkLeft);
-    audioBuffer.getChannelData(1).set(chunkRight);
-    var source = this.ctx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(this.ctx.destination);
-    source.onended = (e: Event) => {
-      this.chunks.splice(this.chunks.indexOf(source), 1);
-      if (this.chunks.length == 0) {
-        this.isPlaying = false;
-        this.startTime = 0;
-        this.lastChunkOffset = 0;
-      }
-    };
-
-    return source;
-  }
-
-  public addChunk(dataLeft: Float32Array, dataRight: Float32Array) {
-    if (this.isPlaying && (this.chunks.length > this.bufferSize)) {
-      return;
-    } else if (this.isPlaying && (this.chunks.length <= this.bufferSize)) {
-      let chunk = this.createChunk(dataLeft, dataRight);
-      if (!chunk.buffer) {
-        return;
-      }
-      chunk.start(this.startTime + this.lastChunkOffset);
-      this.lastChunkOffset += chunk.buffer.duration;
-      this.chunks.push(chunk);
-    } else if ((this.chunks.length < (this.bufferSize / 2)) && !this.isPlaying) {
-      let chunk = this.createChunk(dataLeft, dataRight);
-      this.chunks.push(chunk);
-    } else {
-      this.isPlaying = true;
-      let chunk = this.createChunk(dataLeft, dataRight);
-      this.chunks.push(chunk);
-      this.startTime = this.ctx.currentTime;
-      this.lastChunkOffset = 0;
-      for (let i = 0; i < this.chunks.length; i++) {
-        let chunk = this.chunks[i];
-        if (!chunk.buffer) {
-          return;
-        }
-        chunk.start(this.startTime + this.lastChunkOffset);
-        this.lastChunkOffset += chunk.buffer.duration;
-      }
-    }
-  }
-}
+import { WebAudio } from '../audio/webaudio';
 
 const MAX_AUDIO_BUFFER_SIZE = 10000;
 
@@ -123,31 +65,20 @@ export abstract class AudioDevice {
   protected audioBufferLeft = new Float32Array(MAX_AUDIO_BUFFER_SIZE);
   protected audioBufferRight = new Float32Array(MAX_AUDIO_BUFFER_SIZE);
   protected sampleRate = 1;
-
-
 }
 
 export class AudioManager {
   public constructor(
+    private webAudio: WebAudio,
     private board: Board)
   {
+    this.sampleRate = this.webAudio.getSampleRate();
     this.audioDevices = [];
 
     this.onSync = this.onSync.bind(this);
     this.syncTimer = board.getTimeoutManager().createTimer('Audio Sync', this.onSync);
     this.syncPeriod = this.board.getSystemFrequency() / 1000 | 0;
     this.onSync();
-
-    this.audioContext = new AudioContext();
-    this.sampleRate = this.audioContext.sampleRate;
-    this.fragmentSize = this.sampleRate / 400 | 0;
-
-    this.gainNode = this.audioContext.createGain();
-    this.gainNode.connect(this.audioContext.destination);
-
-    this.soundBuffer = new SoundBuffer(this.audioContext, this.sampleRate, 24);
-    this.audioDataLeft = new Float32Array(this.fragmentSize);
-    this.audioDataRight = new Float32Array(this.fragmentSize);
     return;
   }
 
@@ -160,7 +91,7 @@ export class AudioManager {
   }
 
   public registerAudioDevice(audioDevice: AudioDevice): void {
-    audioDevice.setSampleRate(this.sampleRate);
+    audioDevice.setSampleRate(this.getSampleRate());
     this.audioDevices.push(audioDevice);
   }
 
@@ -168,13 +99,6 @@ export class AudioManager {
     this.sync();
     this.syncTimer.setTimeout(this.board.getSystemTime() + this.syncPeriod);
   }
-
-  private playFragment() {
-    this.soundBuffer.addChunk(this.audioDataLeft, this.audioDataRight);
-    this.audioDataLeft = new Float32Array(this.fragmentSize);
-    this.audioDataRight = new Float32Array(this.fragmentSize);
-    return;
-  } 
   
   public sync(): void {
     const elapsed = this.sampleRate * this.board.getTimeSince(this.timeRef) + this.timeFrag;
@@ -184,13 +108,7 @@ export class AudioManager {
 
     if (!this.enable) {
       while (count--) {
-        this.audioDataLeft[this.index] = 0;
-        this.audioDataRight[this.index++] = 0;
-
-        if (this.index == this.fragmentSize) {
-          this.index = 0;
-          this.playFragment();
-        }
+        this.webAudio.addSample(0, 0);
       }
       return;
     }
@@ -228,14 +146,8 @@ export class AudioManager {
       if (this.outVolumeLeft < -1) { console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = -1; }
       if (this.outVolumeRight > 1) { console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = 1; }
       if (this.outVolumeRight < -1) { console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = -1; }
-      
-      this.audioDataLeft[this.index] = this.outVolumeLeft;
-      this.audioDataRight[this.index++] = this.outVolumeRight;
 
-      if (this.index == this.fragmentSize) {
-        this.index = 0;
-        this.playFragment();
-      }
+      this.webAudio.addSample(this.outVolumeLeft, this.outVolumeRight);
     }
   }
 
@@ -249,18 +161,10 @@ export class AudioManager {
   private audioDevices: AudioDevice[];
   private timeRef = 0;
   private timeFrag = 0;
-  private index = 0;
   private enable = true;
   
-  private audioContext: AudioContext;
-  private gainNode: GainNode;
-  private fragmentSize = 8192;
-  private sampleRate = 44100;
-  private audioDataLeft: Float32Array;
-  private audioDataRight: Float32Array;
+  private sampleRate: number;
 
   private syncTimer: Timer;
   private syncPeriod = 0;
-
-  private soundBuffer: SoundBuffer;
 };

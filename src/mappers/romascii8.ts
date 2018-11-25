@@ -34,7 +34,8 @@ export class MapperRomAscii8 extends Mapper {
     for (let romOffset = 0; romOffset < size;) {
       let pageData = new Array<number>(0x2000);
       for (let i = 0; i < 0x2000; i++) {
-        pageData[i] = romOffset < romData.length ? romData[romOffset++] : 0xff;
+        pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
+        romOffset++;
       }
       this.pages.push(pageData);
     }
