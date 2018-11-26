@@ -1,7 +1,9 @@
 ﻿body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Verdana', 'Arial', sans-serif;
 }
 
 span {
-    font-style: italic;
+    font-style: normal;
+    font-size: smaller;
+    color: #808080;
 }

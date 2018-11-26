@@ -23,16 +23,25 @@ import { Mapper } from '../mappers/mapper';
 import { MapperRomBasic } from '../mappers/rombasic';
 import { MapperRomAscii8 } from '../mappers/romascii8';
 import { MapperRomAscii16 } from '../mappers/romascii16';
+import { MapperRomAscii8sram } from '../mappers/romascii8sram';
+import { MapperRomAscii16sram } from '../mappers/romascii16sram';
 import { MapperRomKonami } from '../mappers/romkonami';
 import { MapperRomKonamiScc } from '../mappers/romkonamiscc'
 import { MapperRomNormal } from '../mappers/romnormal';
 import { MapperRom64kMirrored } from '../mappers/rom64kmirrored';
+import { MapperRomRtype } from '../mappers/romrtype';
+import { MapperRomGameMaster2 } from '../mappers/romgamemaster2';
+import { MapperRomCrossBlaim } from '../mappers/romcrossblaim';
+import { MapperRomHarryFox } from '../mappers/romharryfox';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxdosrom';
 import { gameRom } from './gamerom';
 import { CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
+import { mapperFromMediaInfo } from '../mappers/mapperfactory';
+import { MediaInfoFactory } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
+import { WebAudio } from '../audio/webaudio';
 
 
 // Minimal functional emulation of MSX. 
@@ -44,62 +53,148 @@ export class NanoMsx {
     this.refreshScreen = this.refreshScreen.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.keyUp = this.keyUp.bind(this);
-
-    this.board = new Board(CPU_ENABLE_M1, false);
-    
-    this.msxPpi = new MsxPpi(this.board);
-    
-    this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
-    this.msxpsg = new MsxPsg(this.board, 2);
+    this.dragover = this.dragover.bind(this);
+    this.drop = this.drop.bind(this);
   }
   
   run(): void {
-    // Initialize MSX 1 machine configuration
+    document.addEventListener('keydown', this.keyDown);
+    document.addEventListener('keyup', this.keyUp);
+    document.addEventListener('dragover', this.dragover);
+    document.addEventListener('drop', this.drop);
+
+    this.startEmulation();
+
+    // Start emulation and renderer
+    this.lastSyncTime = Date.now();
+    this.runStep();
+    requestAnimationFrame(this.refreshScreen);
+  }
+
+  private isRunning = false;
+  private gameRomData?: Uint8Array;
+  private mediaInfoFactory = new MediaInfoFactory();
+
+  private startEmulation() {
+    // Initialize board components
+    this.board = new Board(this.webAudio, CPU_ENABLE_M1, false);
+    this.msxPpi = new MsxPpi(this.board);
+    this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
+    this.msxpsg = new MsxPsg(this.board, 2);
+
+    // Initialize MSX 1 ram and roms
     this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
-    this.gameRom = new MapperRomAscii16(this.board, 1, 0, 4, gameRom);
     this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
 
+    // Initialize cartridge
+    let info = '<br>No cartridge inserted. Drag rom file onto page to insert...';
+    if (this.gameRomData) {
+      const mediaInfo = this.mediaInfoFactory.mediaInfoFromData(this.gameRomData);
+      if (mediaInfo) {
+        info = '<br>';
+        info += '<br>Game title: ' + mediaInfo.title;
+        info += '<br>Company: ' + mediaInfo.company;
+        info += '<br>Year: ' + mediaInfo.year;
+        info += '<br>Country: ' + mediaInfo.country;
+        info += '<br>Cartridge type: ' + mediaInfo.type;
+      }
+      this.gameRom = mapperFromMediaInfo(this.board, mediaInfo, 1, 0);
+    }
+    else {
+      this.gameRom = undefined;
+    }
+    const element = document.getElementById('info');
+    if (element) {
+      element.innerHTML = info;
+    }
+
+    // Reset all devices
     this.msxPpi.reset();
     this.vdp.reset();
     this.msxpsg.reset();
-
     this.board.reset();
 
-    document.addEventListener('keydown', this.keyDown);
-    document.addEventListener('keyup', this.keyUp);
+    this.isRunning = true;
+  }
 
-    this.lastSyncTime = Date.now();
-
-    this.runStep();
-    requestAnimationFrame(this.refreshScreen);
+  private stopEmulation(): void {
+    this.isRunning = false;
   }
 
   private runStep(): void {
     const elapsedTime = Date.now() - this.lastSyncTime;
     this.lastSyncTime += elapsedTime;
     if (elapsedTime) {
-      this.board.run(MASTER_FREQUENCY * elapsedTime / 1000 | 0);
+      if (this.isRunning && this.board) {
+        this.board.run(MASTER_FREQUENCY * elapsedTime / 1000 | 0);
+      }
     }
 
     setTimeout(this.runStep, 1);
   }
 
   private refreshScreen(): void {
-    const frameBuffer = this.vdp.getFrameBuffer();
-    const width = this.vdp.getFrameBufferWidth();
-    const height = this.vdp.getFrameBufferHeight();
+    if (this.isRunning && this.vdp) {
+      const frameBuffer = this.vdp.getFrameBuffer();
+      const width = this.vdp.getFrameBufferWidth();
+      const height = this.vdp.getFrameBufferHeight();
 
-    this.glRenderer.render(width, height, frameBuffer);
-
+      this.glRenderer.render(width, height, frameBuffer);
+    }
     requestAnimationFrame(this.refreshScreen);
   }
 
+  private drop(event: DragEvent) {
+    event.preventDefault();
+    
+    if (event.dataTransfer && event.dataTransfer.items) {
+      if (event.dataTransfer.items.length == 1 && event.dataTransfer.items[0].kind === 'file') {
+        const file = event.dataTransfer.items[0].getAsFile();
+        if (file instanceof File) {
+          this.stopEmulation();
+          let reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result) {
+              if (reader.result instanceof ArrayBuffer) {
+                this.fileLoaded(file.name, new Uint8Array(reader.result));
+              }
+              else {
+                let data = new Uint8Array(reader.result.length);
+                for (let i = 0; i < reader.result.length; i++) {
+                  data[i] = reader.result.charCodeAt(i);
+                }
+                this.fileLoaded(file.name, data);
+              }
+            }
+          }
+          reader.readAsBinaryString(file);
+        }
+      }
+    }
+  }
+
+  private fileLoaded(filename: string, data: Uint8Array) {
+    this.gameRomData = data;
+
+    this.startEmulation();
+  }
+
+  private dragover(event: DragEvent) {
+    event.preventDefault();
+  }
+
   private keyDown(event: KeyboardEvent): void {
-    this.msxPpi.keyDown(this.keyEventToKeyEnum(event));
+    event.preventDefault();
+    if (this.msxPpi) {
+      this.msxPpi.keyDown(this.keyEventToKeyEnum(event));
+    }
   }
 
   private keyUp(event: KeyboardEvent): void {
-    this.msxPpi.keyUp(this.keyEventToKeyEnum(event));
+    event.preventDefault();
+    if (this.msxPpi) {
+      this.msxPpi.keyUp(this.keyEventToKeyEnum(event));
+    }
   }
 
   private keyEventToKeyEnum(event: KeyboardEvent): Key {
@@ -212,14 +307,17 @@ export class NanoMsx {
     return Key.EC_NONE;
   }
 
-  private board: Board;
-  private timerId = 0;
   private lastSyncTime = 0;
+  private glRenderer = new WebGlRenderer();
+
+  private webAudio = new WebAudio();
+
+  // MSX components
+  private board?: Board;
+  private vdp?: Vdp;
+  private msxpsg?: MsxPsg;
+  private msxPpi?: MsxPpi;
   private ram?: Mapper;
   private msxRom?: Mapper;
   private gameRom?: Mapper;
-  private vdp: Vdp;
-  private msxpsg: MsxPsg;
-  private msxPpi: MsxPpi;
-  private glRenderer = new WebGlRenderer();
 }
