@@ -20,23 +20,10 @@ import { Board } from '../core/board';
 import { MsxPpi, Key } from '../io/msxppi';
 import { MsxPsg } from '../io/msxpsg';
 import { Mapper } from '../mappers/mapper';
-import { MapperRomBasic } from '../mappers/rombasic';
-import { MapperRomAscii8 } from '../mappers/romascii8';
-import { MapperRomAscii16 } from '../mappers/romascii16';
-import { MapperRomAscii8sram } from '../mappers/romascii8sram';
-import { MapperRomAscii16sram } from '../mappers/romascii16sram';
-import { MapperRomKonami } from '../mappers/romkonami';
-import { MapperRomKonamiScc } from '../mappers/romkonamiscc'
 import { MapperRomNormal } from '../mappers/romnormal';
-import { MapperRom64kMirrored } from '../mappers/rom64kmirrored';
-import { MapperRomRtype } from '../mappers/romrtype';
-import { MapperRomGameMaster2 } from '../mappers/romgamemaster2';
-import { MapperRomCrossBlaim } from '../mappers/romcrossblaim';
-import { MapperRomHarryFox } from '../mappers/romharryfox';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
 import { msxDosRom } from './msxdosrom';
-import { gameRom } from './gamerom';
 import { CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
 import { mapperFromMediaInfo } from '../mappers/mapperfactory';
 import { MediaInfoFactory } from '../util/mediainfo';
@@ -44,9 +31,7 @@ import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
 
 
-// Minimal functional emulation of MSX. 
-// The emulation is not complete, but it includes enough feamstures
-// to run dos programs and cartridges up to 64kB.
+// Emulates MSX1 with cartridge ROMs. No disk drive or casette emulation yet...
 export class NanoMsx {
   constructor() {
     this.runStep = this.runStep.bind(this);
