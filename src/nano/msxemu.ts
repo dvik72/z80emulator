@@ -32,7 +32,7 @@ import { WebAudio } from '../audio/webaudio';
 
 
 // Emulates MSX1 with cartridge ROMs. No disk drive or casette emulation yet...
-export class NanoMsx {
+export class MsxEmu {
   constructor() {
     this.runStep = this.runStep.bind(this);
     this.refreshScreen = this.refreshScreen.bind(this);

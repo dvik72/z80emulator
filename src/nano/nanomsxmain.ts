@@ -16,12 +16,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { NanoMsx } from "../nano/nanomsx"
+import { MsxEmu } from "../nano/msxemu"
 
-require(['NanoMsx'],
+require(['MsxEmu'],
   (main: any) => {
 //    let i = 0; while (i == 0) { }
-    let nanoMsx = new NanoMsx();
-    nanoMsx.run();
+    let msxEmu = new MsxEmu();
+    msxEmu.run();
   }
 );
