@@ -22,7 +22,7 @@ import { Slot } from '../core/slotmanager';
 import { Scc, SccMode } from '../audio/scc';
 
 export class MapperRomKonamiScc extends Mapper {
-  constructor(board: Board, slot: number, sslot: number, unusedStartPage: number, romData: number[]) {
+  constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
     super('ROM Konami SCC');
 
     this.scc = new Scc(board, SccMode.REAL);

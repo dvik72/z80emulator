@@ -21,7 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomBasic extends Mapper {
-  constructor(board: Board, slot: number, sslot: number, startPage: number, romData: number[]) {
+  constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
     super('ROM Basic');
 
     let romOffset = 0;

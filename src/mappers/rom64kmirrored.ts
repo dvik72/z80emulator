@@ -21,7 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRom64kMirrored extends Mapper {
-  constructor(board: Board, slot: number, sslot: number, startPage: number, romData: number[]) {
+  constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
     super('ROM 64k Mirrored');
 
     // Align ROM size up to next valid rom size
@@ -59,13 +59,13 @@ export class MapperRom64kMirrored extends Mapper {
         romOffset++;
       }
 
-      let slotInfo = new Slot(this.getName() + ' - ' + startPage);
+      let slotInfo = new Slot(this.getName() + ' - ' + page);
       slotInfo.map(true, false, pageData);
       board.getSlotManager().registerSlot(slot, sslot, page, slotInfo);
     }
   }
 
-  private getRomStart(romData: number[], size: number): number {
+  private getRomStart(romData: Uint8Array, size: number): number {
     let pages = [0, 0, 0];
 
     for (let startPage = 0; startPage < 2; startPage++) {

@@ -21,7 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomCrossBlaim extends Mapper {
-  constructor(board: Board, slot: number, sslot: number, unusedStartPage: number, romData: number[]) {
+  constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
     super('ROM Cross Blaim');
 
     this.pages = [];

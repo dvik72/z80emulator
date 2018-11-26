@@ -21,7 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomAscii16sram extends Mapper {
-  constructor(board: Board, slot: number, sslot: number, unusedStartPage: number, romData: number[]) {
+  constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
     super('ROM ASCII-16 SRAM');
     
     let size = 0x8000;
