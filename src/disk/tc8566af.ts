@@ -97,6 +97,8 @@ export class Tc8566af {
   }
 
   public reset() {
+    this.disk = this.diskManager.getFloppyDisk(0);
+
     this.mainStatus = STM_NDM | STM_RQM;
 
     this.mainStatus = 0;
@@ -331,7 +333,7 @@ export class Tc8566af {
             break;
           case 7:
             if (this.command == Command.READ_DATA) {
-              const rv = this.disk.readSector(this.sectorNumber, this.side, this.currentTrack, 0);
+              const rv = this.disk.readSector(this.sectorNumber, this.side, this.currentTrack);
               const diskError = rv[0];
               this.sectorBuf = rv[1] || this.sectorBuf;
 
@@ -462,8 +464,7 @@ export class Tc8566af {
           this.sectorBuf[this.sectorOffset++] = value;
 
           if (this.sectorOffset == 512) {
-            const diskError = this.disk.writeSector(this.sectorBuf, this.sectorNumber, this.side,
-              this.currentTrack, 0);
+            const diskError = this.disk.writeSector(this.sectorBuf, this.sectorNumber, this.side, this.currentTrack);
             if (diskError != DiskError.OK) {
               this.status1 |= ST1_NW;
             }
@@ -484,8 +485,7 @@ export class Tc8566af {
             for (let i = 0; i < 512; i++) {
               this.sectorBuf[i] = this.fillerByte;
             }
-            const diskError = this.disk.writeSector(this.sectorBuf, this.sectorNumber, this.side,
-              this.currentTrack, 0);
+            const diskError = this.disk.writeSector(this.sectorBuf, this.sectorNumber, this.side, this.currentTrack);
             if (diskError != DiskError.OK) {
               this.status1 |= ST1_NW;
             }

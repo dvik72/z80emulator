@@ -29,6 +29,11 @@ import { mapperFromMediaInfo } from '../mappers/mapperfactory';
 import { MediaInfoFactory } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
+import { gameRom } from './gamerom';
+
+import { MapperRomTc8566af } from '../mappers/romTc8566af';
+import { DiskManager } from './diskmanager';
+import { panasonicDiskRom } from './panasonicdiskrom';
 
 
 // Emulates MSX1 with cartridge ROMs. No disk drive or casette emulation yet...
@@ -40,6 +45,10 @@ export class MsxEmu {
     this.keyUp = this.keyUp.bind(this);
     this.dragover = this.dragover.bind(this);
     this.drop = this.drop.bind(this);
+
+    this.diskManager.getFloppyDisk(0).enable(true);
+
+//    this.diskManager.insertFloppyImage(0, new Uint8Array(gameRom));
   }
   
   run(): void {
@@ -70,6 +79,9 @@ export class MsxEmu {
     // Initialize MSX 1 ram and roms
     this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
     this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
+
+    // Insert disk rom into cartridge slot 2
+    this.diskRom = new MapperRomTc8566af(this.diskManager, this.board, 2, 0, new Uint8Array(panasonicDiskRom));
 
     // Initialize cartridge
     let info = '<br>No cartridge inserted. Drag rom file onto page to insert...';
@@ -297,6 +309,8 @@ export class MsxEmu {
 
   private webAudio = new WebAudio();
 
+  private diskManager = new DiskManager();
+
   // MSX components
   private board?: Board;
   private vdp?: Vdp;
@@ -305,4 +319,5 @@ export class MsxEmu {
   private ram?: Mapper;
   private msxRom?: Mapper;
   private gameRom?: Mapper;
+  private diskRom?: Mapper;
 }
