@@ -88,7 +88,7 @@ const ST3_RDY = 0x20;
 const ST3_WP = 0x40;
 const ST3_FLT = 0x80;
 
-class Tc8566af {
+export class Tc8566af {
   public constructor(
     private diskManager: DiskManager,
     private board: Board
@@ -268,8 +268,8 @@ class Tc8566af {
 
     this.commandCode = value;
 
-    this.phase       = Phase.COMMAND;
-    this.phaseStep   = 0;
+    this.phase = Phase.COMMAND;
+    this.phaseStep = 0;
     this.mainStatus |= STM_CB;
 
     switch (this.command) {
@@ -286,7 +286,7 @@ class Tc8566af {
         break;
 
       case Command.SENSE_INTERRUPT_STATUS:
-        this.phase       = Phase.RESULT;
+        this.phase = Phase.RESULT;
         this.mainStatus |= STM_DIO;
         break;
 
@@ -297,7 +297,7 @@ class Tc8566af {
 
       default:
         this.mainStatus &= ~STM_CB;
-        this.phase       = Phase.IDLE;
+        this.phase = Phase.IDLE;
     }
   }
 
@@ -310,7 +310,7 @@ class Tc8566af {
             this.status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             this.status0 |= (this.disk.isPresent() ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
               (this.disk.isEnabled() ? 0 : ST0_IC1);
-            this.status3  = (value & (ST3_DS0 | ST3_DS1)) |
+            this.status3 = (value & (ST3_DS0 | ST3_DS1)) |
               (this.currentTrack == 0 ? ST3_TK0 : 0) |
               (this.disk.getSides() == 2 ? ST3_HD : 0) |
               (this.disk.isReadOnly() ? ST3_WP : 0) |
@@ -334,7 +334,7 @@ class Tc8566af {
               const rv = this.disk.readSector(this.sectorNumber, this.side, this.currentTrack, 0);
               const diskError = rv[0];
               this.sectorBuf = rv[1] || this.sectorBuf;
-              
+
               if (diskError == DiskError.NO_DATA) {
                 this.status0 |= ST0_IC0;
                 this.status1 |= ST1_ND;
@@ -361,7 +361,7 @@ class Tc8566af {
             this.status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             this.status0 |= (this.disk.isPresent() ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
               (this.disk.isEnabled() ? 0 : ST0_IC1);
-            this.status3  = (value & (ST3_DS0 | ST3_DS1)) |
+            this.status3 = (value & (ST3_DS0 | ST3_DS1)) |
               (this.currentTrack == 0 ? ST3_TK0 : 0) |
               (this.disk.getSides() == 2 ? ST3_HD : 0) |
               (this.disk.isReadOnly() ? ST3_WP : 0) |
@@ -372,14 +372,14 @@ class Tc8566af {
             break;
           case 2:
             this.sectorsPerCylinder = value;
-            this.sectorNumber       = value;
+            this.sectorNumber = value;
             break;
           case 4:
-            this.fillerByte   = value;
+            this.fillerByte = value;
             this.sectorOffset = 0;
-            this.mainStatus  &= ~STM_DIO;
-            this.phase        = Phase.DATATRANSFER;
-            this.phaseStep    = 0;
+            this.mainStatus &= ~STM_DIO;
+            this.phase = Phase.DATATRANSFER;
+            this.phaseStep = 0;
             break;
         }
         break;
@@ -390,7 +390,7 @@ class Tc8566af {
             this.status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             this.status0 |= (this.disk.isPresent() ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
               (this.disk.isEnabled() ? 0 : ST0_IC1);
-            this.status3  = (value & (ST3_DS0 | ST3_DS1)) |
+            this.status3 = (value & (ST3_DS0 | ST3_DS1)) |
               (this.currentTrack == 0 ? ST3_TK0 : 0) |
               (this.disk.getSides() == 2 ? ST3_HD : 0) |
               (this.disk.isReadOnly() ? ST3_WP : 0) |
@@ -398,9 +398,9 @@ class Tc8566af {
             break;
           case 1:
             this.currentTrack = value;
-            this.status0     |= ST0_SE;
-            this.mainStatus  &= ~STM_CB;
-            this.phase        = Phase.IDLE;
+            this.status0 |= ST0_SE;
+            this.mainStatus &= ~STM_CB;
+            this.phase = Phase.IDLE;
             break;
         }
         break;
@@ -411,16 +411,16 @@ class Tc8566af {
             this.status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             this.status0 |= (this.disk.isPresent() ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
               (this.disk.isEnabled() ? 0 : ST0_IC1);
-            this.status3  = (value & (ST3_DS0 | ST3_DS1)) |
+            this.status3 = (value & (ST3_DS0 | ST3_DS1)) |
               (this.currentTrack == 0 ? ST3_TK0 : 0) |
               (this.disk.getSides() == 2 ? ST3_HD : 0) |
               (this.disk.isReadOnly() ? ST3_WP : 0) |
               (this.disk.isPresent() ? ST3_RDY : 0);
 
             this.currentTrack = 0;
-            this.status0     |= ST0_SE;
-            this.mainStatus  &= ~STM_CB;
-            this.phase        = Phase.IDLE;
+            this.status0 |= ST0_SE;
+            this.mainStatus &= ~STM_CB;
+            this.phase = Phase.IDLE;
             break;
         }
         break;
@@ -429,7 +429,7 @@ class Tc8566af {
         switch (this.phaseStep++) {
           case 1:
             this.mainStatus &= ~STM_CB;
-            this.phase       = Phase.IDLE;
+            this.phase = Phase.IDLE;
             break;
         }
         break;
@@ -440,14 +440,14 @@ class Tc8566af {
             this.status0 &= ~(ST0_DS0 | ST0_DS1 | ST0_IC0 | ST0_IC1);
             this.status0 |= (this.disk.isPresent() ? 0 : ST0_DS0) | (value & (ST0_DS0 | ST0_DS1)) |
               (this.disk.isEnabled() ? 0 : ST0_IC1);
-            this.status3  = (value & (ST3_DS0 | ST3_DS1)) |
+            this.status3 = (value & (ST3_DS0 | ST3_DS1)) |
               (this.currentTrack == 0 ? ST3_TK0 : 0) |
               (this.disk.getSides() == 2 ? ST3_HD : 0) |
               (this.disk.isReadOnly() ? ST3_WP : 0) |
               (this.disk.isPresent() ? ST3_RDY : 0);
 
-            this.phase       = Phase.RESULT;
-            this.phaseStep   = 0;
+            this.phase = Phase.RESULT;
+            this.phaseStep = 0;
             this.mainStatus |= STM_DIO;
             break;
         }
@@ -468,8 +468,8 @@ class Tc8566af {
               this.status1 |= ST1_NW;
             }
 
-            this.phase       = Phase.RESULT;
-            this.phaseStep   = 0;
+            this.phase = Phase.RESULT;
+            this.phaseStep = 0;
             this.mainStatus |= STM_DIO;
           }
         }
@@ -496,8 +496,8 @@ class Tc8566af {
         }
 
         if (++this.phaseStep == 4 * this.sectorsPerCylinder - 2) {
-          this.phase       = Phase.RESULT;
-          this.phaseStep   = 0;
+          this.phase = Phase.RESULT;
+          this.phaseStep = 0;
           this.mainStatus |= STM_DIO;
         }
         break;
@@ -505,7 +505,7 @@ class Tc8566af {
   }
 
   private disk: Disk;
-  
+
   private mainStatus = 0;
   private status0 = 0;
   private status1 = 0;
@@ -528,6 +528,6 @@ class Tc8566af {
 
   private sectorOffset = 0;
   private dataTransferTime = 0;
-  
+
   private sectorBuf = new Uint8Array(512);
 }
