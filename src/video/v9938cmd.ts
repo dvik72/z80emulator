@@ -50,7 +50,7 @@ const YMMM_TIMING = [65, 125, 65, 68, 0, 0, 0, 0];
 const HMMM_TIMING = [92, 136, 92, 97, 0, 0, 0, 0];
 const LMMM_TIMING = [129, 197, 129, 132, 0, 0, 0, 0];
 
-export class V9958Cmd {
+export class V9938Cmd {
   public constructor(
     private board: Board,
     private vram: Array<number>
@@ -175,19 +175,19 @@ export class V9958Cmd {
     }
   }
   
-  private setTimingMode(timingMode: number): void {
+  public setTimingMode(timingMode: number): void {
     this.timingMode = timingMode;
   }
 
-  private getStatus(): number {
+  public getStatus(): number {
     return this.status;
   }
 
-  private getBorderX(): number {
+  public getBorderX(): number {
     return this.borderX;
   }
 
-  private getColor(): number {
+  public getColor(): number {
     this.status &= ~VDPSTATUS_TR;
     return this.CL;
   }

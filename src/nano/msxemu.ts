@@ -23,17 +23,25 @@ import { Mapper } from '../mappers/mapper';
 import { MapperRomNormal } from '../mappers/romnormal';
 import { MapperRamNormal } from '../mappers/ramnormal';
 import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../video/vdp';
-import { msxDosRom } from './msxdosrom';
 import { CPU_ENABLE_M1, MASTER_FREQUENCY } from '../z80/z80';
 import { mapperFromMediaInfo } from '../mappers/mapperfactory';
 import { MediaInfoFactory } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
+
+import { a1biosRom } from './a1biosrom';
+import { a1extRom } from './a1extrom';
+import { a1desk1Rom } from './a1desk1rom';
+import { a1desk2Rom } from './a1desk2rom';
+import { msxDosRom } from './msxdosrom';
 import { gameRom } from './gamerom';
 
 import { MapperRomTc8566af } from '../mappers/romTc8566af';
 import { DiskManager } from './diskmanager';
 import { panasonicDiskRom } from './panasonicdiskrom';
+import { MapperSramS1985 } from '../mappers/srams1985';
+
+const MSX2 = false;
 
 
 // Emulates MSX1 with cartridge ROMs. No disk drive or casette emulation yet...
@@ -48,7 +56,7 @@ export class MsxEmu {
 
     this.diskManager.getFloppyDisk(0).enable(true);
 
-//    this.diskManager.insertFloppyImage(0, new Uint8Array(gameRom));
+    //this.diskManager.insertFloppyImage(0, new Uint8Array(gameRom));
   }
   
   run(): void {
@@ -70,15 +78,31 @@ export class MsxEmu {
   private mediaInfoFactory = new MediaInfoFactory();
 
   private startEmulation() {
-    // Initialize board components
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, false);
-    this.msxPpi = new MsxPpi(this.board);
-    this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
-    this.msxpsg = new MsxPsg(this.board, 2);
+    if (MSX2) {
+      // Initialize board components
+      this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
+      this.msxPpi = new MsxPpi(this.board);
+      this.vdp = new Vdp(this.board, VdpVersion.V9938, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 8);
+      this.msxpsg = new MsxPsg(this.board, 2);
+      this.s1985 = new MapperSramS1985(this.board);
 
-    // Initialize MSX 1 ram and roms
-    this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
-    this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
+      this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
+      this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, a1biosRom);
+      this.msxE1Rom = new MapperRomNormal(this.board, 3, 1, 0, a1extRom);
+      this.msxE2Rom = new MapperRomNormal(this.board, 3, 2, 2, a1desk1Rom);
+      this.msxE3Rom = new MapperRomNormal(this.board, 3, 3, 2, a1desk2Rom);
+    }
+    else {
+      // Initialize board components
+      this.board = new Board(this.webAudio, CPU_ENABLE_M1, false);
+      this.msxPpi = new MsxPpi(this.board);
+      this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
+      this.msxpsg = new MsxPsg(this.board, 2);
+
+      // Initialize MSX 1 ram and roms
+      this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
+      this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
+    }
 
     // Insert disk rom into cartridge slot 2
     this.diskRom = new MapperRomTc8566af(this.diskManager, this.board, 2, 0, new Uint8Array(panasonicDiskRom));
@@ -316,8 +340,13 @@ export class MsxEmu {
   private vdp?: Vdp;
   private msxpsg?: MsxPsg;
   private msxPpi?: MsxPpi;
+
+  private s1985?: Mapper;
   private ram?: Mapper;
   private msxRom?: Mapper;
+  private msxE1Rom?: Mapper;
+  private msxE2Rom?: Mapper;
+  private msxE3Rom?: Mapper;
   private gameRom?: Mapper;
   private diskRom?: Mapper;
 }
