@@ -132,7 +132,7 @@ export class SlotManager {
     if (address == 0xffff) {
       const sslReg = this.pslot[3].state;
       if (this.pslot[sslReg].subslotted) {
-        return ~this.pslot[sslReg].sslReg;
+        return ~this.pslot[sslReg].sslReg & 0xff;
       }
     }
 

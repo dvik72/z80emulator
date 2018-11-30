@@ -820,6 +820,8 @@ export class Vdp {
         break;
     }
 
+    console.log('Screen Mode: ' + this.screenMode);
+
     this.screenOn = (this.regs[1] & 0x40) != 0;
 
     this.v9938Cmd.setScreenMode(this.screenMode & 0x0f, (this.regs[25] & 0x40) != 0);

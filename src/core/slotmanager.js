@@ -119,7 +119,7 @@ define(["require", "exports"], function (require, exports) {
             if (address == 0xffff) {
                 var sslReg = this.pslot[3].state;
                 if (this.pslot[sslReg].subslotted) {
-                    return ~this.pslot[sslReg].sslReg;
+                    return ~this.pslot[sslReg].sslReg & 0xff;
                 }
             }
             if (this.ramslot[address >> 13].slotInfo.readEnable) {
