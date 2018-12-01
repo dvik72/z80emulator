@@ -1689,30 +1689,7 @@ export class Vdp {
         x++;
       }
 
-      const maskedCount = this.lineHScroll & 7;
-
-      if (x == 0) {
-        for (let i = 0; i < maskedCount; i++) {
-          this.frameBuffer[this.frameOffset++] = bgColor;
-
-          if ((maskedCount ^ i) & 1) {
-            charTableOffset++;
-            if ((++this.scrollIndex & 0x7f) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
-          }
-          this.spriteLineOffset++;
-        }
-
-        for (let i = maskedCount; i < 8; i++) {
-          if ((maskedCount ^ i) & 1) {
-            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset++] & 0x0f)];
-            if ((++this.scrollIndex & 0x7f) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
-          }
-          else {
-            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] >> 4)];
-          }
-        }
-        x++;
-      }
+      let maskedCount = this.lineHScroll & 7;
 
       while (x < x2) {
         if (maskedCount & 1) {
