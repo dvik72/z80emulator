@@ -290,7 +290,9 @@ export class Vdp {
 
   private updatePalette(index: number, r: number, g: number, b: number) {
     const color = this.videoGetColor(r, g, b);
+
     this.palette[index] = color;
+
     if (index == 0) {
       this.palette0 = color;
       this.updateOutputMode();
@@ -822,8 +824,6 @@ export class Vdp {
         break;
     }
 
-    console.log('Screen Mode: ' + this.screenMode);
-
     this.screenOn = (this.regs[1] & 0x40) != 0;
 
     this.v9938Cmd.setScreenMode(this.screenMode & 0x0f, (this.regs[25] & 0x40) != 0);
@@ -860,7 +860,7 @@ export class Vdp {
       this.sync();
 
       this.paletteReg[palEntry] = 256 * (value & 0x07) | (this.vdpDataLatch & 0x77);
-      this.updatePalette(palEntry, (this.vdpDataLatch & 0x70) * 255 / 112 | 0,
+      this.updatePalette(palEntry, (this.vdpDataLatch >> 4 & 0x7) * 255 / 7 | 0,
         (value & 0x07) * 255 / 7 | 0,
         (this.vdpDataLatch & 0x07) * 255 / 7 | 0);
 
@@ -977,7 +977,7 @@ export class Vdp {
 
   private updateOutputMode(): void {
     const mode = (this.regs[9] >> 4) & 3;
-    const transparency = this.screenMode < 8 || this.screenMode > 12 && (this.regs[8] & 0x20) == 0;
+    const transparency = (this.screenMode < 8 || this.screenMode > 12) && (this.regs[8] & 0x20) == 0;
     
     if (mode == 2 ||
       (!(this.regs[8] & 0x80) && (this.regs[8] & 0x10)) || (this.regs[0] & 0x40)) {
@@ -989,6 +989,7 @@ export class Vdp {
       }
     }
     else if (mode == 1 && transparency) {
+      this.palette[0] = 0;
 //      this.palette[0] = videoGetTransparentColor();
 //      videoManagerSetMode(vdp -> videoHandle, VIDEO_MIX, vdpDaDevice.videoModeMask);
     }
