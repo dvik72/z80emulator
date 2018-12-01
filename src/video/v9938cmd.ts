@@ -67,7 +67,7 @@ export class V9938Cmd {
 
     this.indexRead  = this.offset[0];
     this.indexWrite = this.offset[0];
-    this.maskRead  = this.mask[0];
+    this.maskRead = this.mask[0];
     this.maskWrite = this.mask[0];
   }
 
@@ -93,7 +93,7 @@ export class V9938Cmd {
         if ((this.ARG ^ value) & 0x30) {
           this.indexRead  = this.offset[(value >> 4) & 1];
           this.indexWrite = this.offset[(value >> 5) & 1];
-          this.maskRead  = this.mask[(value >> 4) & 1];
+          this.maskRead = this.mask[(value >> 4) & 1];
           this.maskWrite = this.mask[(value >> 5) & 1];
         }
         this.ARG = value;
@@ -107,9 +107,8 @@ export class V9938Cmd {
   }
 
   public execute(): void {
-    const systemTime = this.board.getSystemTime();
-    this.opsCount += systemTime - this.systemTime;
-    this.systemTime = systemTime;
+    this.opsCount += this.board.getTimeSince(this.systemTime);
+    this.systemTime = this.board.getSystemTime();
 
     if (this.opsCount <= 0) {
       return;
@@ -384,6 +383,8 @@ export class V9938Cmd {
       this.ASX = this.SX;
       this.ADX = this.DX;
     }
+
+    //console.log(this.CM);
 
     // NX loop variable is treated specially for SRCH command 
     if (this.CM == CM_SRCH) {
