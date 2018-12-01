@@ -17,8 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Z80, TIMER_RANGE } from '../z80/z80';
-import { IoManager, Port } from './iomanager';
-import { SlotManager } from './slotmanager';
 
 // Use the factory method on TimeoutManager to create the timer.
 // Subsequent calls to set timeouts or stop timers should be done
