@@ -223,7 +223,7 @@ export class V9938Cmd {
         break;
     }
 
-    if (offset & ~this.maskRead) this.vram[this.indexWrite + (offset & this.maskWrite)] = value;
+    if (!(offset & ~this.maskRead)) this.vram[this.indexWrite + (offset & this.maskWrite)] = value;
   }
 
   private getPixel(x: number, y: number): number {
@@ -257,7 +257,7 @@ export class V9938Cmd {
         break;
     }
 
-    if ((offset & ~this.maskRead) == 0) {
+    if (offset & ~this.maskRead) {
       return;
     } 
 
@@ -337,7 +337,7 @@ export class V9938Cmd {
     this.DY &= 0x3ff;
     this.NX &= 0x3ff;
     this.NY &= 0x3ff;
-
+    
     switch (this.CM) {
       case CM_ABRT:
         this.CM = 0;
@@ -365,11 +365,10 @@ export class V9938Cmd {
 
     this.MX = PPL[this.screenMode];
     this.TY = this.ARG & 0x08 ? -1 : 1;
-
-    // Argument depends on UInt8 or dot operation 
+    
     if ((this.CM & 0x0C) == 0x0C) {
       this.TX = this.ARG & 0x04 ? -PPB[this.screenMode] : PPB[this.screenMode];
-      this.NX = this.kNX / PPB[this.screenMode];
+      this.NX = this.kNX / PPB[this.screenMode] | 0;
     }
     else {
       this.NX = this.kNX;
@@ -378,7 +377,7 @@ export class V9938Cmd {
 
     // X loop variables are treated specially for LINE command 
     if (this.CM == CM_LINE) {
-      this.ASX = (this.NX - 1) >> 1;
+      this.ASX = ((this.NX - 1) >> 1) & 0xff;
       this.ADX = 0;
     }
     else {
@@ -486,7 +485,7 @@ export class V9938Cmd {
     this.opsCount = cnt;
 
     if (cnt > 0) {
-      // Command execution done //
+      // Command execution done
       this.status &= ~VDPSTATUS_CE;
       this.CM = 0;
       this.DY = DY & 0x03ff;
@@ -786,7 +785,7 @@ export class V9938Cmd {
   private ASX = 0;
   private ADX = 0;
   private ANX = 0;
-  private ARG = 0; // U8
+  private ARG = 0;
   private CL = 0;
   private LO = 0;
   private CM = 0;

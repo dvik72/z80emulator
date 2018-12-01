@@ -725,11 +725,11 @@ export class Vdp {
   }
 
   private hScroll(): number {
-    return ((((this.regs[26] & 0x3F) << 3) - (this.regs[27] & 0x07)) & ~(~this.hScroll512() << 8));
+    return ((((this.regs[26] & 0x3f) << 3) - (this.regs[27] & 0x07)) & ~(~this.hScroll512() << 8));
   }
 
   private hScroll512(): number {
-    return (this.regs[25] & (this.regs[2] >> 5) & 0x1);
+    return (this.regs[25] & (this.regs[2] >> 5) & 0x01);
   }
 
   private vScroll(): number {
@@ -1637,19 +1637,20 @@ export class Vdp {
     if (leftBorder) {
       this.lineHScroll = this.hScroll();
       this.lineHScroll512 = this.hScroll512();
-      this.lineVScroll = this.vScroll();
+      this.scrollIndex = this.lineHScroll >> 1;
+      this.renderPage = this.chrTabBase / 0x8000 & 1;
 
       this.refreshLeftBorder(bgColor, 0);
     }
 
-    const y = scanLine - this.firstLine + this.lineVScroll;
+    const y = scanLine - this.firstLine + this.vScroll();
 
     const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
-    let charTableOffset = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7))) + this.lineHScroll + x;
+    let charTableOffset = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7))) + (this.lineHScroll >> 1) + x * 4;
 
     if (this.lineHScroll512) {
-      if (this.lineHScroll & 0x80) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
-      if (this.chrTabBase & (1 << 15)) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)] + 32;
+      if (this.lineHScroll & 0x80) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+      if (this.chrTabBase & (1 << 15)) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)] + 32;
     }
 
     if (!this.screenOn || !this.isDrawArea) {
@@ -1665,10 +1666,7 @@ export class Vdp {
         for (let count = 8; count--;) {
           this.frameBuffer[this.frameOffset++] = bgColor;
         }
-        if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
-        if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
-        if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
-        if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+        if (((this.scrollIndex += 4) & 0x7f) < 4) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
         this.spriteLineOffset += 8;
         charTableOffset += 4;
         x++;
@@ -1677,41 +1675,41 @@ export class Vdp {
       const maskedCount = this.lineHScroll & 7;
 
       if (x == 0) {
-
         for (let i = 0; i < maskedCount; i++) {
           this.frameBuffer[this.frameOffset++] = bgColor;
 
           if ((maskedCount ^ i) & 1) {
             charTableOffset++;
-            if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+            if ((++this.scrollIndex & 0x7f) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
           }
           this.spriteLineOffset++;
         }
 
         for (let i = maskedCount; i < 8; i++) {
           if ((maskedCount ^ i) & 1) {
-            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] & 0x0f)];
-            if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset++] & 0x0f)];
+            if ((++this.scrollIndex & 0x7f) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
           }
           else {
             this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] >> 4)];
           }
         }
+        x++;
       }
 
       while (x < x2) {
         if (maskedCount & 1) {
           for (let i = 0; i < 4; i++) {
-            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] & 0x0f)];
-            if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset++] & 0x0f)];
+            if ((++this.scrollIndex & 0x7f) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
             this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] >> 4)];
           }
         }
         else {
           for (let i = 0; i < 4; i++) {
             this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] >> 4)];
-            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset] & 0x0f)];
-            if ((((this.lineHScroll += 2) >> 1) & 0x7f) == 0) charTableOffset += JUMP_TABLE4[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+            this.frameBuffer[this.frameOffset++] = this.palette[this.spriteLine[this.spriteLineOffset++] || (this.vram[charTableOffset++] & 0x0f)];
+            if ((++this.scrollIndex & 0x7f) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
           }
         }
         x++;
@@ -1731,6 +1729,70 @@ export class Vdp {
   }
 
   private refreshLine8(scanLine: number, x: number, x2: number): void {
+    const bgColor = this.palette[this.bgColor];
+
+    const leftBorder = x < 0;
+    leftBorder && x++;
+    const rightBorder = x2 > 32;
+    rightBorder && x2--;
+
+    if (leftBorder) {
+      this.lineHScroll = this.hScroll();
+      this.lineHScroll512 = this.hScroll512();
+      this.scrollIndex = this.lineHScroll;
+      this.renderPage = this.chrTabBase / 0x8000 & 1;
+
+      this.refreshLeftBorder(bgColor, 0);
+    }
+
+    const y = scanLine - this.firstLine + this.vScroll();
+
+    const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
+    let charTableOffset = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7))) + (this.lineHScroll >> 1) + x * 4;
+
+    if (this.lineHScroll512) {
+      if (this.lineHScroll & 0x80) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+      if (this.chrTabBase & (1 << 15)) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)] + 32;
+    }
+
+    if (!this.screenOn || !this.isDrawArea) {
+      while (x < x2) {
+        for (let count = 8; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        x++;
+      }
+    }
+    else {
+      if (leftBorder && this.isEdgeMasked()) {
+        for (let count = 8; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        if (((this.scrollIndex += 8) & 0xff) < 8) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+        this.spriteLineOffset += 8;
+        charTableOffset += 4;
+        x++;
+      }
+
+      let isOdd = this.lineHScroll & 1;
+
+      while (x < x2) {
+        for (let i = 0; i < 8; i++) {
+          const col = this.spriteLine[this.spriteLineOffset++];
+          this.frameBuffer[this.frameOffset++] =
+            col ? this.palette[col] : this.paletteFixed[this.vram[charTableOffset + isOdd * this.vram128]];
+          charTableOffset += isOdd;
+          isOdd ^= 1;
+          if ((++this.scrollIndex & 0xff) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+        }
+        x++;
+      }
+    }
+
+    if (rightBorder) {
+      this.refreshRightBorder(bgColor, 0);
+      this.updateSpritesLine(scanLine);
+    }
   }
 
   private refreshLine10(scanLine: number, x: number, x2: number): void {
@@ -1838,6 +1900,7 @@ export class Vdp {
   private renderPage = 0;
   private lineHScroll = 0;
   private lineVScroll = 0;
+  private scrollIndex = 0;
 
   // Video RAM
   private vram: number[];
