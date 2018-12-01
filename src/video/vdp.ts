@@ -1799,7 +1799,7 @@ export class Vdp {
               const col = this.spriteLine[this.spriteLineOffset++] & 7;
               this.frameBuffer[this.frameOffset++] = this.palette[col ? col >> 1 & 3 : (this.vram[charTableOffset] >> 0 & 3)];
               charTableOffset++;
-              if ((++this.scrollIndex & 0xff) < 8) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+              if ((++this.scrollIndex & 0xff) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
             }
             {
               const col = this.spriteLine[this.spriteLineOffset++] >> 3;
@@ -1829,7 +1829,7 @@ export class Vdp {
               const col = this.spriteLine[this.spriteLineOffset++] & 7;
               this.frameBuffer[this.frameOffset++] = this.palette[col ? col >> 1 & 3 : (this.vram[charTableOffset] >> 0 & 3)];
               charTableOffset++;
-              if ((++this.scrollIndex & 0xff) < 8) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
+              if ((++this.scrollIndex & 0xff) == 0) charTableOffset += JUMP_TABLE[this.lineHScroll512 * 2 + (this.renderPage ^= 1)];
             }
           }
         }
