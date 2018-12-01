@@ -416,7 +416,7 @@ export class Vdp {
           if (!(value & 0x40)) this.updateRegisters(value, this.vdpDataLatch);
         }
         else {
-          this.vramAddress = (value << 8 | (this.vramAddress & 0xff)) & 0x3fff;
+          this.vramAddress = (value << 8 | this.vdpDataLatch) & 0x3fff;
           if (!(value & 0x40)) this.read(port);
         }
         this.vdpKey = 0;
@@ -858,9 +858,9 @@ export class Vdp {
       this.sync();
 
       this.paletteReg[palEntry] = 256 * (value & 0x07) | (this.vdpDataLatch & 0x77);
-      this.updatePalette(palEntry, (this.vdpDataLatch & 0x70) * 255 / 112,
-        (value & 0x07) * 255 / 7,
-        (this.vdpDataLatch & 0x07) * 255 / 7);
+      this.updatePalette(palEntry, (this.vdpDataLatch & 0x70) * 255 / 112 | 0,
+        (value & 0x07) * 255 / 7 | 0,
+        (this.vdpDataLatch & 0x07) * 255 / 7 | 0);
 
       this.regs[16] = (palEntry + 1) & 0x0f;
       this.palKey = 0;
@@ -895,9 +895,9 @@ export class Vdp {
         for (let K = 0; K < 64; K++) {
           let j = (J & 0x1f) - (J & 0x20);
           let k = (K & 0x1f) - (K & 0x20);
-          let r = 255 * (y + j) / 31;
-          let g = 255 * (y + k) / 31;
-          let b = 255 * ((5 * y - 2 * j - k) / 4) / 31;
+          let r = 255 * (y + j) / 31 | 0;
+          let g = 255 * (y + k) / 31 | 0;
+          let b = 255 * ((5 * y - 2 * j - k) >> 2) / 31 | 0;
 
           r = r > 255 ? 255 : r < 0 ? 0 : r | 0;
           g = g > 255 ? 255 : g < 0 ? 0 : g | 0;
@@ -908,27 +908,27 @@ export class Vdp {
     }
 
     for (let i = 0; i < 256; i++) {
-      this.paletteFixed[i] = this.videoGetColor(255 * ((i >> 2) & 7) / 7,
-        255 * ((i >> 5) & 7) / 7,
-        255 * ((i & 3) == 3 ? 7 : 2 * (i & 3)) / 7);
+      this.paletteFixed[i] = this.videoGetColor(255 * ((i >> 2) & 7) / 7 | 0,
+        255 * ((i >> 5) & 7) / 7 | 0,
+        255 * ((i & 3) == 3 ? 7 : 2 * (i & 3)) / 7) | 0;
     }
 
-    this.paletteSprite8[0] = this.videoGetColor(0 * 255 / 7, 0 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[1] = this.videoGetColor(0 * 255 / 7, 0 * 255 / 7, 2 * 255 / 7);
-    this.paletteSprite8[2] = this.videoGetColor(3 * 255 / 7, 0 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[3] = this.videoGetColor(3 * 255 / 7, 0 * 255 / 7, 2 * 255 / 7);
-    this.paletteSprite8[4] = this.videoGetColor(0 * 255 / 7, 3 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[5] = this.videoGetColor(0 * 255 / 7, 3 * 255 / 7, 2 * 255 / 7);
-    this.paletteSprite8[6] = this.videoGetColor(3 * 255 / 7, 3 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[7] = this.videoGetColor(3 * 255 / 7, 3 * 255 / 7, 2 * 255 / 7);
-    this.paletteSprite8[8] = this.videoGetColor(7 * 255 / 7, 4 * 255 / 7, 2 * 255 / 7);
-    this.paletteSprite8[9] = this.videoGetColor(0 * 255 / 7, 0 * 255 / 7, 7 * 255 / 7);
-    this.paletteSprite8[10] = this.videoGetColor(7 * 255 / 7, 0 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[11] = this.videoGetColor(7 * 255 / 7, 0 * 255 / 7, 7 * 255 / 7);
-    this.paletteSprite8[12] = this.videoGetColor(0 * 255 / 7, 7 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[13] = this.videoGetColor(0 * 255 / 7, 7 * 255 / 7, 7 * 255 / 7);
-    this.paletteSprite8[14] = this.videoGetColor(7 * 255 / 7, 7 * 255 / 7, 0 * 255 / 7);
-    this.paletteSprite8[15] = this.videoGetColor(7 * 255 / 7, 7 * 255 / 7, 7 * 255 / 7);
+    this.paletteSprite8[0] = this.videoGetColor(0 * 255 / 7 | 0, 0 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[1] = this.videoGetColor(0 * 255 / 7 | 0, 0 * 255 / 7 | 0, 2 * 255 / 7 | 0);
+    this.paletteSprite8[2] = this.videoGetColor(3 * 255 / 7 | 0, 0 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[3] = this.videoGetColor(3 * 255 / 7 | 0, 0 * 255 / 7 | 0, 2 * 255 / 7 | 0);
+    this.paletteSprite8[4] = this.videoGetColor(0 * 255 / 7 | 0, 3 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[5] = this.videoGetColor(0 * 255 / 7 | 0, 3 * 255 / 7 | 0, 2 * 255 / 7 | 0);
+    this.paletteSprite8[6] = this.videoGetColor(3 * 255 / 7 | 0, 3 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[7] = this.videoGetColor(3 * 255 / 7 | 0, 3 * 255 / 7 | 0, 2 * 255 / 7 | 0);
+    this.paletteSprite8[8] = this.videoGetColor(7 * 255 / 7 | 0, 4 * 255 / 7 | 0, 2 * 255 / 7 | 0);
+    this.paletteSprite8[9] = this.videoGetColor(0 * 255 / 7 | 0, 0 * 255 / 7 | 0, 7 * 255 / 7 | 0);
+    this.paletteSprite8[10] = this.videoGetColor(7 * 255 / 7 | 0, 0 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[11] = this.videoGetColor(7 * 255 / 7 | 0, 0 * 255 / 7 | 0, 7 * 255 / 7 | 0);
+    this.paletteSprite8[12] = this.videoGetColor(0 * 255 / 7 | 0, 7 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[13] = this.videoGetColor(0 * 255 / 7 | 0, 7 * 255 / 7 | 0, 7 * 255 / 7 | 0);
+    this.paletteSprite8[14] = this.videoGetColor(7 * 255 / 7 | 0, 7 * 255 / 7 | 0, 0 * 255 / 7 | 0);
+    this.paletteSprite8[15] = this.videoGetColor(7 * 255 / 7 | 0, 7 * 255 / 7 | 0, 7 * 255 / 7 | 0);
   }
 
   private sync(): void {
@@ -939,10 +939,6 @@ export class Vdp {
     let frameTime = this.board.getTimeSince(this.frameStartTime);
     let scanLine = frameTime / HPERIOD | 0;
     let lineTime = frameTime % HPERIOD - (this.leftBorder - 20);
-
-    if (this.version == VdpVersion.V9938 || this.version == VdpVersion.V9958) {
-      // Run the V99x8 command engine.
-    }
     
     if (this.curLine < scanLine) {
       if (this.lineOffset <= 32) {
