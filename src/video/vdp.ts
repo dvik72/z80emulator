@@ -599,7 +599,7 @@ export class Vdp {
   }
 
   private scheduleVInt(): void {
-    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 80) ? 212 : 192)) + this.leftBorder - 10;
+    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 0x80) ? 212 : 192)) + this.leftBorder - 10;
     this.vIntTimer.setTimeout(timeout);
   }
 
@@ -609,7 +609,7 @@ export class Vdp {
   }
 
   private scheduleDrawAreaEnd(): void {
-    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 80) ? 212 : 192));
+    const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[9] & 0x80) ? 212 : 192));
     this.drawAreaEndTimer.setTimeout(timeout);
   }
 
