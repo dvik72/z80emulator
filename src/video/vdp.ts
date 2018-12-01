@@ -1729,7 +1729,7 @@ export class Vdp {
   }
 
   private refreshLine8(scanLine: number, x: number, x2: number): void {
-    const bgColor = this.palette[this.bgColor];
+    const bgColor = this.paletteFixed[this.regs[7]];
 
     const leftBorder = x < 0;
     leftBorder && x++;
