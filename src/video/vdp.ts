@@ -1131,9 +1131,9 @@ export class Vdp {
   private updateColorSpritesLine(scanLine: number): void {
     this.clearSpritesLine();
 
-    let line = scanLine - this.firstLine;
+    scanLine -= this.firstLine;
 
-    if (line == -1) {
+    if (scanLine == -1) {
       this.nonVisibleLine = -1000;
       // This is an not 100% correct optimization. CC sprites should be shown only when
       // they collide with a non CC sprite. However very few games/demos uses this and
@@ -1142,7 +1142,7 @@ export class Vdp {
       this.ccColorCheckMask = 0xf0;
     }
 
-    if (scanLine == 0 || this.nonVisibleLine == scanLine) {
+    if (scanLine == this.firstLine || this.nonVisibleLine == scanLine) {
       return;
     }
 
@@ -1159,17 +1159,17 @@ export class Vdp {
     const patternMask = isSprites16x16 ? 0xfc : 0xff;
     let visibleCnt = 0;
 
-    line = (line + this.vScroll()) & 0xff;
+    scanLine = (scanLine + this.vScroll()) & 0xff;
 
     let sprite = 0;
-    // Find visible sprites on current line
+    // Find visible sprites on current scan line
     for (; sprite < 32; sprite++, attribOffset += 4) {
       let spriteLine = this.mapVram(attribOffset);
       if (spriteLine == 216) {
         break;
       }
 
-      spriteLine = ((line - spriteLine) & 0xff) >> scale;
+      spriteLine = ((scanLine - spriteLine) & 0xff) >> scale;
       if (spriteLine >= size) {
         continue;
       }
@@ -1182,7 +1182,7 @@ export class Vdp {
       }
       
       const patternOffset = (this.sprGenBase & 0x1f800) + ((this.mapVram(attribOffset + 2) & patternMask) << 3) + spriteLine;
-      let color = this.mapVram(this.sprTabBase & ((~0 << 10) | (sprite * 16 + spriteLine)));
+      let color = this.mapVram(this.sprTabBase & ((-1 << 10) | (sprite * 16 + spriteLine)));
 
       if (color & 0x40) {
         if (visibleCnt == 0) {
@@ -1216,7 +1216,7 @@ export class Vdp {
       this.spriteCollision[i] = 0;
     }
 
-    /* Draw the visible sprites */
+    // Draw the visible sprites
     for (let idx = visibleCnt; idx--;) {
       const attrib = this.spriteAttributes[idx];
       const color = this.screenMode == 6 ?
@@ -1253,7 +1253,7 @@ export class Vdp {
         let xCol = 0;
         for (; xCol < 256 && this.spriteCollision[xCol + 32] == 0; xCol++);
         xCol += 12;
-        const yCol = line + 8;
+        const yCol = scanLine + 8;
         this.status[0] |= 0x20;
         this.status[3] = xCol & 0xff;
         this.status[4] = xCol >> 8;
@@ -1278,9 +1278,9 @@ export class Vdp {
 
         while (pattern) {
           if (pattern >> 15 & 1) {
-            this.spriteLine[offset] = color;
+            this.spriteLine[offset] |= color;
             if (scale == 1) {
-              this.spriteLine[offset + 1] = color;
+              this.spriteLine[offset + 1] |= color;
             }
           }
           offset += 1 + scale;
