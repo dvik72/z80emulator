@@ -204,7 +204,7 @@ export class V9938Cmd {
     }
     return 0;
   }
-  
+
   private writeVram(x: number, y: number, value: number): void {
     let offset = 0;
     switch (this.screenMode) {
@@ -682,26 +682,53 @@ export class V9938Cmd {
   }
 
   private hmmmEngine(): void {
-    const delta = HMMM_TIMING[this.timingMode];
+    let SX = this.SX;
+    let SY = this.SY;
+    let DX = this.DX;
+    let DY = this.DY;
+    let TX = this.TX;
+    let TY = this.TY;
+    let NX = this.NX;
+    let NY = this.NY;
+    let ASX = this.ASX;
+    let ADX = this.ADX;
+    let ANX = this.ANX;
+    let LO = this.LO;
+    let delta = HMMM_TIMING[this.timingMode];
     const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
 
-    while (this.opsCount > 0) {
-      this.writeVram(this.ADX, this.DY, this.readVram(this.ADX, this.DY));
-      this.ASX += this.TX; this.ADX += this.TX;
-      if (--this.ANX == 0 || ((this.ASX | this.ADX) & MX)) {
-        this.SY += this.TY; this.DY += this.TY;
-        this.ASX = this.SX; this.ADX = this.DX; this.ANX = this.NX;
-        if ((--this.NY & 1023) == 0 || this.SY == -1 || this.DY == -1) {
+    let cnt = this.opsCount;
+
+    while (cnt > 0) {
+      this.writeVram(ADX, DY, this.readVram(ASX, SY));
+      ASX += TX; ADX += TX;
+      if (--ANX == 0 || ((ASX | ADX) & MX)) {
+        SY += TY; DY += TY;
+        ASX = SX; ADX = DX; ANX = NX;
+        if ((--NY & 1023) == 0 || SY == -1 || DY == -1) {
           break;
         }
       }
-      this.opsCount -= delta;
+      cnt -= delta;
     }
-    
-    if (this.opsCount > 0) {
+
+    this.opsCount = cnt;
+
+    if (cnt > 0) {
       // Command execution done
       this.status &= ~VDPSTATUS_CE;
       this.CM = 0;
+      this.DY = DY & 0x03ff;
+      this.SY = SY & 0x03ff;
+      this.NY = NY & 0x03ff;
+    }
+    else {
+      this.SY = SY;
+      this.DY = DY;
+      this.NY = NY;
+      this.ANX = ANX;
+      this.ASX = ASX;
+      this.ADX = ADX;
     }
   }
 
