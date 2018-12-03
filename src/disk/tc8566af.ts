@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { DiskManager } from '../nano/diskmanager'
+import { DiskManager } from '../disk/diskmanager'
 import { Disk, DiskError } from './disk';
 import { Board } from '../core/board';
 

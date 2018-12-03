@@ -16,12 +16,18 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Disk } from '../disk/disk';
+import { Disk } from './disk';
 
 export class DiskManager {
   public constructor() {
     for (let i = 0; i < this.floppyDisks.length; i++) {
       this.floppyDisks[i] = new Disk();
+    }
+  }
+
+  public reset(): void {
+    for (let floppyDisk of this.floppyDisks) {
+      floppyDisk.enable(false);
     }
   }
 

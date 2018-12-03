@@ -19,7 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
-import { DiskManager } from '../nano/diskmanager';
+import { DiskManager } from '../disk/diskmanager';
 import { Tc8566af } from '../disk/tc8566af';
 
 export class MapperRomTc8566af extends Mapper {

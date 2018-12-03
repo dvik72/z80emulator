@@ -66,7 +66,9 @@
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
     <TypeScriptCompile Include="src\machines\machine.ts" />
+    <TypeScriptCompile Include="src\machines\msx2\msx2base.ts" />
     <TypeScriptCompile Include="src\machines\msx2\panasonic_fs_a1.ts" />
+    <TypeScriptCompile Include="src\machines\msx\msxbase.ts" />
     <TypeScriptCompile Include="src\machines\msx\philips_vg_8020.ts" />
     <TypeScriptCompile Include="src\mappers\romTc8566af.ts" />
     <TypeScriptCompile Include="src\mappers\srams1985.ts" />
@@ -74,7 +76,7 @@
     <TypeScriptCompile Include="src\nano\a1desk1rom.ts" />
     <TypeScriptCompile Include="src\nano\a1desk2rom.ts" />
     <TypeScriptCompile Include="src\nano\a1extrom.ts" />
-    <TypeScriptCompile Include="src\nano\diskmanager.ts" />
+    <TypeScriptCompile Include="src\disk\diskmanager.ts" />
     <TypeScriptCompile Include="src\disk\disk.ts" />
     <TypeScriptCompile Include="src\disk\tc8566af.ts" />
     <TypeScriptCompile Include="src\mappers\romascii16.ts" />

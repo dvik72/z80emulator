@@ -20,11 +20,11 @@ import { Machine } from '../machines/machine';
 import { PanasonicFsA1 } from '../machines/msx2/panasonic_fs_a1' 
 
 import { mapperFromMediaInfo } from '../mappers/mapperfactory';
-import { MediaInfoFactory } from '../util/mediainfo';
+import { MediaInfoFactory, MediaInfo } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
 
-import { DiskManager } from './diskmanager';
+import { DiskManager } from '../disk/diskmanager';
 
 // Emulates MSX1 with cartridge ROMs. No disk drive or casette emulation yet...
 export class MsxEmu {
@@ -35,10 +35,6 @@ export class MsxEmu {
     this.keyUp = this.keyUp.bind(this);
     this.dragover = this.dragover.bind(this);
     this.drop = this.drop.bind(this);
-
-    this.diskManager.getFloppyDisk(0).enable(true);
-
-    //this.diskManager.insertFloppyImage(0, new Uint8Array(gameRom));
   }
   
   run(): void {
@@ -55,31 +51,25 @@ export class MsxEmu {
     requestAnimationFrame(this.refreshScreen);
   }
 
-  private isRunning = false;
-  private gameRomData?: Uint8Array;
-  private mediaInfoFactory = new MediaInfoFactory();
-
   private startEmulation() {
-    this.machine = new PanasonicFsA1(this.webAudio);
-
+    this.diskManager.reset();
+    this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
     this.machine.reset();
 
-    // Insert disk rom into cartridge slot 2
-//    this.diskRom = new MapperRomTc8566af(this.diskManager, this.board, 2, 0, new Uint8Array(panasonicDiskRom));
+    // Insert cartridge rom if present
+    if (this.romMedia) {
+      this.machine.insertRomMedia(this.romMedia);
+    }
 
-    // Initialize cartridge
+    // Display cartridge info
     let info = '<br>No cartridge inserted. Drag rom file onto page to insert...';
-    if (this.gameRomData) {
-      const mediaInfo = this.mediaInfoFactory.mediaInfoFromData(this.gameRomData);
-      if (mediaInfo) {
-        info = '<br>';
-        info += '<br>Game title: ' + mediaInfo.title;
-        info += '<br>Company: ' + mediaInfo.company;
-        info += '<br>Year: ' + mediaInfo.year;
-        info += '<br>Country: ' + mediaInfo.country;
-        info += '<br>Cartridge type: ' + mediaInfo.type;
-      }
-//      this.gameRom = mapperFromMediaInfo(this.board, mediaInfo, 1, 0);
+    if (this.romMedia) {
+      info = '<br>';
+      info += '<br>Game title: ' + this.romMedia.title;
+      info += '<br>Company: ' + this.romMedia.company;
+      info += '<br>Year: ' + this.romMedia.year;
+      info += '<br>Country: ' + this.romMedia.country;
+      info += '<br>Cartridge type: ' + this.romMedia.type;
     }
     const element = document.getElementById('info');
     if (element) {
@@ -123,7 +113,6 @@ export class MsxEmu {
       if (event.dataTransfer.items.length == 1 && event.dataTransfer.items[0].kind === 'file') {
         const file = event.dataTransfer.items[0].getAsFile();
         if (file instanceof File) {
-          this.stopEmulation();
           let reader = new FileReader();
           reader.onloadend = () => {
             if (reader.result) {
@@ -146,7 +135,11 @@ export class MsxEmu {
   }
 
   private fileLoaded(filename: string, data: Uint8Array) {
-    this.gameRomData = data;
+    this.stopEmulation();
+
+    //this.diskManager.insertFloppyImage(0, new Uint8Array(gameRom));
+
+    this.romMedia = this.mediaInfoFactory.mediaInfoFromData(data);
 
     this.startEmulation();
   }
@@ -166,11 +159,15 @@ export class MsxEmu {
   }
 
   private machine?: Machine;
-
   private lastSyncTime = 0;
+  private isRunning = false;
+
   private glRenderer = new WebGlRenderer();
-
   private webAudio = new WebAudio();
-
   private diskManager = new DiskManager();
+
+  private romMedia?: MediaInfo;
+  private mediaInfoFactory = new MediaInfoFactory();
+
+
 }

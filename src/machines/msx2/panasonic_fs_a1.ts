@@ -16,15 +16,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Machine } from '../machine';
-import { WebGlRenderer } from '../../video/webglrenderer';
+import { Msx2Base } from './Msx2base';
 import { WebAudio } from '../../audio/webaudio';
-import { Board } from '../../core/board';
-import { MsxPpi } from '../../io/msxppi';
-import { MsxPsg } from '../../io/msxpsg';
-import { Rtc } from '../../io/rtc';
-import { Vdp, VdpVersion, VdpSyncMode, VdpConnectorType } from '../../video/vdp';
-import { CPU_ENABLE_M1, MASTER_FREQUENCY } from '../../z80/z80';
+import { DiskManager } from '../../disk/diskmanager';
 
 import { Mapper } from '../../mappers/mapper';
 import { MapperRamNormal } from '../../mappers/ramnormal';
@@ -37,70 +31,37 @@ import { a1desk1Rom } from '../../nano/a1desk1rom';
 import { a1desk2Rom } from '../../nano/a1desk2rom';
 
 
-export class PanasonicFsA1 extends Machine {
+export class PanasonicFsA1 extends Msx2Base {
   public constructor(
-    private webAudio: WebAudio
+    webAudio: WebAudio,
+    diskManager: DiskManager
   ) {
-    super('Panasonic FS-A1');
-
-    this.init();
+    super('Panasonic FS-A1', webAudio, diskManager);
   }
 
   public init(): void {
-    // Initialize board components
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
-    this.board.getSlotManager().setSubslotted(3, true);
-    this.msxPpi = new MsxPpi(this.board);
-    this.rtc = new Rtc(this.board);
-    this.vdp = new Vdp(this.board, VdpVersion.V9938, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 8);
-    this.msxpsg = new MsxPsg(this.board, 2);
-    this.s1985 = new MapperSramS1985(this.board);
+    super.init();
 
+    if (!this.board) {
+      return;
+    }
+    
+    // Set up cartridge slots
+    this.addCartridgeSlot(1);
+    this.addCartridgeSlot(2);
+
+    // Configure slots
     this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, a1biosRom);
     this.msxE1Rom = new MapperRomNormal(this.board, 3, 1, 0, a1extRom);
     this.msxE2Rom = new MapperRomNormal(this.board, 3, 2, 2, a1desk1Rom);
     this.msxE3Rom = new MapperRomNormal(this.board, 3, 3, 2, a1desk2Rom);
     this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
-  }
 
-  public reset(): void {
-    this.msxPpi && this.msxPpi.reset();
-    this.vdp && this.vdp.reset();
-    this.msxpsg && this.msxpsg.reset();
-    this.board && this.board.reset();
+    // TODO: Add for panasonic machines with disk drives
+    // this.diskRom = new MapperRomTc8566af(this.diskManager, this.board, 2, 0, new Uint8Array(panasonicDiskRom));
   }
-
-  public runStep(milliseconds: number): void {
-    this.board && this.board.run(MASTER_FREQUENCY * milliseconds / 1000 | 0);
-  }
-
-  public getFrameBuffer(): Uint16Array | null {
-    return this.vdp ? this.vdp.getFrameBuffer() : null;
-  }
-
-  public getFrameBufferWidth(): number {
-    return this.vdp ? this.vdp.getFrameBufferWidth() : 0;
-  }
-
-  public getFrameBufferHeight(): number {
-    return this.vdp ? this.vdp.getFrameBufferHeight() : 0;
-  }
-
-  public keyDown(keyCode: string): void {
-    this.msxPpi && this.msxPpi.keyDown(keyCode);
-  }
-
-  public keyUp(keyCode: string): void {
-    this.msxPpi && this.msxPpi.keyDown(keyCode);
-  }
-
+  
   // MSX components
-  private board?: Board;
-  private vdp?: Vdp;
-  private msxpsg?: MsxPsg;
-  private msxPpi?: MsxPpi;
-  private rtc?: Rtc;
-  private s1985?: Mapper;
   private ram?: Mapper;
   private msxRom?: Mapper;
   private msxE1Rom?: Mapper;
