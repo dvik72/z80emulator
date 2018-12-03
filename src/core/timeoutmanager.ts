@@ -113,7 +113,6 @@ export class TimeoutManager {
 
     // Dont schedule timer if it already expired.
     if ((timer.timeout - this.z80.getSystemTime() & TIMER_RANGE) > TIMER_RANGE / 2) {
-      console.log('Set Timeout in the past: ' + timer.name);
       return;
     }
 
