@@ -967,7 +967,7 @@ export class Vdp {
       this.lineOffset = -1;
       this.curLine++;
       // This is a bit of a hack. Something is missing right border occasionally.
-      this.frameOffset = this.curLine * this.getFrameBufferWidth();
+      this.frameOffset += (SCREEN_WIDTH - this.frameOffset % SCREEN_WIDTH) % SCREEN_WIDTH;
       while (this.curLine < scanLine) {
         if (this.curLine >= this.displayOffest && this.curLine < this.displayOffest + SCREEN_HEIGHT) {
           this.refreshLineCb(this.curLine, -1, 33);

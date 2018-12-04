@@ -17,16 +17,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Machine } from '../machines/machine';
-import { PanasonicFsA1 } from '../machines/msx2/panasonic_fs_a1' 
+import { PanasonicFsA1 } from '../machines/msx2/panasonic_fs_a1'; 
+import { PhilipsVg8020 } from '../machines/msx/philips_vg_8020';
 
-import { mapperFromMediaInfo } from '../mappers/mapperfactory';
 import { MediaInfoFactory, MediaInfo } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
 
 import { DiskManager } from '../disk/diskmanager';
 
-// Emulates MSX1 with cartridge ROMs. No disk drive or casette emulation yet...
+// Emulates MSX1 and MSX2 systems
 export class MsxEmu {
   constructor() {
     this.runStep = this.runStep.bind(this);
@@ -43,7 +43,8 @@ export class MsxEmu {
     document.addEventListener('dragover', this.dragover);
     document.addEventListener('drop', this.drop);
 
-    this.startEmulation();
+    this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
+    this.machine.notifyWhenLoaded(this.startEmulation.bind(this));
 
     // Start emulation and renderer
     this.lastSyncTime = Date.now();
@@ -52,8 +53,12 @@ export class MsxEmu {
   }
 
   private startEmulation() {
+    if (!this.machine) {
+      return;
+    }
+
     this.diskManager.reset();
-    this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
+    this.machine.init();
     this.machine.reset();
 
     // Insert cartridge rom if present

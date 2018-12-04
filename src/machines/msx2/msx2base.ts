@@ -37,12 +37,12 @@ export class Msx2Base extends Machine {
   public constructor(
     name: string,
     private webAudio: WebAudio,
-    private diskManager: DiskManager
+    private diskManager: DiskManager,
+    romNames: string[]
   ) {
-    super(name);
-//      this.gameRom = mapperFromMediaInfo(this.board, mediaInfo, 1, 0);
+    super(name, romNames);
 
-    this.init();
+    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
   }
 
   public init(): void {
@@ -87,7 +87,7 @@ export class Msx2Base extends Machine {
   }
 
   public keyUp(keyCode: string): void {
-    this.msxPpi && this.msxPpi.keyDown(keyCode);
+    this.msxPpi && this.msxPpi.keyUp(keyCode);
   }
 
   public insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void {
@@ -107,8 +107,12 @@ export class Msx2Base extends Machine {
     this.cartrdigeSlots.push([slot, subslot]);
   }
 
+  protected getBoard(): Board {
+    return this.board;
+  }
+
   // MSX components
-  protected board?: Board;
+  private board: Board;
   private vdp?: Vdp;
   private msxpsg?: MsxPsg;
   private msxPpi?: MsxPpi;

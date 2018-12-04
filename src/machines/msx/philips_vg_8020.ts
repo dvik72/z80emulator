@@ -20,38 +20,35 @@ import { MsxBase } from './msxbase';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 
-import { Mapper } from '../../mappers/mapper';
 import { MapperRamNormal } from '../../mappers/ramnormal';
 import { MapperRomNormal } from '../../mappers/romnormal';
 
-import { msxDosRom } from '../../nano/msxdosrom';
 
+export class PhilipsVg8020 extends MsxBase {
 
-export class PanasonicFsA1 extends MsxBase {
+  static NAME = 'Philips VG-8020';
+
   public constructor(
     webAudio: WebAudio,
     diskManager: DiskManager
   ) {
-    super('Philips VG-8020', webAudio, diskManager);
+    super(
+      PhilipsVg8020.NAME,
+      webAudio,
+      diskManager,
+      ['vg8020']
+    );
   }
 
   public init(): void {
     super.init();
-
-    if (!this.board) {
-      return;
-    }
 
     // Set up cartridge slots
     this.addCartridgeSlot(1);
     this.addCartridgeSlot(2);
 
     // Configure slots
-    this.msxRom = new MapperRomNormal(this.board, 0, 0, 0, msxDosRom);
-    this.ram = new MapperRamNormal(this.board, 3, 0, 0, 0x10000);
+    new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('vg8020'));
+    new MapperRamNormal(this.getBoard(), 3, 0, 0, 0x10000);
   }
-
-  // MSX components
-  private ram?: Mapper;
-  private msxRom?: Mapper;
 }

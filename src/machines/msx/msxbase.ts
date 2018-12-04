@@ -34,9 +34,12 @@ export abstract class MsxBase extends Machine {
   public constructor(
     name: string,
     private webAudio: WebAudio,
-    private diskManager: DiskManager
+    private diskManager: DiskManager,
+    romNames: string[]
   ) {
-    super(name);
+    super(name, romNames);
+
+    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
   }
 
   public init(): void {
@@ -82,7 +85,7 @@ export abstract class MsxBase extends Machine {
   }
 
   public keyUp(keyCode: string): void {
-    this.msxPpi && this.msxPpi.keyDown(keyCode);
+    this.msxPpi && this.msxPpi.keyUp(keyCode);
   }
 
   public insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void {
@@ -98,12 +101,16 @@ export abstract class MsxBase extends Machine {
     }
   }
 
+  protected getBoard(): Board {
+    return this.board;
+  }
+
   protected addCartridgeSlot(slot: number, subslot: number = 0): void {
     this.cartrdigeSlots.push([slot, subslot]);
   }
 
   // Board components
-  protected board?: Board;
+  private board: Board;
   private vdp?: Vdp;
   private msxpsg?: MsxPsg;
   private msxPpi?: MsxPpi;

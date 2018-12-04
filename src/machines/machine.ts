@@ -21,11 +21,23 @@ import { MediaInfo } from '../util/mediainfo';
 export abstract class Machine {
 
   public constructor(
-    private name: string) {
+    private machineName: string,
+    private romNames: string[]
+  ) {
+    for (let romName of romNames) {
+      this.loadSystemRom(romName);
+    }
   }
 
   public getName(): string {
-    return this.name;
+    return this.machineName;
+  }
+
+  public notifyWhenLoaded(callback: () => void) {
+    this.loadedCb = callback;
+    if (this.romsPending == 0) {
+      this.loadedCb();
+    }
   }
 
   public abstract init(): void;
@@ -45,4 +57,48 @@ export abstract class Machine {
   public abstract keyUp(keyCode: string): void;
 
   public abstract insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void;
+
+  protected getSystemRom(romName: string): Uint8Array {
+    return this.romData[romName] || new Uint8Array(0);
+  }
+
+  private loadSystemRom(romName: string): void {
+    this.romsPending++;
+
+    let httpReq = new XMLHttpRequest();
+    httpReq.open('GET', '../../systemroms/' + romName + '.bin', true);
+    httpReq.responseType = 'arraybuffer';
+
+    const loadComplete = this.loadComplete.bind(this);
+
+    httpReq.onreadystatechange = function () {
+      if (httpReq.readyState === XMLHttpRequest.DONE) {
+        let romData: Uint8Array | null = null;
+        if (httpReq.status == 200) {
+          const arrayBuffer = httpReq.response;
+          if (arrayBuffer instanceof ArrayBuffer) {
+            romData =new Uint8Array(arrayBuffer);
+          }
+        }
+        if (!romData) {
+          console.log('Failed loading system rom: ' + romName);
+        }
+        loadComplete(romName, romData);
+      }
+    };
+
+    httpReq.send(null);
+  }
+
+  private loadComplete(romName: string, romData: Uint8Array | null): void {
+    this.romData[romName] = romData;
+
+    if (--this.romsPending == 0 && this.loadedCb) {
+      this.loadedCb();
+    }
+  }
+
+  private romData: { [romName: string]: Uint8Array | null; } = {};
+  private romsPending = 0;
+  private loadedCb?: () => void;
 }
