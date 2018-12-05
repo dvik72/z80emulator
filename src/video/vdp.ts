@@ -157,7 +157,7 @@ export class Vdp {
     this.vramMasks[1] = this.vramSize > 0x8000 ? 0x7fff : this.vramSize - 1;
     this.vramMasks[2] = this.vramSize > 0x20000 ? 0x1ffff : this.vramSize - 1;
     this.vramMasks[3] = this.vramSize > 0x20000 ? 0xffff : this.vramSize - 1;
-    this.accMask = this.vramMasks[2];
+    this.vramAccMask = this.vramMasks[2];
 
     if (this.vramPages > 8) {
       this.vramPages = 8;
@@ -275,6 +275,17 @@ export class Vdp {
     this.vramAddress = 0;
     this.screenMode = 0;
     this.vramOffset = this.offsets[0];
+    
+    this.fgColor = 0;
+    this.bgColor = 0;
+    this.xfgColor = 0;
+    this.xbgColor = 0;
+    this.blinkFlag = false;
+    this.blinkCnt = 0;
+    this.vramEnable = true;
+    this.palKey = 0;
+    this.vramPage = 0;
+    this.vramAccMask = 0;
 
     this.scr0splitLine = 0;
     this.lineOffset = 0;
@@ -320,7 +331,7 @@ export class Vdp {
 
   private readVram(addr: number): number {
     const offset = this.screenMode >= 7 && this.screenMode <= 12 ? (addr >> 1 | ((addr & 1) << 16)) : addr;
-    return this.vram[this.vramOffset + offset & this.accMask];
+    return this.vram[this.vramOffset + offset & this.vramAccMask];
   }
 
   private getVramIndex(addr: number): number {
@@ -360,6 +371,19 @@ export class Vdp {
         this.status[0] &= 0x1f;
         this.board.clearInt(InterruptVector.VDP_IE0);
         break;
+      case 1:
+        if (this.regs[0] & 0x10) {
+          if (this.board.getInt(InterruptVector.VDP_IE1)) {
+            this.board.clearInt(InterruptVector.VDP_IE1);
+            status |= 0x01;
+          }
+        }
+        else {
+          if (this.board.getTimeSince(this.hIntTime) < HPERIOD - this.displayArea) {
+            status |= 0x01;
+          }
+        }
+        break;
       case 2:
         {
           const frameTime = this.board.getTimeSince(this.frameStartTime);
@@ -395,11 +419,9 @@ export class Vdp {
   private write(port: number, value: number): void {
     this.sync();
 
-    // TODO: Sync the VDP once V9938 engine is added.
-
     if (this.enable) {
       const index = this.getVramIndex((this.regs[14] << 14) | this.vramAddress);
-      if (!(index & ~this.accMask)) {
+      if (!(index & ~this.vramAccMask)) {
         this.vram[index] = value;
       }
     }
@@ -536,7 +558,7 @@ export class Vdp {
       case 9:
         value = (value & this.palMask) | this.palValue;
         if (change & 0x80) {
-          //scheduleVint(vdp);
+          this.scheduleVInt();
         }
         if (change & 0x30) {
           this.updateOutputMode();
@@ -623,6 +645,7 @@ export class Vdp {
 
   private scheduleHInt(): void {
     const timeout = this.frameStartTime + HPERIOD * (this.firstLine + ((this.regs[19] - this.regs[23]) & 0xff)) + this.leftBorder + this.displayArea;
+    this.hIntTime = timeout;
     this.hIntTimer.setTimeout(timeout);
   }
 
@@ -660,6 +683,8 @@ export class Vdp {
     if (!(this.regs[0] & 0x10)) {
       this.board.clearInt(InterruptVector.VDP_IE1);
     }
+
+    this.blink();
     
     this.status[2] ^= 0x02;
     this.frameStartTime = this.frameTimer.timeout;
@@ -670,6 +695,32 @@ export class Vdp {
     this.scheduleHInt();
     this.scheduleDrawAreaStart();
     this.scheduleDrawAreaEnd();
+  }
+
+  private blink(): void {
+    if (this.blinkCnt) {
+    this.blinkCnt--;
+    }
+    else {
+      this.blinkFlag = !this.blinkFlag;
+      if (!this.regs[13]) {
+        this.xfgColor = this.fgColor;
+        this.xbgColor = this.bgColor;
+      }
+      else {
+        this.blinkCnt = (this.blinkFlag ? this.regs[13] & 0x0f : this.regs[13] >> 4) * 10;
+        if (this.blinkCnt) {
+          if (this.blinkFlag) {
+            this.xfgColor = this.fgColor;
+            this.xbgColor = this.bgColor;
+          }
+          else {
+            this.xfgColor = this.regs[12] >> 4;
+            this.xbgColor = this.regs[12] & 0x0f;
+          }
+        }
+      }
+    }
   }
 
   private onVInt(): void {
@@ -1739,9 +1790,9 @@ export class Vdp {
         this.spriteLineOffset += 8;
       }
     }
-
-    const y = scanLine - this.firstLine + this.lineVScroll;
     
+    const y = scanLine - this.firstLine + this.lineVScroll;
+
     let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + this.lineHScroll + x;
     let charTableBase = (~0 << 13) | ((y & 0xc0) << 5) | (y & 7);
 
@@ -1837,7 +1888,7 @@ export class Vdp {
     }
 
     const y = scanLine - this.firstLine + this.vScroll();
-
+    
     const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
     let charTableOffset = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7))) + (this.lineHScroll >> 1) + x * 4;
 
@@ -2103,7 +2154,6 @@ export class Vdp {
   private vramOffset = 0;
   private offsets = new Array<number>(2);
   private vramMasks = new Array<number>(4);
-  private accMask = 0;
   private vramMask = 0;
   private palMask = 0;
   private palValue = 0;
@@ -2121,11 +2171,11 @@ export class Vdp {
 
   private scanLineCount = 0;
   private frameStartTime = 0;
+  private hIntTime = 0;
   private isDrawArea = false;
   private firstLine = 0;
   private curLine = 0;
   private scr0splitLine = 0;
-  private lastLine = 0;
   private lineOffset = 0;
   private displayOffest = 0;
   private vAdjust = 0;
@@ -2136,6 +2186,10 @@ export class Vdp {
 
   private fgColor = 0;
   private bgColor = 0;
+  private xfgColor = 0;
+  private xbgColor = 0;
+  private blinkFlag = false;
+  private blinkCnt = 0;
   private vramEnable = true;
   private palKey = 0;
   private vramPage = 0;

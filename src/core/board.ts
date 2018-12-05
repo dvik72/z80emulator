@@ -91,6 +91,10 @@ export class Board {
     this.z80.reset();
   }
 
+  public getInt(vector: InterruptVector): boolean {
+    return (this.interruptMask & vector) != 0;
+  }
+
   public setInt(vector: InterruptVector): void {
     this.interruptMask |= vector;
     this.z80.setInt();
