@@ -125,27 +125,14 @@ export class Vdp {
     this.refreshLineCb = this.refreshLineBlank.bind(this); 
 
     this.initPalette();
-
-    this.onFrameChange = this.onFrameChange.bind(this);
-    this.frameTimer = board.getTimeoutManager().createTimer('Frame Change', this.onFrameChange);
-
-    this.onScreenModeChange = this.onScreenModeChange.bind(this);
-    this.screenModeChangeTimer = board.getTimeoutManager().createTimer('Screen Mode Change', this.onScreenModeChange);
-
-    this.onVStart = this.onVStart.bind(this);
-    this.vStartTimer = board.getTimeoutManager().createTimer('VStart', this.onVStart);
-
-    this.onVInt = this.onVInt.bind(this);
-    this.vIntTimer = board.getTimeoutManager().createTimer('VInt', this.onVInt);
-
-    this.onHInt = this.onHInt.bind(this);
-    this.hIntTimer = board.getTimeoutManager().createTimer('hInt', this.onHInt);
-
-    this.onDrawAreaStart = this.onDrawAreaStart.bind(this);
-    this.drawAreaStartTimer = board.getTimeoutManager().createTimer('Draw Area Start', this.onDrawAreaStart);
-
-    this.onDrawAreaEnd = this.onDrawAreaEnd.bind(this);
-    this.drawAreaEndTimer = board.getTimeoutManager().createTimer('Draw Area End', this.onDrawAreaEnd);
+    
+    this.frameTimer = board.getTimeoutManager().createTimer('Frame Change', this.onFrameChange.bind(this));
+    this.screenModeChangeTimer = board.getTimeoutManager().createTimer('Screen Mode Change', this.onScreenModeChange.bind(this));
+    this.vStartTimer = board.getTimeoutManager().createTimer('VStart', this.onVStart.bind(this));
+    this.vIntTimer = board.getTimeoutManager().createTimer('VInt', this.onVInt.bind(this));
+    this.hIntTimer = board.getTimeoutManager().createTimer('hInt', this.onHInt.bind(this));
+    this.drawAreaStartTimer = board.getTimeoutManager().createTimer('Draw Area Start', this.onDrawAreaStart.bind(this));
+    this.drawAreaEndTimer = board.getTimeoutManager().createTimer('Draw Area End', this.onDrawAreaEnd.bind(this));
 
     this.vramSize       = this.vramPages << 14;
     this.vram192 = this.vramPages == 12;
@@ -601,7 +588,7 @@ export class Vdp {
       case 23:
         if (change) {
           this.scheduleHInt();
-          this.invalidateSpriteLine(this.board.getTimeSince(this.frameStartTime) / HPERIOD);
+          this.invalidateSpriteLine(this.getCurrentScanline());
         }
         if (!(this.regs[0] & 0x10)) {
           this.board.clearInt(InterruptVector.VDP_IE1);
@@ -724,7 +711,7 @@ export class Vdp {
   }
 
   private onVInt(): void {
-    this.sync();
+    this.sync(this.vIntTimer.getTimeout());
 
     this.status[0] |= 0x80;
     this.status[2] |= 0x40;
@@ -737,7 +724,7 @@ export class Vdp {
   }
 
   private onHInt(): void {
-    this.sync();
+    this.sync(this.hIntTimer.getTimeout());
 
     if (this.regs[0] & 0x10) {
       this.board.setInt(InterruptVector.VDP_IE1);
@@ -745,13 +732,13 @@ export class Vdp {
   }
 
   private onVStart(): void {
-    this.sync();
+    this.sync(this.vStartTimer.getTimeout());
 
     this.status[2] &= ~0x40;
   }
 
   private onDrawAreaStart(): void {
-    this.sync();
+    this.sync(this.drawAreaStartTimer.getTimeout());
 
     this.isDrawArea = true;
     this.status[2] &= ~0x40;
@@ -760,7 +747,7 @@ export class Vdp {
   }
 
   private onDrawAreaEnd(): void {
-    this.sync();
+    this.sync(this.drawAreaEndTimer.getTimeout());
 
     this.isDrawArea = false;
   }
@@ -806,9 +793,10 @@ export class Vdp {
   }
   
   private onScreenModeChange(): void {
-    const scanLine = this.board.getTimeSince(this.frameStartTime) / HPERIOD | 0;
+    const time = this.screenModeChangeTimer.getTimeout();
+    const scanLine = this.board.getTimeDelta(this.frameStartTime, time) / HPERIOD | 0;
 
-    this.sync();
+    this.sync(time);
 
     const oldScreenMode = this.screenMode;
 
@@ -909,8 +897,11 @@ export class Vdp {
       this.leftBorder = 102 + 56;
     }
     
-    const adjust = -(this.regs[18] &0x0f);
-    this.hAdjust = adjust < -8 ? adjust + 16 : adjust;
+    const adjust = this.regs[18] & 0x0f;
+    this.hAdjust = adjust > 7 ? 16 - adjust : -adjust;
+    if (this.regs[25] & 0x08) {
+      this.hAdjust += 4;
+    }
     this.leftBorder += this.hAdjust;
 
     this.chrTabBase = (((this.regs[2] << 10) & ~((this.regs[25] & 1) << 15)) | ~(-1 << 10)) & this.vramMask;
@@ -1000,12 +991,14 @@ export class Vdp {
     this.paletteSprite8[15] = this.videoGetColor(7 * 255 / 7 | 0, 7 * 255 / 7 | 0, 7 * 255 / 7 | 0);
   }
 
-  private sync(): void {
+  private sync(time?: number): void {
     if (this.version == VdpVersion.V9938 || this.version == VdpVersion.V9958) {
       this.v9938Cmd.execute();
     }
 
-    let frameTime = this.board.getTimeSince(this.frameStartTime);
+    let frameTime = time ? this.board.getTimeDelta(this.frameStartTime, time) :
+      this.board.getTimeSince(this.frameStartTime);
+
     let scanLine = frameTime / HPERIOD | 0;
     let lineTime = frameTime % HPERIOD - (this.leftBorder - 20);
     
@@ -1777,30 +1770,8 @@ export class Vdp {
       this.refreshLeftBorder(bgColor, 0);
 
       this.renderPage = this.chrTabBase / 0x8000 & 1 | 2 * this.lineHScroll512;
-
-      for (let i = 0; i < (this.lineHScroll & 7); i++) {
-        this.frameBuffer[this.frameOffset++] = bgColor;
-      }
-
-      if (this.isEdgeMasked()) {
-        for (let count = 8; count--;) {
-          this.frameBuffer[this.frameOffset++] = bgColor;
-        }
-        x++;
-        this.spriteLineOffset += 8;
-      }
     }
     
-    const y = scanLine - this.firstLine + this.lineVScroll;
-
-    let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + this.lineHScroll + x;
-    let charTableBase = (~0 << 13) | ((y & 0xc0) << 5) | (y & 7);
-
-    if (this.lineHScroll512) {
-      if ((this.lineHScroll >> 3) & 0x20) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1];
-      if (charTableBase & (1 << 15)) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1] + 32;
-    }
-
     if (!this.screenOn || !this.isDrawArea) {
       while (x < x2) {
         for (let count = 8; count--;) {
@@ -1808,40 +1779,24 @@ export class Vdp {
         }
         x++;
       }
+      this.lineHScroll = 0;
     }
     else {
-      if (leftBorder && (this.lineHScroll & 7) != 0) {
-        if (this.isEdgeMasked()) {
-          const index = charTableBase | this.vram[charTableOffset] * 8;
-          const colPattern = this.vram[this.colTabBase & index];
-          const colors = [this.palette[colPattern & 0x0f], this.palette[colPattern >> 4]];
-          const charPattern = this.vram[this.chrGenBase & index];
+      const y = scanLine - this.firstLine + this.lineVScroll;
 
-          switch (this.scrollIndex & 7) {
-            case 1: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 6) & 1]; }
-            case 2: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 5) & 1]; }
-            case 3: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 4) & 1]; }
-            case 4: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 3) & 1]; }
-            case 5: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 2) & 1]; }
-            case 6: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 1) & 1]; }
-            case 7: { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : colors[(charPattern >> 0) & 1]; };
-              charTableOffset++;
-              if ((++this.scrollIndex & 0x1f) == 0) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1];
-          }
-        }
-        else {
-          switch (this.scrollIndex & 7) {
-            case 1: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-            case 2: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-            case 3: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-            case 4: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-            case 5: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-            case 6: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-            case 7: this.spriteLineOffset++; this.frameBuffer[this.frameOffset++] = bgColor;
-          }
-        }
+      let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + this.lineHScroll + x;
+      let charTableBase = (~0 << 13) | ((y & 0xc0) << 5) | (y & 7);
 
-        x++;
+      if (this.lineHScroll512) {
+        if ((this.lineHScroll >> 3) & 0x20) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1];
+        if (charTableBase & (1 << 15)) charTableOffset += JUMP_TABLE4[this.renderPage ^= 1] + 32;
+      }
+
+      if (leftBorder) {
+        for (let i = this.lineHScroll & 7; i--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+          this.spriteLineOffset++;
+        }
       }
 
       while (x < x2) {
@@ -1865,7 +1820,7 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      this.refreshRightBorder(bgColor, 0);
+      this.refreshRightBorder(bgColor, -(this.lineHScroll & 7));
       this.updateColorSpritesLine(scanLine);
     }
   }

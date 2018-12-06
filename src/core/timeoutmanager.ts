@@ -27,6 +27,10 @@ export class Timer {
     this.setTimeoutCb(this);
   }
 
+  getTimeout(): number {
+    return this.timeout;
+  }
+
   addTimeout(timeToAdd: number) {
     this.timeout = this.timeout + timeToAdd & TIMER_RANGE;
     this.setTimeoutCb(this);

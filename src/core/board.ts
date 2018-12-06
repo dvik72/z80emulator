@@ -82,6 +82,10 @@ export class Board {
     return this.z80.getSystemFrequency();
   }
 
+  public getTimeDelta(startTime: number, endTime: number): number {
+    return endTime - startTime & TIMER_RANGE;
+  }
+
   public getTimeSince(time: number): number {
     return this.z80.getSystemTime() - time & TIMER_RANGE;
   }
