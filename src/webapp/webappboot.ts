@@ -16,12 +16,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { MsxEmu } from "../nano/msxemu"
+import { webappmain } from "./webappmain"
 
-require(['MsxEmu'],
+require(['webappmain'],
   (main: any) => {
-//    let i = 0; while (i == 0) { }
-    let msxEmu = new MsxEmu();
-    msxEmu.run();
+    webappmain();
   }
 );

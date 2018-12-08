@@ -121,13 +121,14 @@
     <TypeScriptCompile Include="src\mappers\ramnormal.ts" />
     <TypeScriptCompile Include="src\mappers\rombasic.ts" />
     <TypeScriptCompile Include="src\core\slotmanager.ts" />
-    <TypeScriptCompile Include="src\nano\nanomsxmain.ts" />
     <TypeScriptCompile Include="src\nano\msxemu.ts" />
     <TypeScriptCompile Include="src\video\shaders\basicshader.ts" />
     <TypeScriptCompile Include="src\video\shaders\shader.ts" />
     <TypeScriptCompile Include="src\video\v9938cmd.ts" />
     <TypeScriptCompile Include="src\video\vdp.ts" />
     <TypeScriptCompile Include="src\video\webglrenderer.ts" />
+    <TypeScriptCompile Include="src\webapp\webappboot.ts" />
+    <TypeScriptCompile Include="src\webapp\webappmain.ts" />
     <TypeScriptCompile Include="src\z80\z80.ts" />
     <TypeScriptCompile Include="modules\require.d.ts" />
     <TypeScriptCompile Include="src\z80\z80dasm.ts" />
