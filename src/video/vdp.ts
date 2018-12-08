@@ -274,7 +274,7 @@ export class Vdp {
     this.vramEnable = true;
     this.palKey = 0;
     this.vramPage = 0;
-    this.vramAccMask = 0;
+    this.vramAccMask = this.vramMasks[2];
 
     this.scr0splitLine = 0;
     this.lineOffset = 0;
