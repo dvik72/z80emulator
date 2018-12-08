@@ -66,7 +66,7 @@ export abstract class Machine {
     this.romsPending++;
 
     let httpReq = new XMLHttpRequest();
-    httpReq.open('GET', '../../systemroms/' + romName + '.bin', true);
+    httpReq.open('GET', './systemroms/' + romName + '.bin', true);
     httpReq.responseType = 'arraybuffer';
 
     const loadComplete = this.loadComplete.bind(this);
