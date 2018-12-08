@@ -66,6 +66,7 @@
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
     <TypeScriptCompile Include="src\machines\machine.ts" />
+    <TypeScriptCompile Include="src\machines\msx2\genericmsx2.ts" />
     <TypeScriptCompile Include="src\machines\msx2\msx2base.ts" />
     <TypeScriptCompile Include="src\machines\msx2\panasonic_fs_a1.ts" />
     <TypeScriptCompile Include="src\machines\msx\msxbase.ts" />
@@ -98,6 +99,9 @@
     <Content Include="systemroms\a1desk2.bin" />
     <Content Include="systemroms\a1ext.bin" />
     <Content Include="systemroms\vg8020.bin" />
+    <Content Include="systemroms\msx2bios.bin" />
+    <Content Include="systemroms\msx2ext.bin" />
+    <Content Include="systemroms\panasonicdisk.bin" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

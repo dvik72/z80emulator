@@ -19,8 +19,9 @@
 import { Machine } from '../machines/machine';
 import { PanasonicFsA1 } from '../machines/msx2/panasonic_fs_a1'; 
 import { PhilipsVg8020 } from '../machines/msx/philips_vg_8020';
+import { GenericMsx2 } from '../machines/msx2/genericmsx2';
 
-import { MediaInfoFactory, MediaInfo } from '../util/mediainfo';
+import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
 
@@ -46,7 +47,7 @@ export class MsxEmu {
     document.addEventListener('drop', this.drop);
     document.addEventListener('click', () => { this.webAudio.resume(); } );
    
-    this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
+    this.machine = new GenericMsx2(this.webAudio, this.diskManager);
 
     //this.romMedia = this.mediaInfoFactory.mediaInfoFromData(new Uint8Array(gameRom));
 
@@ -150,9 +151,13 @@ export class MsxEmu {
   private fileLoaded(filename: string, data: Uint8Array) {
     this.stopEmulation();
 
-    //this.diskManager.insertFloppyImage(0, new Uint8Array(gameRom));
-
-    this.romMedia = this.mediaInfoFactory.mediaInfoFromData(data);
+    if (filename.slice(-3).toLowerCase() == 'dsk') {
+      this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, data);
+      this.diskManager.insertFloppyImage(0, this.diskMedia.data);
+    }
+    else {
+      this.romMedia = this.mediaInfoFactory.mediaInfoFromData(data);
+    }
 
     this.startEmulation();
   }
@@ -179,6 +184,7 @@ export class MsxEmu {
   private webAudio = new WebAudio();
   private diskManager = new DiskManager();
 
+  private diskMedia?: MediaInfo;
   private romMedia?: MediaInfo;
   private mediaInfoFactory = new MediaInfoFactory();
 

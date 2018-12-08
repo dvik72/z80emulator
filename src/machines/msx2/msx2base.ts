@@ -111,6 +111,10 @@ export class Msx2Base extends Machine {
     return this.board;
   }
 
+  protected getDiskManager(): DiskManager {
+    return this.diskManager;
+  }
+
   // MSX components
   private board: Board;
   private vdp?: Vdp;
