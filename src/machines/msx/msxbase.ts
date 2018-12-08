@@ -48,7 +48,6 @@ export abstract class MsxBase extends Machine {
 
     // Initialize board components
     this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
-    this.board.getSlotManager().setSubslotted(3, true);
     this.msxPpi = new MsxPpi(this.board);
     this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
     this.msxpsg = new MsxPsg(this.board, 2);
