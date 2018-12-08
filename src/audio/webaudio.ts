@@ -43,6 +43,10 @@ export class WebAudio {
     this.audioDataRight = new Float32Array(this.fragmentSize);
   }
 
+  public resume(): void {
+    this.ctx.resume();
+  }
+
   public reset(): void {
     this.index = 0;
   }

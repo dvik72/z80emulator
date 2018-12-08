@@ -26,6 +26,8 @@ import { WebAudio } from '../audio/webaudio';
 
 import { DiskManager } from '../disk/diskmanager';
 
+import { gameRom } from './gamerom';
+
 // Emulates MSX1 and MSX2 systems
 export class MsxEmu {
   constructor() {
@@ -42,8 +44,12 @@ export class MsxEmu {
     document.addEventListener('keyup', this.keyUp);
     document.addEventListener('dragover', this.dragover);
     document.addEventListener('drop', this.drop);
-
+    document.addEventListener('click', () => { this.webAudio.resume(); } );
+   
     this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
+
+    //this.romMedia = this.mediaInfoFactory.mediaInfoFromData(new Uint8Array(gameRom));
+
     this.machine.notifyWhenLoaded(this.startEmulation.bind(this));
 
     // Start emulation and renderer
@@ -113,6 +119,8 @@ export class MsxEmu {
 
   private drop(event: DragEvent) {
     event.preventDefault();
+
+    this.webAudio.resume(); 
     
     if (event.dataTransfer && event.dataTransfer.items) {
       if (event.dataTransfer.items.length == 1 && event.dataTransfer.items[0].kind === 'file') {
