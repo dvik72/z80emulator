@@ -21,6 +21,11 @@ import { romDatabase } from './romdatabase';
 
 export enum MediaType {
   UNKNOWN = 'Unknown',
+
+  // Disk Media
+  FLOPPY = 'Floppy Disk',
+
+  // Cartridge Media
   NORMAL_0x0000 = 'Normal',
   NORMAL_0x4000 = 'Normal - 0x4000',
   BASIC = 'Basic',
