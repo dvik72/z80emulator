@@ -122,6 +122,8 @@ export class Vdp {
     private connectorType: VdpConnectorType,
     private vramPages: number
   ) {
+    this.frameBuffer = this.frameBuffers[this.frameBufferWriteIndex ^= 1];
+
     this.refreshLineCb = this.refreshLineBlank.bind(this); 
 
     this.initPalette();
@@ -682,6 +684,8 @@ export class Vdp {
     this.scheduleHInt();
     this.scheduleDrawAreaStart();
     this.scheduleDrawAreaEnd();
+
+    this.frameBuffer = this.frameBuffers[this.frameBufferWriteIndex ^= 1];
   }
 
   private blink(): void {
@@ -996,8 +1000,7 @@ export class Vdp {
       this.v9938Cmd.execute();
     }
 
-    let frameTime = time ? this.board.getTimeDelta(this.frameStartTime, time) :
-      this.board.getTimeSince(this.frameStartTime);
+    let frameTime = this.board.getTimeSince(this.frameStartTime);
 
     let scanLine = frameTime / HPERIOD | 0;
     let lineTime = frameTime % HPERIOD - (this.leftBorder - 20);
@@ -1010,15 +1013,14 @@ export class Vdp {
       }
       this.lineOffset = -1;
       this.curLine++;
-      // This is a bit of a hack. Something is missing right border occasionally.
+      this.frameOffset = (this.curLine - this.displayOffest) * this.getFrameBufferWidth();
       while (this.curLine < scanLine) {
-        this.frameOffset = this.curLine * this.getFrameBufferWidth();
         if (this.curLine >= this.displayOffest && this.curLine < this.displayOffest + SCREEN_HEIGHT) {
           this.refreshLineCb(this.curLine, -1, 33);
         }
         this.curLine++;
+        this.frameOffset = (this.curLine - this.displayOffest) * this.getFrameBufferWidth();
       }
-      this.frameOffset = this.curLine * this.getFrameBufferWidth();
     }
 
     if (this.lineOffset > 32 || lineTime < -1) {
@@ -1485,10 +1487,9 @@ export class Vdp {
     const y = scanLine - this.firstLine + this.lineVScroll;
 
     const page = (this.chrTabBase >> 15) & 1;
-    let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + (this.lineHScroll & 7) + x;
+    let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + x;
     const patternBase = this.chrGenBase & ((~0 << 11) | (y & 7));
     
-
     if (!this.screenOn || !this.isDrawArea) {
       while (x < x2) {
         for (let count = 8; count--;) {
@@ -1537,7 +1538,7 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      if (this.isEdgeMasked()) this.frameOffset -= 8 - (this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
       this.updateSpritesLine(scanLine);
     }
@@ -1616,7 +1617,7 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      if (this.isEdgeMasked()) this.frameOffset -= 8 - (this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
       this.updateSpritesLine(scanLine);
     }
@@ -1754,7 +1755,7 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      if (this.isEdgeMasked()) this.frameOffset -= 8 - (this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
       this.updateColorSpritesLine(scanLine);
     }
@@ -1842,7 +1843,7 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      if (this.isEdgeMasked()) this.frameOffset -= 8 - (this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
       this.updateColorSpritesLine(scanLine);
     }
@@ -1959,13 +1960,93 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      if (this.isEdgeMasked()) this.frameOffset -= 16 - 2 * (this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder6(bgColor1, bgColor2);
       this.updateColorSpritesLine(scanLine);
     }
   }
 
   private refreshLine7(scanLine: number, x: number, x2: number): void {
+    const bgColor = this.palette[this.bgColor];
+
+    const leftBorder = x < 0;
+    leftBorder && x++;
+    const rightBorder = x2 > 32;
+    rightBorder && x2--;
+
+    if (leftBorder) {
+      this.lineHScroll = this.hScroll();
+      this.lineHScroll512 = this.hScroll512();
+      this.scrollIndex = this.lineHScroll;
+      this.renderPage = this.chrTabBase / 0x8000 & 1 | this.lineHScroll512 * 2;
+
+      this.refreshLeftBorder6(bgColor, bgColor);
+    }
+
+    const y = scanLine - this.firstLine + this.vScroll();
+
+    const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
+    let charTableOffset = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7))) + (this.scrollIndex >> 1);
+
+    if (this.lineHScroll512) {
+      if (this.lineHScroll & 0x100) charTableOffset += JUMP_TABLE[this.renderPage ^= 1];
+      if (this.chrTabBase & (1 << 15)) charTableOffset += JUMP_TABLE[this.renderPage ^= 1] + 32;
+    }
+
+    if (!this.screenOn || !this.isDrawArea) {
+      while (x < x2) {
+        for (let count = 16; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        x++;
+      }
+    }
+    else {
+      // Handle horizontal scroll and set up for edge mask
+      let maskOffset = 0;
+      if (x2 > 0 && x < 1) {
+        const isEdgeMasked = this.isEdgeMasked();
+        if (isEdgeMasked) maskOffset = this.frameOffset;
+        for (let count = -this.lineHScroll & 7; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+          this.frameBuffer[this.frameOffset++] = bgColor;
+          this.spriteLineOffset++;
+        }
+        if (this.lineHScroll) {
+          charTableOffset += 4;
+          if (((this.scrollIndex += 4) & 0x7f) < 4) charTableOffset += JUMP_TABLE[this.renderPage ^= 1];
+        }
+      }
+
+      let isOdd = this.lineHScroll & 1;
+
+      while (x < x2) {
+        for (let i = 0; i < 8; i++) {
+          let col = this.spriteLine[this.spriteLineOffset++];
+          col ?
+            this.frameBuffer[this.frameOffset++] = this.frameBuffer[this.frameOffset++] = this.palette[col >> 1] :
+            (col = this.vram[charTableOffset + isOdd * this.vram128],
+              this.frameBuffer[this.frameOffset++] = this.palette[col >> 4],
+              this.frameBuffer[this.frameOffset++] = this.palette[col & 0x0f]);
+          charTableOffset += isOdd;
+          if ((++this.scrollIndex & 0xff) == 0) charTableOffset += JUMP_TABLE[this.renderPage ^= 1];
+          isOdd ^= 1;
+        }
+        x++;
+      }
+      if (maskOffset) {
+        for (let count = 8; count--;) {
+          this.frameBuffer[maskOffset++] = bgColor;
+          this.frameBuffer[maskOffset++] = bgColor;
+        }
+      }
+    }
+
+    if (rightBorder) {
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= 2 * (-this.lineHScroll & 7);
+      this.refreshRightBorder6(bgColor, bgColor);
+      this.updateColorSpritesLine(scanLine);
+    }
   }
 
   private refreshLine8(scanLine: number, x: number, x2: number): void {
@@ -2041,7 +2122,7 @@ export class Vdp {
     }
 
     if (rightBorder) {
-      if (this.isEdgeMasked()) this.frameOffset -= 16 - 2 * (this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
       this.updateColorSpritesLine(scanLine);
     }
@@ -2054,7 +2135,7 @@ export class Vdp {
   }
 
   public getFrameBuffer(): Uint16Array {
-    return this.frameBuffer;
+    return this.frameBuffers[this.frameBufferWriteIndex ^ 1];;
   }
 
   public getFrameBufferWidth(): number {
@@ -2163,5 +2244,9 @@ export class Vdp {
 
   // Frame buffers
   private frameOffset = 0;
-  private frameBuffer = new Uint16Array(2 * SCREEN_WIDTH * SCREEN_HEIGHT);
+  private frameBuffer = new Uint16Array(0);
+  private frameBufferWriteIndex = 0;
+  private frameBuffers = [
+    new Uint16Array(2 * SCREEN_WIDTH * SCREEN_HEIGHT), 
+    new Uint16Array(2 * SCREEN_WIDTH * SCREEN_HEIGHT)];
 }

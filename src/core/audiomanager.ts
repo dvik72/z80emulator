@@ -142,10 +142,11 @@ export class AudioManager {
       this.outVolumeRight += 2 * (this.volumeRight - this.outVolumeRight) / 3;
 
       // Clip volumes if needed
-      if (this.outVolumeLeft > 1) { console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = 1; }
-      if (this.outVolumeLeft < -1) { console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = -1; }
-      if (this.outVolumeRight > 1) { console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = 1; }
-      if (this.outVolumeRight < -1) { console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = -1; }
+      const logClip = true;
+      if (this.outVolumeLeft > 1) { logClip && console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = 1; }
+      if (this.outVolumeLeft < -1) { logClip && console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = -1; }
+      if (this.outVolumeRight > 1) { logClip && console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = 1; }
+      if (this.outVolumeRight < -1) { logClip && console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = -1; }
 
       this.webAudio.addSample(this.outVolumeLeft, this.outVolumeRight);
     }
