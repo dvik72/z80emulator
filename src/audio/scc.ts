@@ -18,7 +18,6 @@
 
 import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
-import { Port } from '../core/iomanager';
 
 const ROTATE_OFF = 32;
 const ROTATE_ON = 28;
@@ -33,7 +32,7 @@ export class Scc extends AudioDevice {
     super('SCC', false);
 
     this.board.getAudioManager().registerAudioDevice(this);
-    this.basePhaseStep = (1 << 28) * (3579545 / 32 / this.sampleRate / 4) | 0;
+    this.basePhaseStep = (1 << 28) * 3579545 / 32 / (this.sampleRate * 4) | 0;
 
     this.reset();
   }
@@ -70,7 +69,6 @@ export class Scc extends AudioDevice {
 
     this.deformReg = 0;
     this.enable = 0xff;
-    this.bus = 0xffff;
   }
 
   public read(address: number): number {
@@ -204,41 +202,28 @@ export class Scc extends AudioDevice {
       let masterVolume = [0, 0, 0, 0];
       for (let i = 0; i < 4; i++) {
         for (let channel = 0; channel < 5; channel++) {
-          let phase = this.phase[channel] + this.phaseStep[channel];
-          phase &= 0xfffffff;
-          this.phase[channel] = phase;
-
-          const sample = (phase >> 23) & 0x1f;
+          this.phase[channel] = this.phase[channel] + this.phaseStep[channel] & 0xfffffff;
+          const sample = this.phase[channel] >> 23;
 
           if (sample != this.oldSample[channel]) {
             this.volume[channel] = this.nextVolume[channel];
-            this.curWave[channel] = this.wave[channel][sample];
-
+            let v = this.wave[channel][sample];
+            if (v > 127) v -= 256;
+            this.curWave[channel] = v
             this.oldSample[channel] = sample;
           }
 
-          const refVolume = 25 * ((this.enable >> channel) & 1) * this.volume[channel];
-          if (this.daVolume[channel] < refVolume) {
-            this.daVolume[channel] = refVolume;
-          }
-
-          masterVolume[i] += (this.curWave[channel] * this.daVolume[channel]) / 65536 / 4;
-
-          if (this.daVolume[channel] > refVolume) {
-            this.daVolume[channel] = this.daVolume[channel] * 9 / 10;
-          }
+          const refVolume = ((this.enable >> channel) & 1) * this.volume[channel];
+          masterVolume[i] += this.curWave[channel] * refVolume;
         }
       }
-      audioBuffer[index] = this.filter4(masterVolume[0], masterVolume[1], masterVolume[2], masterVolume[3]);
-
-      this.bus = 0xFFFF;
+      audioBuffer[index] = this.filter4(masterVolume[0], masterVolume[1], masterVolume[2], masterVolume[3]) / 8000;
     }
   }
 
   private getWave(channel: number, address: number): number {
     if (this.rotate[channel] == ROTATE_OFF) {
       const value = this.wave[channel][address & 0x1f];
-      this.bus = value;
       return value;
     }
     else {
@@ -257,7 +242,6 @@ export class Scc extends AudioDevice {
 
       const shift = this.oldSample[periodCh] - this.deformSample[periodCh];
       const value = this.wave[channel][(address + shift) & 0x1f];
-      this.bus = value;
       return value;
     }
   }
@@ -285,8 +269,6 @@ export class Scc extends AudioDevice {
   private updateWave(channel: number, address: number, value: number) {
     if (!this.readOnly[channel]) {
       const pos = address & 0x1f;
-
-      this.bus = value;
 
       this.wave[channel][pos] = value;
       if ((this.mode != SccMode.PLUS) && (channel == 3)) {
@@ -457,7 +439,6 @@ export class Scc extends AudioDevice {
   private basePhaseStep = 0;
   private deformReg = 0;
   private enable = 0xff;
-  private bus = 0xffff;
   private curWave = new Array<number>(5);
   private period = new Array<number>(5);
   private phase = new Array<number>(5);

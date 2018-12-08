@@ -223,10 +223,10 @@ export class Ay8910 extends AudioDevice {
 
         // Amplify sample using either envelope volume or channel volume
         if (this.ampVolume[channel] & 0x10) {
-          sampleVolume[channel] += tone * this.voltEnvTable[envVolume] / 64;
+          sampleVolume[channel] += tone * this.voltEnvTable[envVolume] / 156;
         }
         else {
-          sampleVolume[channel] += tone * this.voltTable[this.ampVolume[channel]] / 64;
+          sampleVolume[channel] += tone * this.voltTable[this.ampVolume[channel]] / 156;
         }
       }
       

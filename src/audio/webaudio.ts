@@ -21,9 +21,8 @@ export class WebAudio {
   private gainNode: GainNode;
   private chunks: Array<AudioBufferSourceNode> = [];
   private isPlaying: boolean = false;
-  private startTime: number = 0;
-  private lastChunkOffset: number = 0;
-  private bufferSize = 24;
+  private nextStartTime: number = 0;
+  private bufferSize = 6;
  
   private sampleRate: number;
   private fragmentSize: number;
@@ -35,7 +34,7 @@ export class WebAudio {
   constructor() {
     this.ctx = new AudioContext();
     this.sampleRate = this.ctx.sampleRate;
-    this.fragmentSize = this.sampleRate / 400 | 0;
+    this.fragmentSize = this.sampleRate / 100 | 0;
 
     this.gainNode = this.ctx.createGain();
     this.gainNode.connect(this.ctx.destination);
@@ -76,42 +75,57 @@ export class WebAudio {
       this.chunks.splice(this.chunks.indexOf(source), 1);
       if (this.chunks.length == 0) {
         this.isPlaying = false;
-        this.startTime = 0;
-        this.lastChunkOffset = 0;
       }
     };
 
     return source;
   }
 
+  private draining = false;
+
+  private fullCount = 0;
+
   private addChunk(dataLeft: Float32Array, dataRight: Float32Array) {
-    if (this.isPlaying && (this.chunks.length > this.bufferSize)) {
+    if (this.isPlaying && this.draining) {
+      this.draining = this.chunks.length > this.bufferSize / 4;
       return;
-    } else if (this.isPlaying && (this.chunks.length <= this.bufferSize)) {
+    }
+
+    if (this.isPlaying && (this.chunks.length > this.bufferSize)) {
+      console.log('WEBAUDIO: Buffer full (' + ++this.fullCount + ')');
+      this.draining = true;
+      return;
+    }
+
+    if (this.isPlaying && (this.chunks.length <= this.bufferSize)) {
       let chunk = this.createChunk(dataLeft, dataRight);
+      if (!chunk.buffer) {
+        console.log('WEBAUDIO: Failed to create chunk');
+        return;
+      }
+      chunk.start(this.nextStartTime);
+      this.nextStartTime += chunk.buffer.duration;
+      this.chunks.push(chunk);
+      return;
+    }
+
+    if ((this.chunks.length < (this.bufferSize / 2)) && !this.isPlaying) {
+      let chunk = this.createChunk(dataLeft, dataRight);
+      this.chunks.push(chunk);
+      return;
+    }
+
+    this.isPlaying = true;
+    let chunk = this.createChunk(dataLeft, dataRight);
+    this.chunks.push(chunk);
+    this.nextStartTime = this.ctx.currentTime;
+    for (let i = 0; i < this.chunks.length; i++) {
+      let chunk = this.chunks[i];
       if (!chunk.buffer) {
         return;
       }
-      chunk.start(this.startTime + this.lastChunkOffset);
-      this.lastChunkOffset += chunk.buffer.duration;
-      this.chunks.push(chunk);
-    } else if ((this.chunks.length < (this.bufferSize / 2)) && !this.isPlaying) {
-      let chunk = this.createChunk(dataLeft, dataRight);
-      this.chunks.push(chunk);
-    } else {
-      this.isPlaying = true;
-      let chunk = this.createChunk(dataLeft, dataRight);
-      this.chunks.push(chunk);
-      this.startTime = this.ctx.currentTime;
-      this.lastChunkOffset = 0;
-      for (let i = 0; i < this.chunks.length; i++) {
-        let chunk = this.chunks[i];
-        if (!chunk.buffer) {
-          return;
-        }
-        chunk.start(this.startTime + this.lastChunkOffset);
-        this.lastChunkOffset += chunk.buffer.duration;
-      }
+      chunk.start(this.nextStartTime);
+      this.nextStartTime += chunk.buffer.duration;
     }
   }
 }
