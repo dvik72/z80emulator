@@ -1349,6 +1349,18 @@ export class Vdp {
     }
   }
 
+  private refreshLeftBorderWide(color: number, borderExtra: number): void {
+    for (let offset = 2 * (BORDER_WIDTH + this.hAdjust + borderExtra); offset--;) {
+      this.frameBuffer[this.frameOffset++] = color;
+    }
+  }
+
+  private refreshRightBorderWide(color: number, borderExtra: number): void {
+    for (let offset = 2 * (BORDER_WIDTH - this.hAdjust + borderExtra); offset--;) {
+      this.frameBuffer[this.frameOffset++] = color;
+    }
+  }
+
   private refreshLeftBorder6(color1: number, color2: number): void {
     for (let offset = BORDER_WIDTH + this.hAdjust; offset--;) {
       this.frameBuffer[this.frameOffset++] = color1;
@@ -1391,7 +1403,85 @@ export class Vdp {
     }
   }
 
+  private renderColors = [0, 0];
+  
   private refreshLineTx80(scanLine: number, x: number, x2: number): void {
+    const bgColor = this.palette[this.bgColor];
+    const fgColor = this.palette[this.fgColor];
+    const xbgColor = this.palette[this.xbgColor];
+    const xfgColor = this.palette[this.xfgColor];
+
+    if (x == -1) {
+      this.lineHScroll = this.hScroll() % 6;
+      this.lineVScroll = this.vScroll();
+
+      this.refreshLeftBorderWide(bgColor, this.hAdjustSc0);
+      x++;
+
+      for (let i = 0; i < this.lineHScroll; i++) {
+        this.frameBuffer[this.frameOffset++] = bgColor;
+      }
+
+      let y = scanLine - this.firstLine + this.lineVScroll;
+      this.renderCharOffset = 80 * (y >> 3);
+      this.renderShift = 0;
+      this.renderPattern = 0;
+      this.renderColors = [bgColor, fgColor];
+    }
+
+    const y = scanLine - this.firstLine + this.lineVScroll;
+
+    const rightBorder = x2 > 32;
+    rightBorder && x2--;
+
+    if (!this.screenOn || !this.isDrawArea) {
+      while (x < x2) {
+        for (let count = 16; count--;) {
+          this.frameBuffer[this.frameOffset++] = bgColor;
+        }
+        x++;
+      }
+    }
+    else {
+      const colors = [bgColor, this.palette[this.fgColor]];
+      const patternBase = this.chrGenBase & ((~0 << 11) | (y & 7));
+
+      while (x < x2) {
+        if (x == 0 || x == 31) {
+          for (let count = x == 0 ? 8 : 8 + this.lineHScroll; count--;) {
+            this.frameBuffer[this.frameOffset++] = bgColor;
+            this.frameBuffer[this.frameOffset++] = bgColor;
+          }
+          x++;
+        }
+        else {
+          for (let j = 0; j < 8; j++) {
+            if (this.renderShift <= 2) {
+              const charTableOffset = this.chrTabBase & ((~0 << 12) | this.renderCharOffset);
+              this.renderPattern = this.vram[patternBase | this.vram[charTableOffset] * 8];
+
+              const colPattern = this.vram[this.colTabBase & ((~0 << 9) | (this.renderCharOffset++ >> 3))];
+              if ((colPattern << (x & 7)) & 0x80) {
+                this.renderColors = [xbgColor, xfgColor];
+              }
+              else {
+                this.renderColors = [bgColor, fgColor];
+              }
+
+              this.renderShift = 8;
+            }
+
+            this.frameBuffer[this.frameOffset++] = this.renderColors[(this.renderPattern >> --this.renderShift) & 1];
+            this.frameBuffer[this.frameOffset++] = this.renderColors[(this.renderPattern >> --this.renderShift) & 1];
+          }
+          x++;
+        }
+      }
+    }
+
+    if (rightBorder) {
+      this.refreshRightBorderWide(bgColor, -this.hAdjustSc0);
+    }
   }
 
   private refreshLine0(scanLine: number, x: number, x2: number): void {
@@ -2139,7 +2229,7 @@ export class Vdp {
   }
 
   public getFrameBufferWidth(): number {
-    return this.screenMode == 6 || this.screenMode == 7 ? 2 * SCREEN_WIDTH : SCREEN_WIDTH;
+    return this.screenMode == 6 || this.screenMode == 7 || this.screenMode == 13 ? 2 * SCREEN_WIDTH : SCREEN_WIDTH;
   }
 
   public getFrameBufferHeight(): number {
