@@ -31,7 +31,7 @@ export class MapperRamNormal extends Mapper {
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = 0xff;
       }
-      let slotInfo = new Slot(this.getName() + ' - ' + startPage);
+      let slotInfo = new Slot(this.getName());
       slotInfo.map(true, true, pageData);
       board.getSlotManager().registerSlot(slot, sslot, startPage, slotInfo);
       startPage++;

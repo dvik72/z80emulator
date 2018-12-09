@@ -22,6 +22,6 @@ export class Mapper {
   }
 
   public getName(): string {
-    return name;
+    return this.name;
   }
 }

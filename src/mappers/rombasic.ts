@@ -32,7 +32,7 @@ export class MapperRomBasic extends Mapper {
         pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
         romOffset++;
       }
-      let slotInfo = new Slot(this.getName() + ' - ' + page);
+      let slotInfo = new Slot(this.getName());
       slotInfo.map(true, false, pageData);
       board.getSlotManager().registerSlot(slot, sslot, page, slotInfo);
     }

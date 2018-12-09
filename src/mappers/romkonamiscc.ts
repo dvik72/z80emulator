@@ -43,7 +43,7 @@ export class MapperRomKonamiScc extends Mapper {
     }
 
     for (let page = 0; page < 4; page++) {
-      this.slotInfo[page] = new Slot(this.getName() + ' - ' + (page + 2), page == 2 ? this.readCb.bind(this) : undefined, this.writeCb.bind(this));
+      this.slotInfo[page] = new Slot(this.getName(), page == 2 ? this.readCb.bind(this) : undefined, this.writeCb.bind(this));
       this.slotInfo[page].fullAddress = true;
       this.slotInfo[page].map(true, false, this.pages[page]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);

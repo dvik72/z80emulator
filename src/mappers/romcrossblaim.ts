@@ -35,7 +35,7 @@ export class MapperRomCrossBlaim extends Mapper {
     }
 
     for (let page = 0; page < 8; page++) {
-      this.slotInfo[page] = new Slot(this.getName() + ' - ' + page, undefined, this.writeCb.bind(this));
+      this.slotInfo[page] = new Slot(this.getName(), undefined, this.writeCb.bind(this));
       board.getSlotManager().registerSlot(slot, sslot, page, this.slotInfo[page]);
     }
     this.slotInfo[2].map(true, false, this.pages[0]);

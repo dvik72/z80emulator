@@ -41,7 +41,7 @@ export class MapperRomAscii16 extends Mapper {
     }
 
     for (let page = 0; page < 4; page++) {
-      this.slotInfo[page] = new Slot(this.getName() + ' - ' + (page + 2), undefined, page == 1 ? this.writeCb.bind(this) : undefined);
+      this.slotInfo[page] = new Slot(this.getName(), undefined, page == 1 ? this.writeCb.bind(this) : undefined);
       this.slotInfo[page].map(true, false, this.pages[page & 1]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);
     }
