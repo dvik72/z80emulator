@@ -50,7 +50,7 @@ export class GenericMsx2 extends Msx2Base {
     // Configure slots
     new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('msx2bios'));
     new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2ext'));
+    new MapperRomTc8566af(this.getDiskManager(), this.getBoard(), 3, 1, this.getSystemRom('panasonicdisk'));
     new MapperRamMapped(this.getBoard(), 3, 2, 512 * 1024);
-    new MapperRomTc8566af(this.getDiskManager(), this.getBoard(), 3, 3, this.getSystemRom('panasonicdisk'));
   }
 }
