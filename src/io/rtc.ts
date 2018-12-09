@@ -57,6 +57,8 @@ export class Rtc {
     this.board.getIoManager().registerPort(0xb4, new Port(undefined, this.writeLatch.bind(this)));
     this.board.getIoManager().registerPort(0xb5, new Port(this.read.bind(this), this.write.bind(this)));
 
+    this.modeReg = MODE_TIMERENABLE;
+
     this.updateRegs();
   }
 
