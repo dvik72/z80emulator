@@ -129,8 +129,7 @@ export class Disk {
       sectorData[i] = this.diskData[offset + i];
     }
 
-    const sectorNum = sector - 1 + this.getSectorsPerTrack() * (track * this.getSides() + side);
-    return [this.getReadError(sectorNum), sectorData];
+    return [DiskError.OK, sectorData];
   }
 
   public writeSector(sectorData: Uint8Array, sector: number, side: number, track: number, density: number = 0): DiskError {
@@ -180,10 +179,6 @@ export class Disk {
 
     const offset = sector - 1 + this.getSectorsPerTrack() * (track * this.getSides() + side);
     return offset * sectorSize;
-  }
-
-  private getReadError(sector: number): DiskError {
-    return (this.errors[sector >> 3] & (0x80 >> (sector & 7))) ? DiskError.CRC_ERROR : DiskError.OK;
   }
 
   private isSectorSize256(sectorData: Uint8Array): boolean {
@@ -454,7 +449,6 @@ export class Disk {
   private tracks = 0;
   private type = DiskType.UNKNOWN;
   private maxSector = 0;
-  private errors = new Uint8Array(1500);
 
   private diskData?: Uint8Array;
 };
