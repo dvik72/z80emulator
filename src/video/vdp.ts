@@ -377,7 +377,8 @@ export class Vdp {
         {
           const frameTime = this.board.getTimeSince(this.frameStartTime);
           status |= 0x40 | 0x20 | this.v9938Cmd.getStatus();
-          if (this.isDrawArea || (frameTime - ((this.firstLine - 1) * HPERIOD + this.leftBorder - 10) < 4 * HPERIOD)) {
+          const checkTime = frameTime - ((this.firstLine - 1) * HPERIOD + this.leftBorder - 10);
+          if (this.isDrawArea || (checkTime >= 0 && checkTime < 4 * HPERIOD)) {
             status &= ~0x40;
           }
           if ((frameTime - this.leftBorder - 30) % HPERIOD < this.displayArea + 30) {
