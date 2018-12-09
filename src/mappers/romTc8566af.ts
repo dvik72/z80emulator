@@ -39,9 +39,9 @@ export class MapperRomTc8566af extends Mapper {
     }
 
     for (let page = 0; page < 4; page++) {
-      this.slotInfo[page] = new Slot(this.getName() + ' - ' + (page + 2),
+      this.slotInfo[page] = new Slot(this.getName(),
         page & 1 ? this.readCb.bind(this): undefined, page & 1 ? this.writeCb.bind(this) : undefined);
-      this.slotInfo[page].map((page & 1) == 0, (page & 1) == 0, this.pages[page & 1]);
+      this.slotInfo[page].map(page == 0, (page & 1) == 0, this.pages[page & 1]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);
     }
   }
