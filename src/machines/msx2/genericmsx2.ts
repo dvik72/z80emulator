@@ -20,7 +20,7 @@ import { Msx2Base } from './Msx2base';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 
-import { MapperRamNormal } from '../../mappers/ramnormal';
+import { MapperRamMapped } from '../../mappers/rammapped';
 import { MapperRomNormal } from '../../mappers/romnormal';
 import { MapperRomTc8566af } from '../../mappers/romTc8566af';
 
@@ -50,7 +50,7 @@ export class GenericMsx2 extends Msx2Base {
     // Configure slots
     new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('msx2bios'));
     new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2ext'));
-    new MapperRamNormal(this.getBoard(), 3, 2, 0, 0x10000);
+    new MapperRamMapped(this.getBoard(), 3, 2, 512 * 1024);
     new MapperRomTc8566af(this.getDiskManager(), this.getBoard(), 3, 3, this.getSystemRom('panasonicdisk'));
   }
 }

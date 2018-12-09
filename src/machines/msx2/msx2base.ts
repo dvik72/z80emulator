@@ -47,7 +47,7 @@ export class Msx2Base extends Machine {
 
   public init(): void {
     // Initialize board components
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
+    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true, true);
     this.board.getSlotManager().setSubslotted(3, true);
     this.msxPpi = new MsxPpi(this.board);
     this.rtc = new Rtc(this.board);
