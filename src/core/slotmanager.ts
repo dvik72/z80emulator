@@ -20,7 +20,7 @@ const EMPTY_RAM: number[] = new Array<number>(0x4000);
 
 export class Slot {
   constructor(
-    private description: string,
+    public description: string,
     public readCb?: (a: number) => number,
     public writeCb?: (a: number, v: number) => void,
     public ejectCb?: () => void) {
@@ -137,13 +137,14 @@ export class SlotManager {
     }
 
     if (this.ramslot[address >> 13].slotInfo.readEnable) {
-      return this.ramslot[address >> 13].slotInfo.pageData[address & 0x1fff];
+      const slotInfo = this.ramslot[address >> 13].slotInfo; 
+      return slotInfo.pageData[address & 0x1fff];
     }
 
     const psl = this.pslot[address >> 14].state;
     const ssl = this.pslot[psl].subslotted ? this.pslot[address >> 14].substate : 0;
 
-    let slotInfo = this.slotTable[psl][ssl][address >> 13];
+    const slotInfo = this.slotTable[psl][ssl][address >> 13];
 
     if (slotInfo.readCb) {
       const mask = slotInfo.fullAddress ? 0xffff : 0x1fff;
