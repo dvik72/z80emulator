@@ -549,6 +549,7 @@ export class Vdp {
         value = (value & this.palMask) | this.palValue;
         if (change & 0x80) {
           this.scheduleVInt();
+          this.scheduleDrawAreaEnd();
         }
         if (change & 0x30) {
           this.updateOutputMode();
@@ -682,9 +683,9 @@ export class Vdp {
     this.scheduleNextFrame();
     this.scheduleVStart();
     this.scheduleVInt();
+    this.scheduleDrawAreaEnd();
     this.scheduleHInt();
     this.scheduleDrawAreaStart();
-    this.scheduleDrawAreaEnd();
 
     this.frameBuffer = this.frameBuffers[this.frameBufferWriteIndex ^= 1];
   }
