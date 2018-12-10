@@ -68,8 +68,8 @@ export class MsxEmu {
     this.machine.init();
     this.machine.reset();
     
-    this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, new Uint8Array(gameRom));
-    this.diskManager.insertFloppyImage(0, this.diskMedia.data);
+    //this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, new Uint8Array(gameRom));
+    //this.diskManager.insertFloppyImage(0, this.diskMedia.data);
 
     // Insert cartridge rom if present
     if (this.romMedia) {
