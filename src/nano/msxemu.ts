@@ -34,18 +34,16 @@ export class MsxEmu {
   constructor() {
     this.runStep = this.runStep.bind(this);
     this.refreshScreen = this.refreshScreen.bind(this);
-    this.keyDown = this.keyDown.bind(this);
-    this.keyUp = this.keyUp.bind(this);
-    this.dragover = this.dragover.bind(this);
-    this.drop = this.drop.bind(this);
   }
   
   run(): void {
-    document.addEventListener('keydown', this.keyDown);
-    document.addEventListener('keyup', this.keyUp);
-    document.addEventListener('dragover', this.dragover);
-    document.addEventListener('drop', this.drop);
-    document.addEventListener('click', () => { this.webAudio.resume(); } );
+    document.addEventListener('keydown', this.keyDown.bind(this));
+    document.addEventListener('keyup', this.keyUp.bind(this));
+    document.addEventListener('drop', this.drop.bind(this));
+    document.addEventListener('click', () => { this.webAudio.resume(); });
+    document.addEventListener('dragover', (event) => { event.preventDefault(); });
+    document.addEventListener('dragenter', (event) => { event.preventDefault(); });
+    document.addEventListener('dragleave', (event) => { event.preventDefault(); });
    
     this.machine = new GenericMsx2(this.webAudio, this.diskManager);
 
@@ -151,24 +149,18 @@ export class MsxEmu {
     }
   }
 
-  private fileLoaded(filename: string, data: Uint8Array) {
-    this.stopEmulation();
-
+  private fileLoaded(filename: string, data: Uint8Array): void {
     if (filename.slice(-3).toLowerCase() == 'dsk') {
       this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, data);
       this.diskManager.insertFloppyImage(0, this.diskMedia.data);
     }
     else {
       this.romMedia = this.mediaInfoFactory.mediaInfoFromData(data);
+      this.stopEmulation();
+      this.startEmulation();
     }
-
-    this.startEmulation();
   }
-
-  private dragover(event: DragEvent) {
-    event.preventDefault();
-  }
-
+  
   private keyDown(event: KeyboardEvent): void {
     event.preventDefault();
     this.machine && this.machine.keyDown(event.code);
