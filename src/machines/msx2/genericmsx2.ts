@@ -23,6 +23,7 @@ import { DiskManager } from '../../disk/diskmanager';
 import { MapperRamMapped } from '../../mappers/rammapped';
 import { MapperRomNormal } from '../../mappers/romnormal';
 import { MapperRomTc8566af } from '../../mappers/romTc8566af';
+import { MapperMsxMusic } from '../../mappers/rommsxmusic';
 
 
 export class GenericMsx2 extends Msx2Base {
@@ -37,7 +38,7 @@ export class GenericMsx2 extends Msx2Base {
       GenericMsx2.NAME,
       webAudio,
       diskManager,
-      ['msx2bios', 'msx2ext', 'panasonicdisk']);
+      ['msx2bios', 'msx2ext', 'panasonicdisk', 'msx2pmus']);
   }
 
   public init(): void {
@@ -52,5 +53,6 @@ export class GenericMsx2 extends Msx2Base {
     new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2ext'));
     new MapperRomTc8566af(this.getDiskManager(), this.getBoard(), 3, 1, this.getSystemRom('panasonicdisk'));
     new MapperRamMapped(this.getBoard(), 3, 2, 512 * 1024);
+    new MapperMsxMusic(this.getBoard(), 3, 3, this.getSystemRom('msx2pmus'));
   }
 }

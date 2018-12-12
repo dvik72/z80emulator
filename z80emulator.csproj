@@ -63,6 +63,7 @@
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
     <TypeScriptCompile Include="src\audio\scc.ts" />
     <TypeScriptCompile Include="src\audio\webaudio.ts" />
+    <TypeScriptCompile Include="src\audio\ym2413.ts" />
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\core\rammanager.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
@@ -72,6 +73,7 @@
     <TypeScriptCompile Include="src\machines\msx2\panasonic_fs_a1.ts" />
     <TypeScriptCompile Include="src\machines\msx\msxbase.ts" />
     <TypeScriptCompile Include="src\machines\msx\philips_vg_8020.ts" />
+    <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />
     <TypeScriptCompile Include="src\mappers\romTc8566af.ts" />
     <TypeScriptCompile Include="src\mappers\srams1985.ts" />
@@ -104,6 +106,7 @@
     <Content Include="systemroms\msx2bios.bin" />
     <Content Include="systemroms\msx2ext.bin" />
     <Content Include="systemroms\panasonicdisk.bin" />
+    <Content Include="systemroms\msx2pmus.bin" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
