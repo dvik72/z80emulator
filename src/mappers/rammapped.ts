@@ -66,6 +66,10 @@ export class MapperRamMapped extends Mapper {
     this.setDramMode(false);
   }
 
+  public getRamPages(): Array<Array<number>> {
+    return this.pages;
+  }
+
   private writeIo(bank: number, value: number): void {
     bank &= 3;
     value &= this.mask;

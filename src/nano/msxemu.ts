@@ -20,6 +20,7 @@ import { Machine } from '../machines/machine';
 import { PanasonicFsA1 } from '../machines/msx2/panasonic_fs_a1'; 
 import { PhilipsVg8020 } from '../machines/msx/philips_vg_8020';
 import { GenericMsx2 } from '../machines/msx2/genericmsx2';
+import { PanasonicFsA1Wsx } from '../machines/msx2plus/panasonic_fs_a1wsx';
 
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
@@ -45,7 +46,7 @@ export class MsxEmu {
     document.addEventListener('dragenter', (event) => { event.preventDefault(); });
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
    
-    this.machine = new GenericMsx2(this.webAudio, this.diskManager);
+    this.machine = new PanasonicFsA1Wsx(this.webAudio, this.diskManager);
 
     //this.romMedia = this.mediaInfoFactory.mediaInfoFromData(new Uint8Array(gameRom));
 

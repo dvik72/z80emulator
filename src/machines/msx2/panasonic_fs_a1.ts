@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Msx2Base } from './Msx2base';
+import { Msx2Base } from './msx2base';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 

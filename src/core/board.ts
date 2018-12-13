@@ -38,6 +38,8 @@ export enum InterruptVector {
   SFG05 = 0x0400,
 };
 
+const CLOCK_FREQ = 3579545;
+
 
 // This class emulates a generic board with a Z80 processor with modular
 // interfaces to plug in IO devices and memory devices. The class also provides
@@ -56,7 +58,7 @@ export class Board {
     if (enableRamManager) {
       this.ramManager = new RamManager(this.ioManager);
     }
-    
+
     this.z80 = new Z80(cpuFlags, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeoutManager.timeout);
     this.timeoutManager.initialize(this.z80);
 
@@ -128,6 +130,26 @@ export class Board {
     this.audioManager.sync();
   }
 
+  public setZ80Freq15(enable15: boolean) {
+    this.z80.setFrequency(enable15 ? CLOCK_FREQ * 1.5 | 0 : CLOCK_FREQ);
+  }
+
+  public getFromSwitch(): boolean {
+    // TODO: Control this switch from Emulator UI
+    return true;
+  }
+
+  public getRamPage(page: number): Array<number> | undefined {
+    if (!this.mainRam || page >= this.mainRam.length) {
+      return undefined;
+    }
+    return this.mainRam[page];
+  }
+
+  public setMainRam(ramPages: Array<Array<number>>): void {
+    this.mainRam = ramPages;
+  }
+
   public run(cpuCycles?: number): void {
     this.z80.execute(cpuCycles);
   }
@@ -139,4 +161,5 @@ export class Board {
   private audioManager: AudioManager;
   private z80: Z80;
   private interruptMask = 0;
+  private mainRam?: Array<Array<number>>;
 }
