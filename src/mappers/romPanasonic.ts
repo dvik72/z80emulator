@@ -154,6 +154,10 @@ export class MapperRomPanasonic extends Mapper {
   }
 
   private changeBank(region: number, bank: number): void {
+    if (region >= this.mappedPages) {
+      return;
+    }
+
     if (bank == this.romMapper[region]) {
       return;
     }
@@ -163,23 +167,22 @@ export class MapperRomPanasonic extends Mapper {
       if (region == 3) {
         this.readBlock = this.sram[offset >> 13];
       }
-      this.slotInfo[region].map(region != 3, false, this.readBlock);
+      this.slotInfo[region].map(region != 3, false, this.sram[offset >> 13]);
     }
     else if (bank >= RAM_BASE) {
-      const ram =this.board.getRamPage(bank - RAM_BASE);
+      const ram = this.board.getRamPage(bank - RAM_BASE);
 
       if (region == 3) {
         this.readBlock = ram;
       }
-
-      this.slotInfo[region].map(region != 3, false, this.readBlock);
+      this.slotInfo[region].map(region != 3, false, ram);
     }
     else {
       const offset = bank * 0x2000 & (this.pages.length * 0x2000 - 1);
       if (region == 3) {
         this.readBlock = this.pages[offset >> 13];
       }
-      this.slotInfo[region].map(region != 3, false, this.readBlock);
+      this.slotInfo[region].map(region != 3, false, this.pages[offset >> 13]);
     }
   }
 

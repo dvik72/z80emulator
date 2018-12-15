@@ -40,8 +40,6 @@ export class Msx2PlusBase extends Machine {
     romNames: string[]
   ) {
     super(name, romNames);
-
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1 | CPU_VDP_IO_DELAY, true);
   }
 
   public init(): void {
@@ -61,43 +59,43 @@ export class Msx2PlusBase extends Machine {
     this.msxPpi && this.msxPpi.reset();
     this.vdp && this.vdp.reset();
     this.msxpsg && this.msxpsg.reset();
-    this.board && this.board.reset();
+    this.board!.reset();
   }
 
   public runStep(milliseconds: number): void {
-    this.board && this.board.run(MASTER_FREQUENCY * milliseconds / 1000 | 0);
+    this.board!.run(MASTER_FREQUENCY * milliseconds / 1000 | 0);
   }
 
-  public getFrameBuffer(): Uint16Array | null {
-    return this.vdp ? this.vdp.getFrameBuffer() : null;
+  public getFrameBuffer(): Uint16Array {
+    return this.vdp!.getFrameBuffer();
   }
 
   public getFrameBufferWidth(): number {
-    return this.vdp ? this.vdp.getFrameBufferWidth() : 0;
+    return this.vdp!.getFrameBufferWidth();
   }
 
   public getFrameBufferHeight(): number {
-    return this.vdp ? this.vdp.getFrameBufferHeight() : 0;
+    return this.vdp!.getFrameBufferHeight();
   }
 
   public keyDown(keyCode: string): void {
-    this.msxPpi && this.msxPpi.keyDown(keyCode);
+    this.msxPpi!.keyDown(keyCode);
   }
 
   public keyUp(keyCode: string): void {
-    this.msxPpi && this.msxPpi.keyUp(keyCode);
+    this.msxPpi!.keyUp(keyCode);
   }
 
   public insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void {
     cartridgeSlot = cartridgeSlot || 0;
 
-    if (!this.board || cartridgeSlot >= this.cartrdigeSlots.length) {
+    if (cartridgeSlot >= this.cartrdigeSlots.length) {
       return;
     }
 
     let slotInfo = this.cartrdigeSlots[cartridgeSlot];
     if (slotInfo) {
-      this.cartridgeRoms[cartridgeSlot] = mapperFromMediaInfo(this.board, mediaInfo, slotInfo[0], slotInfo[1]);
+      this.cartridgeRoms[cartridgeSlot] = mapperFromMediaInfo(this.board!, mediaInfo, slotInfo[0], slotInfo[1]);
     }
   }
 
@@ -106,7 +104,7 @@ export class Msx2PlusBase extends Machine {
   }
 
   protected getBoard(): Board {
-    return this.board;
+    return this.board!;
   }
 
   protected getDiskManager(): DiskManager {
@@ -114,7 +112,7 @@ export class Msx2PlusBase extends Machine {
   }
 
   // MSX components
-  private board: Board;
+  private board?: Board;
   private vdp?: Vdp;
   private msxpsg?: MsxPsg;
   private msxPpi?: MsxPpi;

@@ -34,6 +34,7 @@ export class MapperF4Device extends Mapper {
   }
   
   private write(port: number, value: number): void {
+
     if (this.inverted) {
       this.status = value | 0x7f;
     }
