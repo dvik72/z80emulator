@@ -376,7 +376,7 @@ export class V9938Cmd {
 
     // X loop variables are treated specially for LINE command 
     if (this.CM == CM_LINE) {
-      this.ASX = ((this.NX - 1) >> 1) & 0xff;
+      this.ASX = (this.NX - 1) >> 1;
       this.ADX = 0;
     }
     else {

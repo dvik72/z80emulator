@@ -137,7 +137,7 @@ export class SlotManager {
     }
 
     if (this.ramslot[address >> 13].slotInfo.readEnable) {
-      const slotInfo = this.ramslot[address >> 13].slotInfo; 
+      const slotInfo = this.ramslot[address >> 13].slotInfo;
       return slotInfo.pageData[address & 0x1fff];
     }
 

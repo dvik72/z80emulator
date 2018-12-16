@@ -136,7 +136,7 @@ export class Board {
 
   public getFromSwitch(): boolean {
     // TODO: Control this switch from Emulator UI
-    return true;
+    return false;
   }
 
   public getRamPage(page: number): Array<number> | undefined {
