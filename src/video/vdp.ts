@@ -32,24 +32,24 @@ const registerValueMaskMSX1 = [
 
 const registerValueMaskMSX2 = [
   0x7e, 0x7b, 0x7f, 0xff, 0x3f, 0xff, 0x3f, 0xff,
-    0xfb, 0xbf, 0x07, 0x03, 0xff, 0xff, 0x07, 0x0f,
-    0x0f, 0xbf, 0xff, 0xff, 0x3f, 0x3f, 0x3f, 0xff,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+  0xfb, 0xbf, 0x07, 0x03, 0xff, 0xff, 0x07, 0x0f,
+  0x0f, 0xbf, 0xff, 0xff, 0x3f, 0x3f, 0x3f, 0xff,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 ];
 
 const registerValueMaskMSX2p = [
   0x7e, 0x7b, 0x7f, 0xff, 0x3f, 0xff, 0x3f, 0xff,
-    0xfb, 0xbf, 0x07, 0x03, 0xff, 0xff, 0x07, 0x0f,
-    0x0f, 0xbf, 0xff, 0xff, 0x3f, 0x3f, 0x3f, 0xff,
-    0x00, 0x7f, 0x3f, 0x07, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+  0xfb, 0xbf, 0x07, 0x03, 0xff, 0xff, 0x07, 0x0f,
+  0x0f, 0xbf, 0xff, 0xff, 0x3f, 0x3f, 0x3f, 0xff,
+  0x00, 0x7f, 0x3f, 0x07, 0x00, 0x00, 0x00, 0x00,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 ];
 
 const HPERIOD = 1368;
@@ -60,7 +60,7 @@ const SCREEN_WIDTH = 2 * BORDER_WIDTH + DISPLAY_WIDTH;
 const SCREEN_HEIGHT = 240;
 
 const MSX1_PALETTE = [
-  [ 0, 0, 0 ],
+  [0, 0, 0],
   [0, 0, 0],
   [62, 184, 73],
   [116, 208, 125],
@@ -79,22 +79,22 @@ const MSX1_PALETTE = [
 ];
 
 const MSX2_PALETTE = [
-  [ 0x00, 0x00, 0x00 ],
-  [ 0x00, 0x00, 0x00 ],
-  [ 0x24, 0xda, 0x24 ],
-  [ 0x68, 0xff, 0x68 ],
-  [ 0x24, 0x24, 0xff ],
-  [ 0x48, 0x68, 0xff ],
-  [ 0xb6, 0x24, 0x24 ],
-  [ 0x48, 0xda, 0xff ],
-  [ 0xff, 0x24, 0x24 ],
-  [ 0xff, 0x68, 0x68 ],
-  [ 0xda, 0xda, 0x24 ],
-  [ 0xda, 0xda, 0x91 ],
-  [ 0x24, 0x91, 0x24 ],
-  [ 0xda, 0x48, 0xb6 ],
-  [ 0xb6, 0xb6, 0xb6 ],
-  [ 0xff, 0xff, 0xff ]
+  [0x00, 0x00, 0x00],
+  [0x00, 0x00, 0x00],
+  [0x24, 0xda, 0x24],
+  [0x68, 0xff, 0x68],
+  [0x24, 0x24, 0xff],
+  [0x48, 0x68, 0xff],
+  [0xb6, 0x24, 0x24],
+  [0x48, 0xda, 0xff],
+  [0xff, 0x24, 0x24],
+  [0xff, 0x68, 0x68],
+  [0xda, 0xda, 0x24],
+  [0xda, 0xda, 0x91],
+  [0x24, 0x91, 0x24],
+  [0xda, 0x48, 0xb6],
+  [0xb6, 0xb6, 0xb6],
+  [0xff, 0xff, 0xff]
 ];
 
 const DEFAULT_PALETTE_REGS = [
@@ -124,10 +124,10 @@ export class Vdp {
   ) {
     this.frameBuffer = this.frameBuffers[this.frameBufferWriteIndex ^= 1];
 
-    this.refreshLineCb = this.refreshLineBlank.bind(this); 
+    this.refreshLineCb = this.refreshLineBlank.bind(this);
 
     this.initPalette();
-    
+
     this.frameTimer = board.getTimeoutManager().createTimer('Frame Change', this.onFrameChange.bind(this));
     this.screenModeChangeTimer = board.getTimeoutManager().createTimer('Screen Mode Change', this.onScreenModeChange.bind(this));
     this.vStartTimer = board.getTimeoutManager().createTimer('VStart', this.onVStart.bind(this));
@@ -136,7 +136,7 @@ export class Vdp {
     this.drawAreaStartTimer = board.getTimeoutManager().createTimer('Draw Area Start', this.onDrawAreaStart.bind(this));
     this.drawAreaEndTimer = board.getTimeoutManager().createTimer('Draw Area End', this.onDrawAreaEnd.bind(this));
 
-    this.vramSize       = this.vramPages << 14;
+    this.vramSize = this.vramPages << 14;
     this.vram192 = this.vramPages == 12;
     this.vram16 = this.vramPages == 1;
 
@@ -156,15 +156,15 @@ export class Vdp {
     this.vramMask = (this.vramPages << 14) - 1;
 
     if (this.syncMode == VdpSyncMode.SYNC_AUTO) {
-      this.palMask  = ~0;
+      this.palMask = ~0;
       this.palValue = 0;
     }
     else if (this.syncMode == VdpSyncMode.SYNC_50HZ) {
-      this.palMask  = ~0x02;
+      this.palMask = ~0x02;
       this.palValue = 0x02;
     }
     else if (this.syncMode == VdpSyncMode.SYNC_60HZ) {
-      this.palMask  = ~0x02;
+      this.palMask = ~0x02;
       this.palValue = 0x00;
     }
 
@@ -179,24 +179,24 @@ export class Vdp {
     switch (this.version) {
       case VdpVersion.TMS9929A:
         this.registerValueMask = registerValueMaskMSX1;
-        this.registerMask      = 0x07;
-        this.hAdjustSc0        = -2; // 6
+        this.registerMask = 0x07;
+        this.hAdjustSc0 = -2; // 6
         break;
       case VdpVersion.TMS99x8A:
         this.registerValueMask = registerValueMaskMSX1;
-        this.registerMask      = 0x07;
-        this.regs[9]          &= ~0x02;
-        this.hAdjustSc0        = -2; // 6
+        this.registerMask = 0x07;
+        this.regs[9] &= ~0x02;
+        this.hAdjustSc0 = -2; // 6
         break;
       case VdpVersion.V9938:
         this.registerValueMask = registerValueMaskMSX2;
-        this.registerMask      = 0x3f;
-        this.hAdjustSc0        = 1; // 9
+        this.registerMask = 0x3f;
+        this.hAdjustSc0 = 1; // 9
         break;
       case VdpVersion.V9958:
         this.registerValueMask = registerValueMaskMSX2p;
-        this.registerMask      = 0x3f;
-        this.hAdjustSc0        = 1; // 9
+        this.registerMask = 0x3f;
+        this.hAdjustSc0 = 1; // 9
         break;
     }
 
@@ -206,7 +206,7 @@ export class Vdp {
     this.writeLatch = this.writeLatch.bind(this);
     this.writePaletteLatch = this.writePaletteLatch.bind(this);
     this.writeRegister = this.writeRegister.bind(this);
-    
+
     switch (this.connectorType) {
       case VdpConnectorType.MSX:
         this.board.getIoManager().registerPort(0x98, new Port(this.read, this.write));
@@ -248,23 +248,23 @@ export class Vdp {
     this.status[1] = this.version == VdpVersion.V9958 ? 0x04 : 0;
     this.status[2] = 0x6c;
 
-    this.regs[1]  = 0x10;
-    this.regs[2]  = 0xff;
-    this.regs[3]  = 0xff;
-    this.regs[4]  = 0xff;
-    this.regs[5]  = 0xff;
-    this.regs[8]  = 0x08;
+    this.regs[1] = 0x10;
+    this.regs[2] = 0xff;
+    this.regs[3] = 0xff;
+    this.regs[4] = 0xff;
+    this.regs[5] = 0xff;
+    this.regs[8] = 0x08;
     this.regs[9] = (0x02 & this.palMask) | this.palValue;
     this.regs[21] = 0x3b;
     this.regs[22] = 0x05;
-    
+
     this.vdpKey = 0;
     this.vdpData = 0;
     this.vdpDataLatch = 0;
     this.vramAddress = 0;
     this.screenMode = 0;
     this.vramOffset = this.offsets[0];
-    
+
     this.fgColor = 0;
     this.bgColor = 0;
     this.xfgColor = 0;
@@ -281,7 +281,7 @@ export class Vdp {
     this.curLine = 0;
 
     this.isDrawArea = false;
-    
+
     const palette = this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A ? MSX1_PALETTE : MSX2_PALETTE;
     for (let i = 0; i < 16; i++) {
       this.updatePalette(i, palette[i][0], palette[i][1], palette[i][2]);
@@ -290,6 +290,9 @@ export class Vdp {
     for (let i = 0; i < 16; i++) {
       this.paletteReg[i] = DEFAULT_PALETTE_REGS[i];
     }
+
+    this.clearSpriteLine(this.spriteLines[0]);
+    this.clearSpriteLine(this.spriteLines[1]);
 
     this.onScreenModeChange();
     this.onFrameChange();
@@ -350,7 +353,7 @@ export class Vdp {
       this.board.clearInt(InterruptVector.VDP_IE0);
       return status;
     }
-    
+
     let status = this.status[this.regs[15]];
 
     switch (this.regs[15]) {
@@ -380,7 +383,7 @@ export class Vdp {
             status &= ~0x40;
           }
           const checkTime2 = frameTime % HPERIOD - this.leftBorder - 30;
-          if (checkTime2 >= 0 && checkTime2 <this.displayArea + 30) {
+          if (checkTime2 >= 0 && checkTime2 < this.displayArea + 30) {
             status &= ~0x20;
           }
         }
@@ -675,7 +678,7 @@ export class Vdp {
     }
 
     this.blink();
-    
+
     this.status[2] ^= 0x02;
     this.frameStartTime = this.frameTimer.timeout;
 
@@ -691,7 +694,7 @@ export class Vdp {
 
   private blink(): void {
     if (this.blinkCnt) {
-    this.blinkCnt--;
+      this.blinkCnt--;
     }
     else {
       this.blinkFlag = !this.blinkFlag;
@@ -796,7 +799,7 @@ export class Vdp {
   private vScroll(): number {
     return this.regs[23];
   }
-  
+
   private onScreenModeChange(): void {
     const time = this.screenModeChangeTimer.getTimeout();
     const scanLine = this.board.getTimeDelta(this.frameStartTime, time) / HPERIOD | 0;
@@ -840,29 +843,29 @@ export class Vdp {
       case 6: this.refreshLineCb = this.refreshLine6.bind(this); break;
       case 7:
         if (!this.isModeYjk()) {
-          this.refreshLineCb = this.refreshLine7.bind(this); 
+          this.refreshLineCb = this.refreshLine7.bind(this);
           break;
         }
       case 8:
         if (this.screenMode == 8 && !this.isModeYjk()) {
-          this.refreshLineCb = this.refreshLine8.bind(this); 
+          this.refreshLineCb = this.refreshLine8.bind(this);
         }
         else if (this.isModeYae()) {
-          this.refreshLineCb = this.refreshLine0.bind(this); 
+          this.refreshLineCb = this.refreshLine0.bind(this);
           this.screenMode = 10;
         }
         else {
-          this.refreshLineCb = this.refreshLine12.bind(this); 
+          this.refreshLineCb = this.refreshLine12.bind(this);
           this.screenMode = 12;
         }
         break;
       case 16:
         this.screenMode = 0;
         if (this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A) {
-          this.refreshLineCb = this.refreshLine0plus.bind(this); 
+          this.refreshLineCb = this.refreshLine0plus.bind(this);
         }
         else {
-          this.refreshLineCb = this.refreshLineBlank.bind(this); 
+          this.refreshLineCb = this.refreshLineBlank.bind(this);
         }
         break;
       case 32:
@@ -901,7 +904,7 @@ export class Vdp {
       this.displayArea = 1024;
       this.leftBorder = 102 + 56;
     }
-    
+
     const adjust = this.regs[18] & 0x0f;
     this.hAdjust = adjust > 7 ? 16 - adjust : -adjust;
     if (this.regs[25] & 0x08) {
@@ -1005,7 +1008,7 @@ export class Vdp {
 
     let scanLine = frameTime / HPERIOD | 0;
     let lineTime = frameTime % HPERIOD - (this.leftBorder - 20);
-    
+
     if (this.curLine < scanLine) {
       if (this.lineOffset <= 32) {
         if (this.curLine >= this.displayOffest && this.curLine < this.displayOffest + SCREEN_HEIGHT) {
@@ -1014,12 +1017,14 @@ export class Vdp {
       }
       this.lineOffset = -1;
       this.curLine++;
+      this.flipSpriteLine();
       this.frameOffset = (this.curLine - this.displayOffest) * this.getFrameBufferWidth();
       while (this.curLine < scanLine) {
         if (this.curLine >= this.displayOffest && this.curLine < this.displayOffest + SCREEN_HEIGHT) {
           this.refreshLineCb(this.curLine, -1, 33);
         }
         this.curLine++;
+        this.flipSpriteLine();
         this.frameOffset = (this.curLine - this.displayOffest) * this.getFrameBufferWidth();
       }
     }
@@ -1044,20 +1049,20 @@ export class Vdp {
   private updateOutputMode(): void {
     const mode = (this.regs[9] >> 4) & 3;
     const transparency = (this.screenMode < 8 || this.screenMode > 12) && (this.regs[8] & 0x20) == 0;
-    
+
     if (mode == 2 ||
       (!(this.regs[8] & 0x80) && (this.regs[8] & 0x10)) || (this.regs[0] & 0x40)) {
       if (this.screenMode >= 5 && this.screenMode <= 12) {
-//        videoManagerSetMode(vdp -> videoHandle, VIDEO_EXTERNAL, vdpDaDevice.videoModeMask);
+        //        videoManagerSetMode(vdp -> videoHandle, VIDEO_EXTERNAL, vdpDaDevice.videoModeMask);
       }
       else {
-//        videoManagerSetMode(vdp -> videoHandle, VIDEO_INTERNAL, vdpDaDevice.videoModeMask);
+        //        videoManagerSetMode(vdp -> videoHandle, VIDEO_INTERNAL, vdpDaDevice.videoModeMask);
       }
     }
     else if (mode == 1 && transparency) {
       this.palette[0] = 0;
-//      this.palette[0] = videoGetTransparentColor();
-//      videoManagerSetMode(vdp -> videoHandle, VIDEO_MIX, vdpDaDevice.videoModeMask);
+      //      this.palette[0] = videoGetTransparentColor();
+      //      videoManagerSetMode(vdp -> videoHandle, VIDEO_MIX, vdpDaDevice.videoModeMask);
     }
     else {
       if (this.bgColor == 0 || !transparency) {
@@ -1066,33 +1071,32 @@ export class Vdp {
       else {
         this.palette[0] = this.palette[this.bgColor];
       }
-//      videoManagerSetMode(vdp -> videoHandle, VIDEO_INTERNAL, vdpDaDevice.videoModeMask);
+      //      videoManagerSetMode(vdp -> videoHandle, VIDEO_INTERNAL, vdpDaDevice.videoModeMask);
     }
   }
 
-  private resetSpriteLine(): void {
-    this.spriteLine = this.spriteLines[this.currentSpriteLine ^= 1];
+  private flipSpriteLine() {
+    this.clearSpriteLine(this.spriteLines[this.spriteLineIndex]);
+    this.spriteLine = this.spriteLines[this.spriteLineIndex ^= 1];
     this.spriteLineOffset = 32;
   }
 
-  private clearSpritesLine(spriteLine: Array<number>): void {
+  private clearSpriteLine(spriteLine: Array<number>): void {
     for (let i = 0; i < 384; i++) {
       spriteLine[i] = 0;
     }
   }
 
   private updateSpritesLine(scanLine: number): void {
-    let spriteLine = this.spriteLines[this.currentSpriteLine ^ 1];
+    const spriteLine = this.spriteLines[this.spriteLineIndex ^ 1];
 
-    this.clearSpritesLine(spriteLine);
-    
     if (!this.screenOn || (this.status[2] & 0x40) || this.isSpritesOff()) {
       return;
     }
 
     const isColor0Solid = this.isColor0Solid();
     const isSprites16x16 = this.isSprites16x16();
-    
+
     let attribOffset = this.sprTabBase & (~0 << 7);
     let size = this.isSprites16x16 ? 16 : 8;
     let scale = this.isSpritesBig() ? 1 : 0;
@@ -1106,7 +1110,7 @@ export class Vdp {
       if (this.vram[attribOffset] == 208) {
         break;
       }
-      
+
       this.spriteCurrentLine[visibleCnt] = ((line - this.vram[attribOffset]) & 0xff) >> scale;
       if (this.spriteCurrentLine[visibleCnt] >= size) {
         continue;
@@ -1133,14 +1137,14 @@ export class Vdp {
     for (let i = 0; i < 384; i++) {
       this.spriteCollision[i] = 0;
     }
-    
+
     while (visibleCnt--) {
       const attribOffset = this.spriteAttribOffsets[visibleCnt];
       const color = this.vram[attribOffset + 3] & 0x0f;
       const patternOffset = (this.sprGenBase & (~0 << 11)) + ((this.vram[attribOffset + 2] & patternMask) << 3) +
         this.spriteCurrentLine[visibleCnt];
 
-      let offset = (this.vram[attribOffset + 1] + 32 - ((this.vram[attribOffset + 3] >> 2) & 0x20));      
+      let offset = (this.vram[attribOffset + 1] + 32 - ((this.vram[attribOffset + 3] >> 2) & 0x20));
       let pattern = this.vram[patternOffset] << 8;
       if (isSprites16x16) {
         pattern |= this.vram[patternOffset + 16];
@@ -1181,11 +1185,9 @@ export class Vdp {
   invalidateSpriteLine(line: number): void {
     this.nonVisibleLine = line - this.firstLine;
   }
-  
-  private updateColorSpritesLine(scanLine: number): void {
-    let spriteLine = this.spriteLines[this.currentSpriteLine ^ 1];
 
-    this.clearSpritesLine(spriteLine);
+  private updateColorSpritesLine(scanLine: number): void {
+    const spriteLine = this.spriteLines[this.spriteLineIndex ^ 1];
 
     scanLine -= this.firstLine;
 
@@ -1219,14 +1221,14 @@ export class Vdp {
 
     let sprite = 0;
     // Find visible sprites on current scan line
-    for (; sprite < 32; sprite++, attribOffset += 4) {
-      let spLine = this.mapVram(attribOffset);
-      if (spLine == 216) {
+    for (; sprite < 32; sprite++ , attribOffset += 4) {
+      let spriteLine = this.mapVram(attribOffset);
+      if (spriteLine == 216) {
         break;
       }
 
-      spLine = ((scanLine - spLine) & 0xff) >> scale;
-      if (spLine >= size) {
+      spriteLine = ((scanLine - spriteLine) & 0xff) >> scale;
+      if (spriteLine >= size) {
         continue;
       }
 
@@ -1236,9 +1238,9 @@ export class Vdp {
         }
         break;
       }
-      
-      const patternOffset = (this.sprGenBase & 0x1f800) + ((this.mapVram(attribOffset + 2) & patternMask) << 3) + spLine;
-      let color = this.mapVram(this.sprTabBase & ((-1 << 10) | (sprite * 16 + spLine)));
+
+      const patternOffset = (this.sprGenBase & 0x1f800) + ((this.mapVram(attribOffset + 2) & patternMask) << 3) + spriteLine;
+      let color = this.mapVram(this.sprTabBase & ((-1 << 10) | (sprite * 16 + spriteLine)));
 
       if (color & 0x40) {
         if (visibleCnt == 0) {
@@ -1324,7 +1326,7 @@ export class Vdp {
         if (!(attrib.color & 0x40)) {
           break;
         }
-        
+
         const color = this.screenMode == 6 ?
           ((attrib.color & 0x0c) << 2) | ((attrib.color & 0x03) << 1) | solidColor * 9 :
           ((attrib.color & 0x0f) << 1) | solidColor;
@@ -1413,7 +1415,7 @@ export class Vdp {
   }
 
   private renderColors = [0, 0];
-  
+
   private refreshLineTx80(scanLine: number, x: number, x2: number): void {
     const bgColor = this.palette[this.bgColor];
     const fgColor = this.palette[this.fgColor];
@@ -1438,7 +1440,7 @@ export class Vdp {
       this.renderColors = [bgColor, fgColor];
     }
 
-    const y = scanLine - this.firstLine + this.lineVScroll - this.scr0splitLine;
+    const y = scanLine - this.firstLine + this.lineVScroll;
 
     const rightBorder = x2 > 32;
     rightBorder && x2--;
@@ -1567,10 +1569,6 @@ export class Vdp {
   }
 
   private refreshLine1(scanLine: number, x: number, x2: number): void {
-    if (x < 24 && x2 >= 24) {
-      this.updateSpritesLine(scanLine);
-    }
-
     const bgColor = this.palette[this.bgColor];
 
     const leftBorder = x < 0;
@@ -1579,8 +1577,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll() & 7;
       this.lineVScroll = this.vScroll();
 
@@ -1588,13 +1584,13 @@ export class Vdp {
 
       this.renderPage = this.chrTabBase / 0x8000 & 1;
     }
-    
+
     const y = scanLine - this.firstLine + this.lineVScroll;
 
     const page = (this.chrTabBase >> 15) & 1;
     let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + x;
     const patternBase = this.chrGenBase & ((~0 << 11) | (y & 7));
-    
+
     if (!this.screenOn || !this.isDrawArea) {
       while (x < x2) {
         for (let count = 8; count--;) {
@@ -1645,14 +1641,11 @@ export class Vdp {
     if (rightBorder) {
       if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
+      this.updateSpritesLine(scanLine);
     }
   }
 
   private refreshLine2(scanLine: number, x: number, x2: number): void {
-    if (x < 24 && x2 >= 24) {
-      this.updateSpritesLine(scanLine);
-    }
-
     const bgColor = this.palette[this.bgColor];
 
     const leftBorder = x < 0;
@@ -1661,8 +1654,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.lineVScroll = this.vScroll();
       this.scrollIndex = this.lineHScroll >> 3;
@@ -1729,14 +1720,11 @@ export class Vdp {
     if (rightBorder) {
       if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
+      this.updateSpritesLine(scanLine);
     }
   }
 
   private refreshLine3(scanLine: number, x: number, x2: number): void {
-    if (x < 24 && x2 >= 24) {
-      this.updateSpritesLine(scanLine);
-    }
-
     const bgColor = this.palette[this.bgColor];
 
     const leftBorder = x < 0;
@@ -1745,8 +1733,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.refreshLeftBorder(bgColor, 0);
     }
 
@@ -1768,7 +1754,7 @@ export class Vdp {
         const colPattern = this.vram[patternBase | (this.vram[charTableOffset] * 8)];
         const fc = this.palette[colPattern >> 4];
         const bc = this.palette[colPattern & 0x0f];
-        
+
         { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
         { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
         { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : fc; }
@@ -1784,16 +1770,13 @@ export class Vdp {
 
     if (rightBorder) {
       this.refreshRightBorder(bgColor, 0);
+      this.updateSpritesLine(scanLine);
     }
   }
 
   private lineHScroll512 = 0;
 
   private refreshLine4(scanLine: number, x: number, x2: number): void {
-    if (x < 24 && x2 >= 24) {
-      this.updateColorSpritesLine(scanLine);
-    }
-
     const bgColor = this.palette[this.bgColor];
 
     const leftBorder = x < 0;
@@ -1802,8 +1785,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.scrollIndex = this.lineHScroll >> 3;
       this.lineHScroll512 = this.hScroll512();
@@ -1877,6 +1858,7 @@ export class Vdp {
     if (rightBorder) {
       if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
+      this.updateColorSpritesLine(scanLine);
     }
   }
 
@@ -1884,7 +1866,6 @@ export class Vdp {
     if (x < 24 && x2 >= 24) {
       this.updateColorSpritesLine(scanLine);
     }
-
     const bgColor = this.palette[this.bgColor];
 
     const leftBorder = x < 0;
@@ -1893,8 +1874,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.lineHScroll512 = this.hScroll512();
       this.scrollIndex = this.lineHScroll >> 1;
@@ -1904,7 +1883,7 @@ export class Vdp {
     }
 
     const y = scanLine - this.firstLine + this.vScroll();
-    
+
     const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
     let charTableOffset = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7))) + this.scrollIndex;
 
@@ -1973,6 +1952,7 @@ export class Vdp {
     }
   }
 
+
   private charTableOffset = 0;
 
   private refreshLine6(scanLine: number, x: number, x2: number): void {
@@ -1989,10 +1969,7 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
-      //if (scanLine == 64 || scanLine == 65) console.log(scanLine + ': ' + this.lineHScroll + ' ' + this.regs[26].toString(16) + ' ' + this.regs[27].toString(16));
       this.lineHScroll512 = this.hScroll512();
       this.scrollIndex = this.lineHScroll;
 
@@ -2032,11 +2009,7 @@ export class Vdp {
       }
 
       let isOdd = this.scrollIndex & 1;
-
-//      if (scanLine == 64) console.log(x + ': ' + this.charTableOffset.toString(16));
-
       while (x < x2) {
-//        if (scanLine == 64) console.log(this.spriteLineOffset);
         for (let i = 0; i < 8; i++) {
           const col1 = this.spriteLine[this.spriteLineOffset] >> 3;
           this.frameBuffer[this.frameOffset++] = this.palette[col1 ? col1 >> 1 : this.vram[this.charTableOffset] >> (6 - 4 * isOdd) & 3];
@@ -2045,13 +2018,13 @@ export class Vdp {
           this.charTableOffset += isOdd;
           isOdd ^= 1;
           if ((++this.scrollIndex & 0xff) == 0) this.charTableOffset += JUMP_TABLE[this.renderPage ^= 1];
-        } 
+        }
         x++;
       }
     }
 
     if (rightBorder) {
-      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= 2* (-this.lineHScroll & 7);
+      if (this.screenOn && this.isDrawArea && this.isEdgeMasked()) this.frameOffset -= 2 * (-this.lineHScroll & 7);
       this.refreshRightBorder6(bgColor1, bgColor2);
     }
   }
@@ -2069,8 +2042,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.lineHScroll512 = this.hScroll512();
       this.scrollIndex = this.lineHScroll;
@@ -2157,8 +2128,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.lineHScroll512 = this.hScroll512();
       this.scrollIndex = this.lineHScroll;
@@ -2241,8 +2210,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.lineHScroll512 = this.hScroll512();
       this.scrollIndex = this.lineHScroll & ~3;
@@ -2347,8 +2314,6 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.resetSpriteLine();
-
       this.lineHScroll = this.hScroll();
       this.lineHScroll512 = this.hScroll512();
       this.scrollIndex = this.lineHScroll & ~3;
@@ -2529,9 +2494,9 @@ export class Vdp {
   private yjkColor = new Array<Array<Array<number>>>(32);
 
   // Sprites
-  private currentSpriteLine = 0;
+  private spriteLineIndex = 0;
   private spriteLines = [new Array<number>(384), new Array<number>(384)];
-  private spriteLine = this.spriteLines[1];
+  private spriteLine = this.spriteLines[0];
   private spriteCollision = new Array<number>(384);
   private spriteCurrentLine = new Array<number>(33);
   private spriteAttribOffsets = new Array<number>(33);
@@ -2555,6 +2520,6 @@ export class Vdp {
   private frameBuffer = new Uint16Array(0);
   private frameBufferWriteIndex = 0;
   private frameBuffers = [
-    new Uint16Array(2 * SCREEN_WIDTH * SCREEN_HEIGHT), 
+    new Uint16Array(2 * SCREEN_WIDTH * SCREEN_HEIGHT),
     new Uint16Array(2 * SCREEN_WIDTH * SCREEN_HEIGHT)];
 }
