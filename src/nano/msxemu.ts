@@ -46,7 +46,7 @@ export class MsxEmu {
     document.addEventListener('dragenter', (event) => { event.preventDefault(); });
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
    
-    this.machine = new PanasonicFsA1Wsx(this.webAudio, this.diskManager);
+    this.machine = new GenericMsx2(this.webAudio, this.diskManager);
 
     //this.romMedia = this.mediaInfoFactory.mediaInfoFromData(new Uint8Array(gameRom));
 

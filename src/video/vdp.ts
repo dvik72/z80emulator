@@ -1997,13 +1997,13 @@ export class Vdp {
       const y = scanLine - this.firstLine + this.vScroll();
       const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
       const charTableBase = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7)));
-      let charTableOffset = (charTableBase | (this.scrollIndex & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+      let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
       let edgeMaskCount = (x2 > 0 && x < 1) ? this.isEdgeMasked() ? 8 : this.lineHScroll & 7 : 0;
       let isOdd = this.lineHScroll & 1;
 
       while (x < x2) {
         for (let i = 0; i < 8; i++) {
-          let col = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset] >> 3; this.spriteLineOffset++;
+          let col = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++;
           col ?
             this.frameBuffer[this.frameOffset++] = this.frameBuffer[this.frameOffset++] = this.palette[col >> 1] :
             (col = this.vram[charTableOffset + isOdd * this.vram128],
@@ -2054,7 +2054,7 @@ export class Vdp {
       const y = scanLine - this.firstLine + this.vScroll();
       const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
       const charTableBase = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7)));
-      let charTableOffset = (charTableBase | (this.scrollIndex & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+      let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
       let edgeMaskCount = (x2 > 0 && x < 1) ? this.isEdgeMasked() ? 8 : this.lineHScroll & 7 : 0;
       let isOdd = this.lineHScroll & 1;
 
@@ -2108,7 +2108,7 @@ export class Vdp {
       const y = scanLine - this.firstLine + this.vScroll();
       const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
       const charTableBase = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7)));
-      let charTableOffset = (charTableBase | (this.scrollIndex & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+      let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
       let edgeMaskCount = (x2 > 0 && x < 1) ? this.isEdgeMasked() ? 8 : this.lineHScroll & 7 : 0;
       let isOdd = this.lineHScroll & 1;
 
@@ -2181,7 +2181,7 @@ export class Vdp {
       const y = scanLine - this.firstLine + this.vScroll();
       const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
       const charTableBase = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7)));
-      let charTableOffset = (charTableBase | (this.scrollIndex & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+      let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
       let edgeMaskCount = (x2 > 0 && x < 1) ? this.isEdgeMasked() ? 8 : this.lineHScroll & 7 : 0;
       let isOdd = this.lineHScroll & 1;
 
