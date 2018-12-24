@@ -18,6 +18,7 @@
 
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
+import { Timer } from '../core/timeoutmanager';
 
 
 const MASK = [
@@ -58,6 +59,15 @@ export class Rtc {
     this.board.getIoManager().registerPort(0xb5, new Port(this.read.bind(this), this.write.bind(this)));
 
     this.modeReg = MODE_TIMERENABLE;
+
+    for (let bank of this.registers) {
+      for (let i in bank) {
+        bank[i] = 0;
+      }
+    }
+
+    this.timer = this.board.getTimeoutManager().createTimer('RTC clock', this.onTimer.bind(this));
+    this.timer.setTimeout(this.board.getSystemTime() + this.board.getSystemFrequency());
 
     this.updateRegs();
   }
@@ -164,6 +174,13 @@ export class Rtc {
     this.registers[0][12] = this.years / 10 | 0;
     this.registers[1][11] = this.leapYear;
   }
+  
+  private onTimer(): void {
+    this.updateRegs();
+    this.timer.setTimeout(this.timer.getTimeout() + this.board.getSystemFrequency());
+
+    //console.log(this.hours + ':' + this.minutes + ':' + this.seconds);
+  }
 
   private updateRegs(): void {
     const elapsed = 16384 * this.board.getTimeSince(this.refTime) + this.refFrag;
@@ -195,6 +212,8 @@ export class Rtc {
 
     this.setRegisters();
   }
+
+  private timer: Timer;
 
   private latch = 0;
   private modeReg = 0;
