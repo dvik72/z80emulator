@@ -159,7 +159,7 @@ export class Disk {
     return DiskError.OK;
   }
 
-  private getSectorSize(side: number = 0, track: number = 0, density: number = 0): number {
+  public getSectorSize(side: number = 0, track: number = 0, density: number = 0): number {
     if (this.type == DiskType.SVI328) {
       return (track == 0 && side == 0 && density == 1) ? 128 : 256;
     }

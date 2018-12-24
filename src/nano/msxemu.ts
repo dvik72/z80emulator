@@ -165,6 +165,10 @@ export class MsxEmu {
   private keyDown(event: KeyboardEvent): void {
     event.preventDefault();
     this.machine && this.machine.keyDown(event.code);
+    //if (event.code == 'KeyD') {
+    //  console.log('Trigger ASM dump');
+    //  this.machine!.dumpAsm();
+    //}
   }
 
   private keyUp(event: KeyboardEvent): void {

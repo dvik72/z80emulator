@@ -66,6 +66,7 @@
     <TypeScriptCompile Include="src\audio\ym2413.ts" />
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\core\rammanager.ts" />
+    <TypeScriptCompile Include="src\disk\wd2793.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
     <TypeScriptCompile Include="src\machines\machine.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\msx2plusbase.ts" />
@@ -80,6 +81,7 @@
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />
     <TypeScriptCompile Include="src\mappers\romPanasonic.ts" />
+    <TypeScriptCompile Include="src\mappers\romphilipsfdc.ts" />
     <TypeScriptCompile Include="src\mappers\romTc8566af.ts" />
     <TypeScriptCompile Include="src\mappers\srammatsushita.ts" />
     <TypeScriptCompile Include="src\mappers\srams1985.ts" />
@@ -120,6 +122,7 @@
     <Content Include="systemroms\a1wskdr.bin" />
     <Content Include="systemroms\a1wskfn.bin" />
     <Content Include="systemroms\a1wsmusp.bin" />
+    <Content Include="systemroms\philipsdisk.bin" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

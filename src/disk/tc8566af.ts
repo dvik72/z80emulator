@@ -19,6 +19,7 @@
 import { DiskManager } from '../disk/diskmanager'
 import { Disk, DiskError } from './disk';
 import { Board } from '../core/board';
+import { Timer } from '../core/timeoutmanager';
 
 enum Command {
   UNKNOWN,
@@ -94,6 +95,8 @@ export class Tc8566af {
     private board: Board
   ) {
     this.disk = this.diskManager.getFloppyDisk(0);
+
+    this.timer = this.board.getTimeoutManager().createTimer('TC8566AF RQM timer', this.onTimer.bind(this));
   }
 
   public reset() {
@@ -146,6 +149,7 @@ export class Tc8566af {
             reg = this.executionPhaseRead();
             this.dataTransferTime = this.board.getSystemTime();
             this.mainStatus &= ~STM_RQM;
+            this.timer.setTimeout(this.board.getSystemTime() + this.board.getSystemFrequency() * 60 / 1000000);
             return reg;
 
           case Phase.RESULT:
@@ -176,10 +180,15 @@ export class Tc8566af {
             this.executionPhaseWrite(value);
             this.dataTransferTime = this.board.getSystemTime();
             this.mainStatus &= ~STM_RQM;
+            this.timer.setTimeout(this.board.getSystemTime() + this.board.getSystemFrequency() * 60 / 1000000);
             break;
         }
         break;
     }
+  }
+
+  private onTimer(): void {
+    this.mainStatus |= STM_RQM;
   }
 
   private executionPhaseRead(): number {
@@ -505,6 +514,8 @@ export class Tc8566af {
   }
 
   private disk: Disk;
+
+  private timer: Timer;
 
   private mainStatus = 0;
   private status0 = 0;

@@ -154,6 +154,10 @@ export class Board {
     this.z80.execute(cpuCycles);
   }
 
+  public dumpAsm(): void {
+    this.z80.dumpAsm();
+  }
+
   private ioManager: IoManager;
   private slotManager: SlotManager;
   private timeoutManager: TimeoutManager;

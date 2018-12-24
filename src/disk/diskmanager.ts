@@ -32,7 +32,7 @@ export class DiskManager {
   }
 
   public getFloppyDisk(index: number): Disk {
-    return this.floppyDisks[index % this.floppyDisks.length];
+    return this.floppyDisks[index % this.floppyDisks.length] || this.unmappedFloppyDisk;
   }
 
   public insertFloppyImage(index: number, image: Uint8Array): void {
@@ -46,4 +46,5 @@ export class DiskManager {
   }
 
   private floppyDisks = new Array<Disk>(4);
+  private unmappedFloppyDisk = new Disk();
 }

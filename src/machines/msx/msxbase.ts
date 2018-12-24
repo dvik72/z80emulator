@@ -63,6 +63,10 @@ export abstract class MsxBase extends Machine {
     this.board && this.board.reset();
   }
 
+  public dumpAsm(): void {
+    this.board.dumpAsm();
+  }
+
   public runStep(milliseconds: number): void {
     this.board && this.board.run(MASTER_FREQUENCY * milliseconds / 1000 | 0);
   }

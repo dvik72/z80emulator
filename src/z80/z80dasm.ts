@@ -267,6 +267,7 @@ export class Z80Dasm {
           break;
         case 'Y':
           dest += '(' + r + this.sign(offset) + this.hex(this.abs(offset), 2) + ')';
+          break;
         case 'I':
           dest += r;
           break;

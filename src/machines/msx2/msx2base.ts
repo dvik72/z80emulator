@@ -103,6 +103,10 @@ export class Msx2Base extends Machine {
     }
   }
 
+  public dumpAsm(): void {
+    this.board.dumpAsm();
+  }
+
   protected addCartridgeSlot(slot: number, subslot: number = 0): void {
     this.cartrdigeSlots.push([slot, subslot]);
   }

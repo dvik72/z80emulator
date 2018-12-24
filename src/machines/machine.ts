@@ -57,6 +57,8 @@ export abstract class Machine {
   public abstract keyUp(keyCode: string): void;
 
   public abstract insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void;
+  
+  public dumpAsm(): void { }
 
   protected getSystemRom(romName: string): Uint8Array {
     return this.romData[romName] || new Uint8Array(0);

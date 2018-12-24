@@ -384,6 +384,11 @@ export class Z80 {
     this.timeout = time;
   }
 
+  public dumpAsm() {
+    this.yyyyEnable = 1;
+  }
+
+  yyyyEnable = 0;
   yyyy = 0; // TODO: Debug support
   ihist = new Array<number>(2048);
 
@@ -413,9 +418,10 @@ export class Z80 {
 
       // TODO: This is just debug support. Remove when done.
       if (0) {
-        const start = 160* 10000;
-        if (this.yyyy < start + 10000) {
-          if (this.yyyy >= start) {
+        const start = (256 + 128 + 51 - 140) * 10000;//84990000 - 300000;
+        if (this.yyyy < start + 50000) {
+          if (this.yyyy >= start) {// && this.yyyy % 10000 == 0) {
+            //console.log(this.yyyy);
             const dasm = new Z80Dasm(this.readMemCb);
             const asm = dasm.dasm(this.regs.PC.get());
             const regs =
@@ -427,7 +433,7 @@ export class Z80 {
               ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
             console.log(asm + ' ' + regs);
           }
-          this.yyyy++;
+          this.yyyy += 1||this.yyyyEnable;
         }
       }
 
@@ -1257,7 +1263,7 @@ export class Z80 {
 
   private BIT_XNN(bit: number, addr: number): void {
     this.regs.SH.set(addr);
-    this.addSystemTime(this.delay.BIT);
+    this.addSystemTime(this.delay.BITIX);
     this.regs.AF.l.set((this.regs.AF.l.get() & C_FLAG) |
       (this.regs.SH.h.get() & (X_FLAG | Y_FLAG)) |
       this.ZSPHTable[this.readMem(addr) & (1 << bit)]);
