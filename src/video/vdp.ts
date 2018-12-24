@@ -375,6 +375,7 @@ export class Vdp {
         {
           const frameTime = this.board.getTimeSince(this.frameStartTime);
           status |= 0x40 | 0x20 | this.v9938Cmd.getStatus();
+
           const checkTime = frameTime - ((this.firstLine - 1) * HPERIOD + this.leftBorder - 10);
           if (this.isDrawArea || (checkTime >= 0 && checkTime < 4 * HPERIOD)) {
             status &= ~0x40;
@@ -662,9 +663,9 @@ export class Vdp {
     this.scr0splitLine = 0;
     this.curLine = 0;
     this.frameOffset = 0;
+    
+    this.vAdjust = -(this.regs[18] & 0x80 ? (this.regs[18] - 256) >> 4 : this.regs[18] >> 4);
 
-    const adjust = -(this.regs[18] >> 4);
-    this.vAdjust = adjust < -8 ? adjust + 16 : adjust;
     this.scanLineCount = isPal ? 313 : 262;
     this.displayOffest = isPal ? 27 : 0;
     const has212Scanlines = (this.regs[9] & 0x80) != 0;
