@@ -35,8 +35,6 @@ const DAYS_IN_MONTH = [
   [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
 ];
 
-const MAX_SCALED_TIME = 1 << (32 + 14);
-
 const MODE_BLOCKSELECT = 0x03;
 const MODE_ALARMENABLE = 0x04;
 const MODE_TIMERENABLE = 0x08;
@@ -49,7 +47,7 @@ const TEST_YEARS = 0x08;
 const RESET_ALARM = 0x01;
 const RESET_FRACTION = 0x02;
 
-
+export let VERY_STRANGE_HACK = 0;
 
 export class Rtc {
   constructor(
@@ -58,21 +56,19 @@ export class Rtc {
     this.board.getIoManager().registerPort(0xb4, new Port(undefined, this.writeLatch.bind(this)));
     this.board.getIoManager().registerPort(0xb5, new Port(this.read.bind(this), this.write.bind(this)));
 
-    this.modeReg = MODE_TIMERENABLE;
-
-    for (let bank of this.registers) {
-      for (let i in bank) {
-        bank[i] = 0;
-      }
-    }
-
     this.timer = this.board.getTimeoutManager().createTimer('RTC clock', this.onTimer.bind(this));
     this.timer.setTimeout(this.board.getSystemTime() + this.board.getSystemFrequency());
+
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 13; j++) {
+        this.registers[i][j] = 0;
+      }
+    }
 
     this.updateRegs();
   }
 
-  private read(port: number): number {
+  public read(ioPort: number): number {
     switch (this.latch) {
       case 0x0d:
         return this.modeReg | 0xf0;
@@ -91,7 +87,7 @@ export class Rtc {
     return (this.registers[block][this.latch] & MASK[block][this.latch]) | 0xf0;
   }
 
-  private write(port: number, value: number): void {
+  private write(ioPort: number, value: number): void {
     switch (this.latch) {
       case 0x0d:
         this.updateRegs();
@@ -130,18 +126,25 @@ export class Rtc {
     }
   }
 
-  private writeLatch(port: number, value: number): void {
+  private writeLatch(ioPort: number, value: number): void {
     this.latch = value & 0x0f;
   }
 
+  private onTimer(): void {
+    this.updateRegs();
+    this.timer.setTimeout(this.timer.getTimeout() + this.board.getSystemFrequency());
+
+    //console.log(this.hours + ':' + this.minutes + ':' + this.seconds);
+  }
+
   private setTime(): void {
-    this.seconds = this.registers[0][0] + 10 * this.registers[0][1];
-    this.minutes = this.registers[0][2] + 10 * this.registers[0][3];
-    this.hours = this.registers[0][4] + 10 * this.registers[0][5];
-    this.dayWeek = this.registers[0][6];
-    this.days = this.registers[0][7] + 10 * this.registers[0][8] - 1;
-    this.months = this.registers[0][9] + 10 * this.registers[0][10] - 1;
-    this.years = this.registers[0][11] + 10 * this.registers[0][12];
+    this.seconds  = this.registers[0][0] + 10 * this.registers[0][1];
+    this.minutes  = this.registers[0][2] + 10 * this.registers[0][3];
+    this.hours    = this.registers[0][4] + 10 * this.registers[0][5];
+    this.dayWeek  = this.registers[0][6];
+    this.days     = this.registers[0][7] + 10 * this.registers[0][8] - 1;
+    this.months   = this.registers[0][9] + 10 * this.registers[0][10] - 1;
+    this.years    = this.registers[0][11] + 10 * this.registers[0][12];
     this.leapYear = this.registers[1][11];
 
     if (!this.registers[1][10]) {
@@ -174,15 +177,9 @@ export class Rtc {
     this.registers[0][12] = this.years / 10 | 0;
     this.registers[1][11] = this.leapYear;
   }
-  
-  private onTimer(): void {
-    this.updateRegs();
-    this.timer.setTimeout(this.timer.getTimeout() + this.board.getSystemFrequency());
-
-    //console.log(this.hours + ':' + this.minutes + ':' + this.seconds);
-  }
 
   private updateRegs(): void {
+    VERY_STRANGE_HACK = this.refTime;
     const elapsed = 16384 * this.board.getTimeSince(this.refTime) + this.refFrag;
     this.refTime = this.board.getSystemTime();
     this.refFrag = elapsed % this.board.getSystemFrequency();
@@ -191,7 +188,7 @@ export class Rtc {
     this.fraction += (this.modeReg & MODE_TIMERENABLE) ? elapsedTime : 0;
     this.seconds  += (this.testReg & TEST_SECONDS) ? elapsedTime : this.fraction / 16384 | 0;
     this.fraction %= 16384;
-    this.minutes  += (this.testReg & TEST_MINUTES) ? elapsedTime : this.seconds / 60 | 0;
+    this.minutes += (this.testReg & TEST_MINUTES) ? elapsedTime : this.seconds / 60 | 0;
     this.seconds  %= 60;
     this.hours += this.minutes / 60 | 0;
     this.minutes  %= 60;
@@ -213,13 +210,10 @@ export class Rtc {
     this.setRegisters();
   }
 
-  private timer: Timer;
-
-  private latch = 0;
-  private modeReg = 0;
+  private modeReg = MODE_TIMERENABLE;
   private testReg = 0;
   private resetReg = 0;
-  private registers = [new Array<number>(13), new Array<number>(13), new Array<number>(13), new Array<number>(13)];
+  private registers = [new Uint8Array(13), new Uint8Array(13), new Uint8Array(13), new Uint8Array(13)];
   private refTime = 0;
   private refFrag = 0;
   private fraction = 0;
@@ -231,4 +225,8 @@ export class Rtc {
   private months = 0;
   private years = 0;
   private leapYear = 0;
+
+  private latch = 0;
+
+  private timer: Timer;
 }
