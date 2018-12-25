@@ -41,6 +41,7 @@ export class MapperRomPhilipsFdc extends Mapper {
     for (let page = 0; page < 4; page++) {
       this.slotInfo[page] = new Slot(this.getName(),
         page & 1 ? this.read.bind(this) : undefined, page & 1 ? this.write.bind(this) : undefined);
+      this.slotInfo[page].fullAddress = true;
       this.slotInfo[page].map(page == 0, false, this.pages[page & 1]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);
     }
@@ -55,7 +56,7 @@ export class MapperRomPhilipsFdc extends Mapper {
   }
 
   private read(address: number): number {
-    switch (address) {
+    switch (address & 0x1fff) {
       case 0x1ff8:
         return this.wd2793.getStatusReg();
       case 0x1ff9:
@@ -73,12 +74,12 @@ export class MapperRomPhilipsFdc extends Mapper {
       case 0x1fff:
         return (this.wd2793.getIrq() ? 0 : 0x40) | (this.wd2793.getDataRequest() ? 0 : 0x80);
       default:
-        return this.pages[1][address];
+        return address < 0x8000 ? this.pages[1][address & 0x1fff] : 0xff;
     }
   }
 
   private write(address: number, value: number): void {
-    switch (address) {
+    switch (address & 0x1fff) {
       case 0x1ff8:
         this.wd2793.setCommandReg(value);
         break;
