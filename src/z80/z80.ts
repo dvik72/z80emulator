@@ -418,7 +418,7 @@ export class Z80 {
 
       // TODO: This is just debug support. Remove when done.
       if (0) {
-        const start = (256 + 128 + 51 - 140) * 10000;//84990000 - 300000;
+        const start = (128 + 71) * 50000;//84990000 - 300000 + 200000 * (64 + 5);
         if (this.yyyy < start + 50000) {
           if (this.yyyy >= start) {// && this.yyyy % 10000 == 0) {
             //console.log(this.yyyy);
@@ -2341,7 +2341,7 @@ export class Z80 {
       case 0xc8: /* ret_z */ this.COND_RET(Z_FLAG, true); break;
       case 0xc9: /* ret */ this.RET(); break;
       case 0xca: /* jp_z */ this.COND_JP(Z_FLAG, true); break;
-      case 0xcb: /* dd_cb */ this.executeNnCbInstruction(); break;
+      case 0xcb: /* dd_cb */ this.executeNnCbInstruction(this.regs.IX); break;
       case 0xcc: /* call_z */ this.COND_CALL(Z_FLAG, true); break;
       case 0xcd: /* call */ this.CALL(); break;
       case 0xce: /* adc_a_byte */ this.ADC(this.readOpcode()); break;
@@ -2869,7 +2869,7 @@ export class Z80 {
       case 0xc8: /* ret_z */ this.COND_RET(Z_FLAG, true); break;
       case 0xc9: /* ret */ this.RET(); break;
       case 0xca: /* jp_z */ this.COND_JP(Z_FLAG, true); break;
-      case 0xcb: /* fd_cb */ this.executeNnCbInstruction(); break;
+      case 0xcb: /* fd_cb */ this.executeNnCbInstruction(this.regs.IY); break;
       case 0xcc: /* call_z */ this.COND_CALL(Z_FLAG, true); break;
       case 0xcd: /* call */ this.CALL(); break;
       case 0xce: /* adc_a_byte */ this.ADC(this.readOpcode()); break;
@@ -2927,8 +2927,8 @@ export class Z80 {
     }
   }
 
-  private executeNnCbInstruction(): void {
-    let addr = this.regs.IX.get() + this.byteToSignedInt(this.readOpcode());
+  private executeNnCbInstruction(reg: RegisterPair): void {
+    let addr = reg.get() + this.byteToSignedInt(this.readOpcode());
     let opcode = this.readOpcode();
     this.addSystemTime(this.delay.M1);
     switch (opcode & 0xff) {
