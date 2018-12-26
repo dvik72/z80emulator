@@ -69,6 +69,7 @@
     <TypeScriptCompile Include="src\disk\wd2793.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
     <TypeScriptCompile Include="src\machines\machine.ts" />
+    <TypeScriptCompile Include="src\machines\msx2plus\genericmsx2plus.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\msx2plusbase.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\panasonic_fs_a1wsx.ts" />
     <TypeScriptCompile Include="src\machines\msx2\genericmsx2.ts" />
@@ -123,6 +124,11 @@
     <Content Include="systemroms\a1wskfn.bin" />
     <Content Include="systemroms\a1wsmusp.bin" />
     <Content Include="systemroms\philipsdisk.bin" />
+    <Content Include="systemroms\kanji.bin" />
+    <Content Include="systemroms\msx2pbios.bin" />
+    <Content Include="systemroms\msx2pext.bin" />
+    <Content Include="systemroms\msxkanji.bin" />
+    <Content Include="systemroms\xbasic.bin" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
