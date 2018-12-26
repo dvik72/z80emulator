@@ -849,7 +849,7 @@ export class Vdp {
           this.refreshLineCb = this.refreshLine8.bind(this);
         }
         else if (this.isModeYae()) {
-          this.refreshLineCb = this.refreshLine0.bind(this);
+          this.refreshLineCb = this.refreshLine10.bind(this);
           this.screenMode = 10;
         }
         else {
@@ -2115,16 +2115,16 @@ export class Vdp {
 
       while (x < x2) {
         for (let i = 0; i < 2; i++) {
-          let t0 = this.vram[charTableOffset + isOdd * this.vram128];
+          let t0 = this.vram[charTableOffset];
+          let t1 = this.vram[charTableOffset + this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
-          let t1 = this.vram[charTableOffset + isOdd * this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
-          let t2 = this.vram[charTableOffset + isOdd * this.vram128];
+          let t2 = this.vram[charTableOffset];
+          let t3 = this.vram[charTableOffset + this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
-          let t3 = this.vram[charTableOffset + isOdd * this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
 
@@ -2188,16 +2188,16 @@ export class Vdp {
 
       while (x < x2) {
         for (let i = 0; i < 2; i++) {
-          let t0 = this.vram[charTableOffset + isOdd * this.vram128];
+          let t0 = this.vram[charTableOffset];
+          let t1 = this.vram[charTableOffset + this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
-          let t1 = this.vram[charTableOffset + isOdd * this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
-          let t2 = this.vram[charTableOffset + isOdd * this.vram128];
+          let t2 = this.vram[charTableOffset];
+          let t3 = this.vram[charTableOffset + this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
-          let t3 = this.vram[charTableOffset + isOdd * this.vram128];
           charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           isOdd ^= 1;
 
