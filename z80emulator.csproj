@@ -60,11 +60,13 @@
     <Content Include="lib\require.js" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="tsconfig.json" />
+    <TypeScriptCompile Include="src\audio\dac.ts" />
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
     <TypeScriptCompile Include="src\audio\scc.ts" />
     <TypeScriptCompile Include="src\audio\webaudio.ts" />
     <TypeScriptCompile Include="src\audio\ym2413.ts" />
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
+    <TypeScriptCompile Include="src\core\drammanager.ts" />
     <TypeScriptCompile Include="src\core\rammanager.ts" />
     <TypeScriptCompile Include="src\disk\wd2793.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
@@ -75,6 +77,8 @@
     <TypeScriptCompile Include="src\machines\msx2\genericmsx2.ts" />
     <TypeScriptCompile Include="src\machines\msx2\msx2base.ts" />
     <TypeScriptCompile Include="src\machines\msx2\panasonic_fs_a1.ts" />
+    <TypeScriptCompile Include="src\machines\msxtr\msxtrbase.ts" />
+    <TypeScriptCompile Include="src\machines\msxtr\panasonicfsa1gt.ts" />
     <TypeScriptCompile Include="src\machines\msx\msxbase.ts" />
     <TypeScriptCompile Include="src\machines\msx\philips_vg_8020.ts" />
     <TypeScriptCompile Include="src\mappers\f4device.ts" />
@@ -82,8 +86,10 @@
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />
     <TypeScriptCompile Include="src\mappers\romPanasonic.ts" />
+    <TypeScriptCompile Include="src\mappers\rompanasonicdram.ts" />
     <TypeScriptCompile Include="src\mappers\romphilipsfdc.ts" />
     <TypeScriptCompile Include="src\mappers\romTc8566af.ts" />
+    <TypeScriptCompile Include="src\mappers\s1990.ts" />
     <TypeScriptCompile Include="src\mappers\srammatsushita.ts" />
     <TypeScriptCompile Include="src\mappers\srams1985.ts" />
     <TypeScriptCompile Include="src\disk\diskmanager.ts" />
@@ -103,6 +109,9 @@
     <TypeScriptCompile Include="src\mappers\romnormal.ts" />
     <TypeScriptCompile Include="src\mappers\romrtype.ts" />
     <TypeScriptCompile Include="src\mappers\mapperfactory.ts" />
+    <TypeScriptCompile Include="src\mappers\turborio.ts" />
+    <TypeScriptCompile Include="src\mappers\turborpcm.ts" />
+    <TypeScriptCompile Include="src\mappers\turbortimer.ts" />
     <TypeScriptCompile Include="src\nano\gamerom.ts" />
     <TypeScriptCompile Include="src\util\mediainfo.ts" />
     <TypeScriptCompile Include="src\util\romdatabase.ts" />
@@ -129,6 +138,14 @@
     <Content Include="systemroms\msx2pext.bin" />
     <Content Include="systemroms\msxkanji.bin" />
     <Content Include="systemroms\xbasic.bin" />
+    <Content Include="systemroms\a1gtbios.bin" />
+    <Content Include="systemroms\a1gtdos.bin" />
+    <Content Include="systemroms\a1gtext.bin" />
+    <Content Include="systemroms\a1gtfirm.bin" />
+    <Content Include="systemroms\a1gtkdr.bin" />
+    <Content Include="systemroms\a1gtkfn.bin" />
+    <Content Include="systemroms\a1gtmus.bin" />
+    <Content Include="systemroms\a1gtopt.bin" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

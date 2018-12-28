@@ -52,8 +52,5 @@ export class PanasonicFsA1 extends Msx2Base {
     new MapperRomNormal(this.getBoard(), 3, 2, 2, this.getSystemRom('a1desk1'));
     new MapperRomNormal(this.getBoard(), 3, 3, 2, this.getSystemRom('a1desk2'));
     new MapperRamNormal(this.getBoard(), 3, 0, 0, 0x10000);
-
-    // TODO: Add for panasonic machines with disk drives
-    // new MapperRomTc8566af(this.diskManager, this.board, 2, 0, new Uint8Array(panasonicDiskRom));
   }
 }

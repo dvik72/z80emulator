@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Z80, TIMER_RANGE } from '../z80/z80';
+import { Board } from './board';
 
 // Use the factory method on TimeoutManager to create the timer.
 // Subsequent calls to set timeouts or stop timers should be done
@@ -63,6 +64,52 @@ export class Timer {
   timeout = 0;
   next: Timer;
   prev: Timer;
+}
+
+export class Counter {
+  constructor(
+    name: string,
+    private board: Board,
+    private frequency: number
+  ) {
+    this.timer = this.board.getTimeoutManager().createTimer(name, this.onTimer.bind(this));
+    this.timer.setTimeout(this.board.getSystemTime() + this.board.getSystemFrequency());
+}
+
+  public reset() {
+    this.refTime = this.board.getSystemTime();
+    this.refFrag = 0;
+    this.oldTime = 0;
+    this.time = 0;
+  }
+
+  private onTimer(): void {
+    this.get();
+    this.timer.setTimeout(this.timer.getTimeout() + 1000);
+  }
+
+  public get() {
+    const elapsed = this.frequency * this.board.getTimeSince(this.refTime) + this.refFrag;
+    this.refTime = this.board.getSystemTime();
+    this.refFrag = elapsed % this.board.getSystemFrequency();
+    this.time += elapsed / this.board.getSystemFrequency() | 0;
+
+    return this.time;
+  }
+
+  public elapsed() {
+    const time = this.get();
+    const elapsed = time - this.oldTime;
+    this.oldTime = time;
+    return elapsed;
+  }
+
+  private refTime = 0;
+  private refFrag = 0;
+  private time = 0;
+  private oldTime = 0;
+
+  private timer: Timer;
 }
 
 export class TimeoutManager {

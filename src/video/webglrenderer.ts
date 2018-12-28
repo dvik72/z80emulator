@@ -23,7 +23,7 @@ import { Shader } from './shaders/shader';
 export class WebGlRenderer {
   constructor() {
     this.canvas = WebGlRenderer.createCanvas('emuCanvas');
-    const gl = this.canvas.getContext("webgl");
+    const gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
     if (!gl) {
       throw new Error("Failed to initialize WebGL");
     }

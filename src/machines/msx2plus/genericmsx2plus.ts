@@ -28,7 +28,7 @@ import { MapperKanji } from '../../mappers/romkanji';
 import { MapperSramMatsuchita } from '../../mappers/srammatsushita';
 import { MapperMsxMusic } from '../../mappers/rommsxmusic';
 import { MapperRomPanasonic } from '../../mappers/rompanasonic';
-import { MapperRomTc8566af } from '../../mappers/romTc8566af';
+import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romTc8566af';
 
 
 export class GenericMsx2Plus extends Msx2PlusBase {
@@ -63,7 +63,7 @@ export class GenericMsx2Plus extends Msx2PlusBase {
     new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('msx2pmus'));
     new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2pext'));
     new MapperRomNormal(this.getBoard(), 3, 1, 2, this.getSystemRom('msxkanji'));
-    new MapperRomTc8566af(this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('panasonicdisk'));
+    new MapperRomTc8566af(Tc8566AfIo.MSX2, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('panasonicdisk'));
     new MapperRomNormal(this.getBoard(), 3, 3, 2, this.getSystemRom('xbasic'));
 
     const ramMapper = new MapperRamMapped(this.getBoard(), 3, 0, 512 * 1024);

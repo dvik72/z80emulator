@@ -19,6 +19,6 @@
 import { MsxEmu } from "../nano/msxemu"
 
 export function webappmain() {
-  let msxEmu = new MsxEmu();
-  msxEmu.run();
+  let app = new MsxEmu();
+  app.run();
 }

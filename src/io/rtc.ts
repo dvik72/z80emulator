@@ -18,7 +18,7 @@
 
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
-import { Timer } from '../core/timeoutmanager';
+import { Counter } from '../core/timeoutmanager';
 
 
 const MASK = [
@@ -47,8 +47,6 @@ const TEST_YEARS = 0x08;
 const RESET_ALARM = 0x01;
 const RESET_FRACTION = 0x02;
 
-export let VERY_STRANGE_HACK = 0;
-
 export class Rtc {
   constructor(
     private board: Board
@@ -56,8 +54,7 @@ export class Rtc {
     this.board.getIoManager().registerPort(0xb4, new Port(undefined, this.writeLatch.bind(this)));
     this.board.getIoManager().registerPort(0xb5, new Port(this.read.bind(this), this.write.bind(this)));
 
-    this.timer = this.board.getTimeoutManager().createTimer('RTC clock', this.onTimer.bind(this));
-    this.timer.setTimeout(this.board.getSystemTime() + this.board.getSystemFrequency());
+    this.counter = new Counter('RTC Counter', this.board, 16384);
 
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 13; j++) {
@@ -83,7 +80,7 @@ export class Rtc {
     if (block == 0) {
       this.updateRegs();
     }
-
+   
     return (this.registers[block][this.latch] & MASK[block][this.latch]) | 0xf0;
   }
 
@@ -130,13 +127,6 @@ export class Rtc {
     this.latch = value & 0x0f;
   }
 
-  private onTimer(): void {
-    this.updateRegs();
-    this.timer.setTimeout(this.timer.getTimeout() + this.board.getSystemFrequency());
-
-    //console.log(this.hours + ':' + this.minutes + ':' + this.seconds);
-  }
-
   private setTime(): void {
     this.seconds  = this.registers[0][0] + 10 * this.registers[0][1];
     this.minutes  = this.registers[0][2] + 10 * this.registers[0][3];
@@ -179,11 +169,7 @@ export class Rtc {
   }
 
   private updateRegs(): void {
-    VERY_STRANGE_HACK = this.refTime;
-    const elapsed = 16384 * this.board.getTimeSince(this.refTime) + this.refFrag;
-    this.refTime = this.board.getSystemTime();
-    this.refFrag = elapsed % this.board.getSystemFrequency();
-    const elapsedTime = elapsed / this.board.getSystemFrequency() | 0;
+    const elapsedTime = this.counter.elapsed();
 
     this.fraction += (this.modeReg & MODE_TIMERENABLE) ? elapsedTime : 0;
     this.seconds  += (this.testReg & TEST_SECONDS) ? elapsedTime : this.fraction / 16384 | 0;
@@ -214,8 +200,6 @@ export class Rtc {
   private testReg = 0;
   private resetReg = 0;
   private registers = [new Uint8Array(13), new Uint8Array(13), new Uint8Array(13), new Uint8Array(13)];
-  private refTime = 0;
-  private refFrag = 0;
   private fraction = 0;
   private seconds = 0;
   private minutes = 0;
@@ -227,6 +211,6 @@ export class Rtc {
   private leapYear = 0;
 
   private latch = 0;
-
-  private timer: Timer;
+  
+  private counter: Counter;
 }

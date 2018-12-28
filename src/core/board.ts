@@ -23,6 +23,7 @@ import { SlotManager } from './slotmanager';
 import { TimeoutManager } from './timeoutmanager';
 import { WebAudio } from '../audio/webaudio';
 import { RamManager } from './rammanager';
+import { DramManager } from './drammanager';
 
 export enum InterruptVector {
   VDP_IE0 = 0x0001,
@@ -50,13 +51,17 @@ export class Board {
     webAudio: WebAudio,
     cpuFlags: number,
     enableSubslots: boolean,
-    enableRamManager: boolean = false
+    enableRamManager: boolean = false,
+    enableDramManager: boolean = false
   ) {
     this.ioManager = new IoManager(enableSubslots);
     this.slotManager = new SlotManager();
     this.timeoutManager = new TimeoutManager();
     if (enableRamManager) {
       this.ramManager = new RamManager(this.ioManager);
+    }
+    if (enableDramManager) {
+      this.dramManager = new DramManager();
     }
 
     this.z80 = new Z80(cpuFlags, this.slotManager.read, this.slotManager.write, this.ioManager.read, this.ioManager.write, this.timeoutManager.timeout);
@@ -75,6 +80,10 @@ export class Board {
 
   public getRamManager(): RamManager | undefined {
     return this.ramManager;
+  }
+
+  public getDramManager(): DramManager | undefined {
+    return this.dramManager;
   }
 
   public getZ80(): Z80 {
@@ -162,6 +171,7 @@ export class Board {
   private slotManager: SlotManager;
   private timeoutManager: TimeoutManager;
   private ramManager?: RamManager;
+  private dramManager?: DramManager;
   private audioManager: AudioManager;
   private z80: Z80;
   private interruptMask = 0;

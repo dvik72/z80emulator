@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { RamMapper, RamManager } from '../core/rammanager';
+import { DramMapper } from '../core/drammanager';
 
 
 export class MapperRamMapped extends Mapper {
@@ -48,6 +49,9 @@ export class MapperRamMapped extends Mapper {
 
     this.ramManager = board.getRamManager();
     this.ramManager && this.ramManager.registerMapper(new RamMapper(size, this.writeIo.bind(this)));
+
+    const dramManager = board.getDramManager();
+    dramManager && dramManager.registerMapper(new DramMapper(this.setDramMode.bind(this)));
 
     this.reset();
   }
