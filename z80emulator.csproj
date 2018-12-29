@@ -69,6 +69,9 @@
     <TypeScriptCompile Include="src\core\drammanager.ts" />
     <TypeScriptCompile Include="src\core\rammanager.ts" />
     <TypeScriptCompile Include="src\disk\wd2793.ts" />
+    <TypeScriptCompile Include="src\io\i8251.ts" />
+    <TypeScriptCompile Include="src\io\i8254.ts" />
+    <TypeScriptCompile Include="src\io\msxmidi.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
     <TypeScriptCompile Include="src\machines\machine.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\genericmsx2plus.ts" />
