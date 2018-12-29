@@ -47,12 +47,13 @@ export class MapperRomTc8566af extends Mapper {
     for (let page = 0; page < 4; page++) {
       this.slotInfo[page] = new Slot(this.getName(),
         page & 1 ? this.readCb.bind(this): undefined, page & 1 ? this.writeCb.bind(this) : undefined);
-      this.slotInfo[page].map((page & 1) == 0, false, this.pages[page & 1]);
+      this.slotInfo[page].map(page == 0, false, this.pages[page & 1]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);
     }
   }
 
   private readCb(address: number): number {
+    const offset = address >= 0x1ff0 ? 0 : 2 * this.mappedPage;
     switch (this.type) {
       case Tc8566AfIo.MSX2:
         switch (address) {
@@ -61,7 +62,7 @@ export class MapperRomTc8566af extends Mapper {
           case 0x1ffb:
             return this.tc8566af.readRegister(5);
           default:
-            return this.pages[2 * this.mappedPage + 1][address];
+            return this.pages[offset + 1][address];
         }
         break;
       case Tc8566AfIo.MSXTR:
@@ -79,7 +80,7 @@ export class MapperRomTc8566af extends Mapper {
           case 0x1ff5:
             return this.tc8566af.readRegister(5);
           default:
-            return this.pages[2 * this.mappedPage + 1][address];
+            return this.pages[offset + 1][address];
         }
         break;
     }
@@ -111,9 +112,7 @@ export class MapperRomTc8566af extends Mapper {
           case 0x1ff0:
           case 0x1ffe:
             this.mappedPage = value & ((this.pages.length >> 1) - 1);
-            for (let page = 0; page < 2; page++) {
-              this.slotInfo[page].map((page & 1) == 0, false, this.pages[page + 2 * this.mappedPage]);
-            }
+            this.slotInfo[0].map(true, false, this.pages[2 * this.mappedPage]);
             break;
           case 0x1ff2:
             this.tc8566af.writeRegister(2, value);
@@ -130,7 +129,7 @@ export class MapperRomTc8566af extends Mapper {
         }
         break;
     }
-}
+  }
 
   private tc8566af: Tc8566af;
   private pages: Array<Array<number>>;
