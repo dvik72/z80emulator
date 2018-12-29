@@ -66,6 +66,8 @@ export class Timer {
   prev: Timer;
 }
 
+export let CHROME_BUG_WORKAROUND = 0;
+
 export class Counter {
   constructor(
     name: string,
@@ -89,6 +91,7 @@ export class Counter {
   }
 
   public get() {
+    CHROME_BUG_WORKAROUND = this.refTime;
     const elapsed = this.frequency * this.board.getTimeSince(this.refTime) + this.refFrag;
     this.refTime = this.board.getSystemTime();
     this.refFrag = elapsed % this.board.getSystemFrequency();
