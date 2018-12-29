@@ -152,6 +152,9 @@ export class Board {
     if (!this.mainRam || page >= this.mainRam.length) {
       return undefined;
     }
+    if (page < 0) {
+      page += this.mainRam.length;
+    }
     return this.mainRam[page];
   }
 
