@@ -54,9 +54,6 @@ export class MsxEmu {
 
     this.machine.notifyWhenLoaded(this.startEmulation.bind(this));
 
-    // Start emulation and renderer
-    this.lastSyncTime = Date.now();
-    this.runStep();
     requestAnimationFrame(this.refreshScreen);
   }
 
@@ -91,26 +88,41 @@ export class MsxEmu {
     if (element) {
       element.innerHTML = info;
     }
-    
+
+    // Start emulation and renderer    
     this.isRunning = true;
+
+    this.runCount = 0;
+    this.lastSyncTime = Date.now();
+    this.runStep();
   }
 
   private stopEmulation(): void {
     this.isRunning = false;
   }
 
+  private runCount = 0;
+
   private runStep(): void {
     const elapsedTime = Date.now() - this.lastSyncTime;
     this.lastSyncTime += elapsedTime;
-    if (elapsedTime) {
-      if (this.isRunning && this.machine) {
-        this.machine.runStep(elapsedTime);
+    if (this.isRunning && this.machine) {
+      this.runCount += elapsedTime;
+      if (this.runCount > 10) {
+        this.machine.runStep(10);
+        this.runCount -= 10;
+        setTimeout(this.runStep, 0);
+      }
+      else {
+        if (this.runCount > 0) {
+          this.machine.runStep(this.runCount);
+        }
+        this.runCount = 0;
+        setTimeout(this.runStep, 1);
       }
     }
-
-    setTimeout(this.runStep, 1);
   }
-
+  
   private refreshScreen(): void {
     if (this.isRunning && this.machine) {
       const frameBuffer = this.machine.getFrameBuffer();
