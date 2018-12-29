@@ -20,6 +20,7 @@ import { MsxTrBase } from './msxtrbase';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 
+import { MsxMidi } from '../../io/msxmidi';
 import { MapperF4Device } from '../../mappers/f4device';
 import { MapperRamMapped } from '../../mappers/rammapped';
 import { MapperRomNormal } from '../../mappers/romnormal';
@@ -65,6 +66,7 @@ export class PanasonicFsA1Gt extends MsxTrBase {
     new MapperF4Device(this.getBoard(), false);
     new MapperSramMatsuchita(this.getBoard(), false);
     new MapperKanji(this.getBoard(), this.getSystemRom('a1gtkfn'));
+    new MsxMidi(this.getBoard());
 
     // Configure slots
     new MapperRomPanasonicDram(this.getBoard(), 0, 0, 0, this.getSystemRom('a1gtbios'));
