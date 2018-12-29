@@ -205,7 +205,7 @@ class Z80Delay {
     switch (cpuMode) {
       case Z80Mode.Z80:
       default: {
-        const freqAdjust = MASTER_FREQUENCY / (cpuFrequency - 1);
+        const freqAdjust = MASTER_FREQUENCY / (cpuFrequency - 1) | 0;
 
         this.MEM = freqAdjust * 3;
         this.MEMOP = freqAdjust * 3;
@@ -242,7 +242,7 @@ class Z80Delay {
         break;
       }
       case Z80Mode.R800: {
-        const freqAdjust = MASTER_FREQUENCY / (cpuFrequency * 2 - 1);
+        const freqAdjust = MASTER_FREQUENCY / (cpuFrequency * 2 - 1) | 0;
 
         this.MEM = freqAdjust * 2;
         this.MEMOP = freqAdjust * 1;
@@ -418,8 +418,8 @@ export class Z80 {
 
       // TODO: This is just debug support. Remove when done.
       if (0) {
-        const start = (128 + 71) * 50000;//84990000 - 300000 + 200000 * (64 + 5);
-        if (this.yyyy < start + 50000) {
+        const start = 32 * 50000;//84990000 - 300000 + 200000 * (64 + 5);
+        if (this.yyyy < start + 10000) {
           if (this.yyyy >= start) {// && this.yyyy % 10000 == 0) {
             //console.log(this.yyyy);
             const dasm = new Z80Dasm(this.readMemCb);
@@ -693,7 +693,7 @@ export class Z80 {
       this.addSystemTime(this.delay.T9769VDP);
     }
     if (this.cpuMode === Z80Mode.R800) {
-      this.systemTime = (6 * ((this.systemTime + 5) / 6) | 0) & TIMER_RANGE;
+      this.systemTime = 6 * ((this.systemTime + 5) / 6 | 0) & TIMER_RANGE;
       if ((port & 0xf8) == 0x98) {
         if ((this.systemTime - this.lastVdpAccessTime & TIMER_RANGE) < this.delay.S1990VDP)
           this.systemTime = this.lastVdpAccessTime + this.delay.S1990VDP;
