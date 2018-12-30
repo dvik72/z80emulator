@@ -93,6 +93,8 @@ export class MsxEmu {
     this.isRunning = true;
 
     this.runCount = 0;
+    this.emulationTime = 0;
+    this.wallTime = window.performance.now();
     this.lastSyncTime = window.performance.now();
     this.runStep();
   }
@@ -102,7 +104,19 @@ export class MsxEmu {
   }
 
   private runStep(): void {
-    const elapsedTime = window.performance.now() - this.lastSyncTime;
+    const timeNow = window.performance.now();
+    const elapsedTime = timeNow - this.lastSyncTime;
+    this.wallTime += elapsedTime;
+    if (this.wallTime > 1000) {
+      const cpuUsage = ((1000 * this.emulationTime / this.wallTime | 0) / 10);
+      const element = document.getElementById('cpuusage');
+      if (element) {
+        element.innerHTML = 'CPU usage: ' + cpuUsage;
+      }
+      this.wallTime = 0;
+      this.emulationTime = 0;
+    }
+
     this.lastSyncTime += elapsedTime;
     if (this.isRunning && this.machine) {
       this.runCount += elapsedTime;
@@ -118,6 +132,7 @@ export class MsxEmu {
         this.runCount = 0;
         setTimeout(this.runStep, 1);
       }
+      this.emulationTime += window.performance.now() - timeNow;
     }
   }
   
@@ -191,6 +206,8 @@ export class MsxEmu {
   private machine?: Machine;
   private lastSyncTime = 0;
   private runCount = 0;
+  private wallTime = 0;
+  private emulationTime = 0;
   private isRunning = false;
 
   private glRenderer = new WebGlRenderer();
