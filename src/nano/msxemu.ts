@@ -93,7 +93,7 @@ export class MsxEmu {
     this.isRunning = true;
 
     this.runCount = 0;
-    this.lastSyncTime = Date.now();
+    this.lastSyncTime = window.performance.now();
     this.runStep();
   }
 
@@ -102,7 +102,7 @@ export class MsxEmu {
   }
 
   private runStep(): void {
-    const elapsedTime = Date.now() - this.lastSyncTime;
+    const elapsedTime = window.performance.now() - this.lastSyncTime;
     this.lastSyncTime += elapsedTime;
     if (this.isRunning && this.machine) {
       this.runCount += elapsedTime;
