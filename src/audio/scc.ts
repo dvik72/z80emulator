@@ -57,7 +57,6 @@ export class Scc extends AudioDevice {
       this.readOnly[channel] = false;
       this.oldSample[channel] = 0;
       this.deformSample[channel] = 0;
-      this.daVolume[channel] = 0;
       for (let i = 0; i < 32; i++) {
         this.wave[channel][i] = 0;
       }
@@ -449,7 +448,6 @@ export class Scc extends AudioDevice {
   private readOnly = new Array<boolean>(5);
   private oldSample = new Array<number>(5);
   private deformSample = new Array<number>(5);
-  private daVolume = new Array<number>(5);
   private wave = [
     new Array<number>(32),
     new Array<number>(32),

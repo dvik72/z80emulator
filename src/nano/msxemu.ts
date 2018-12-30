@@ -101,8 +101,6 @@ export class MsxEmu {
     this.isRunning = false;
   }
 
-  private runCount = 0;
-
   private runStep(): void {
     const elapsedTime = Date.now() - this.lastSyncTime;
     this.lastSyncTime += elapsedTime;
@@ -192,6 +190,7 @@ export class MsxEmu {
 
   private machine?: Machine;
   private lastSyncTime = 0;
+  private runCount = 0;
   private isRunning = false;
 
   private glRenderer = new WebGlRenderer();

@@ -34,7 +34,7 @@ export class MapperRamMapped extends Mapper {
     this.pages = [];
 
     for (let page = 0; page < pageCount * 2; page++) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = 0xff;
       }
@@ -70,7 +70,7 @@ export class MapperRamMapped extends Mapper {
     this.setDramMode(false);
   }
 
-  public getRamPages(): Array<Array<number>> {
+  public getRamPages(): Array<Uint8Array> {
     return this.pages;
   }
 
@@ -89,7 +89,7 @@ export class MapperRamMapped extends Mapper {
   }
 
   private slotInfo = new Array<Slot>(8);
-  private pages: Array<Array<number>>;
+  private pages: Array<Uint8Array>;
   private dramMode = false;
   private port = [0, 0, 0, 0];
   private mask = 0;

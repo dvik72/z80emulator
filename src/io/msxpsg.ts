@@ -35,8 +35,6 @@ export class MsxPsg {
     this.joystickPort  = 0;
     this.regs[0] = 0;
     this.regs[1] = 0;
-    this.readValue[0] = 0;
-    this.readValue[1] = 0;
 
     this.ay8910.reset();
   }
@@ -61,8 +59,6 @@ export class MsxPsg {
       state |= 0x80;
     }
 
-    this.readValue[address & 1] = state;
-
     return state;
   }
 
@@ -77,6 +73,5 @@ export class MsxPsg {
 
   private ay8910: Ay8910;
   private joystickPort = 0;
-  private regs = new Array<number>(2);
-  private readValue = new Array<number>(2);
+  private regs = new Uint8Array(2);
 }

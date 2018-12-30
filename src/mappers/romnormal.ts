@@ -27,7 +27,7 @@ export class MapperRomNormal extends Mapper {
     let pages = romData.length + 0x1fff >> 13;
     let romOffset = 0;
     while (pages--) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romData[romOffset] || 0;
         romOffset++;

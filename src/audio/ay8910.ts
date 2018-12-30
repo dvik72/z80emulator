@@ -176,7 +176,7 @@ export class Ay8910 extends AudioDevice {
 
   public sync(count: number): void {
     const audioBuffer = this.getAudioBufferMono();
-
+    
     for (let index = 0; index < count; index++) {
       let sampleVolume = [ 0, 0, 0 ];
 
@@ -234,7 +234,7 @@ export class Ay8910 extends AudioDevice {
     }
   }
 
-  private regs = new Array<number>(16);
+  private regs = new Uint8Array(16);
   private address = 0;
 
   private tonePhase = [0, 0, 0];

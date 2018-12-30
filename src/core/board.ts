@@ -148,7 +148,7 @@ export class Board {
     return false;
   }
 
-  public getRamPage(page: number): Array<number> | undefined {
+  public getRamPage(page: number): Uint8Array | undefined {
     if (!this.mainRam || page >= this.mainRam.length) {
       return undefined;
     }
@@ -158,7 +158,7 @@ export class Board {
     return this.mainRam[page];
   }
 
-  public setMainRam(ramPages: Array<Array<number>>): void {
+  public setMainRam(ramPages: Array<Uint8Array>): void {
     this.mainRam = ramPages;
   }
 
@@ -178,5 +178,5 @@ export class Board {
   private audioManager: AudioManager;
   private z80: Z80;
   private interruptMask = 0;
-  private mainRam?: Array<Array<number>>;
+  private mainRam?: Array<Uint8Array>;
 }

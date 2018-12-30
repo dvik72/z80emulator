@@ -53,7 +53,7 @@ const LMMM_TIMING = [129, 197, 129, 132, 0, 0, 0, 0];
 export class V9938Cmd {
   public constructor(
     private board: Board,
-    private vram: Array<number>
+    private vram: Uint8Array
   ){
   }
 

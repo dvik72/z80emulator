@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-const EMPTY_RAM: number[] = new Array<number>(0x4000);
+const EMPTY_RAM = new Uint8Array(0x4000);
 
 export class Slot {
   constructor(
@@ -29,7 +29,7 @@ export class Slot {
     this.ejectCb = ejectCb;
   }
 
-  map(readEnable: boolean, writeEnable: boolean, pageData?: number[]) {
+  map(readEnable: boolean, writeEnable: boolean, pageData?: Uint8Array) {
     this.pageData = pageData ? pageData : EMPTY_RAM;
     this.writeEnable = writeEnable;
     this.readEnable = readEnable;

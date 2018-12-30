@@ -27,7 +27,7 @@ export class MapperRamNormal extends Mapper {
 
     let pages = size / 0x2000;
     while (pages--) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = 0xff;
       }

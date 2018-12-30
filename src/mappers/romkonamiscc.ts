@@ -34,7 +34,7 @@ export class MapperRomKonamiScc extends Mapper {
 
     this.pages = [];
     for (let romOffset = 0; romOffset < size;) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
         romOffset++;
@@ -87,7 +87,7 @@ export class MapperRomKonamiScc extends Mapper {
   }
 
   private romMask = 0;
-  private pages: Array<Array<number>>;
+  private pages: Array<Uint8Array>;
   private slotInfo = new Array<Slot>(4);
   private romMapper = [0, 1, 2, 3];
   private scc: Scc;

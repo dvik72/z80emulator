@@ -165,7 +165,7 @@ export class Vdp {
       this.palValue = 0x00;
     }
 
-    this.vram = new Array<number>(this.vramSize);
+    this.vram = new Uint8Array(this.vramSize);
     for (let i = 0; i < 0x4000; i++) {
       this.vram[i] = 0;
     }
@@ -955,9 +955,9 @@ export class Vdp {
 
   private initPalette(): void {
     for (let y = 0; y < 32; y++) {
-      this.yjkColor[y] = new Array<Array<number>>(64);
+      this.yjkColor[y] = new Array<Uint16Array>(64);
       for (let J = 0; J < 64; J++) {
-        this.yjkColor[y][J] = new Array<number>(64);
+        this.yjkColor[y][J] = new Uint16Array(64);
         for (let K = 0; K < 64; K++) {
           let j = (J & 0x1f) - (J & 0x20);
           let k = (K & 0x1f) - (K & 0x20);
@@ -1079,7 +1079,7 @@ export class Vdp {
     this.spriteLineOffset = 32;
   }
 
-  private clearSpriteLine(spriteLine: Array<number>): void {
+  private clearSpriteLine(spriteLine: Uint8Array): void {
     for (let i = 0; i < 384; i++) {
       spriteLine[i] = 0;
     }
@@ -2258,9 +2258,9 @@ export class Vdp {
   private vdpDataLatch = 0;
   private vramAddress = 0;
   private screenMode = 1;
-  private regs = new Array<number>(64);
-  private status = new Array<number>(16);
-  private paletteReg = new Array<number>(16);
+  private regs = new Uint8Array(64);
+  private status = new Uint8Array(16);
+  private paletteReg = new Uint16Array(16);
 
   private scanLineCount = 0;
   private frameStartTime = 0;
@@ -2305,19 +2305,19 @@ export class Vdp {
   private drawAreaEndTimer: Timer;
 
   // Palettes
-  private paletteFixed = new Array<number>(256);
-  private paletteSprite8 = new Array<number>(16);
+  private paletteFixed = new Uint16Array(256);
+  private paletteSprite8 = new Uint16Array(16);
   private palette0 = 0;
-  private palette = new Array<number>(16);
-  private yjkColor = new Array<Array<Array<number>>>(32);
+  private palette = new Uint16Array(16);
+  private yjkColor = new Array<Array<Uint16Array>>(32);
 
   // Sprites
   private spriteLineIndex = 0;
-  private spriteLines = [new Array<number>(384), new Array<number>(384)];
+  private spriteLines = [new Uint8Array(384), new Uint8Array(384)];
   private spriteLine = this.spriteLines[0];
-  private spriteCollision = new Array<number>(384);
-  private spriteCurrentLine = new Array<number>(33);
-  private spriteAttribOffsets = new Array<number>(33);
+  private spriteCollision = new Uint8Array(384);
+  private spriteCurrentLine = new Uint8Array(33);
+  private spriteAttribOffsets = new Uint8Array(33);
   private spriteAttributes = new Array<SpriteAttribute>(33);
   private spriteLineOffset = 0;
 
@@ -2331,7 +2331,7 @@ export class Vdp {
   private scrollIndex = 0;
 
   // Video RAM
-  private vram: number[];
+  private vram: Uint8Array;
 
   // Frame buffers
   private frameOffset = 0;

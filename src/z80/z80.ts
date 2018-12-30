@@ -390,7 +390,6 @@ export class Z80 {
 
   yyyyEnable = 0;
   yyyy = 0; // TODO: Debug support
-  ihist = new Array<number>(2048);
 
   // Executes CPU instructions until the stopExecution method is called.
   public execute(cpuCycles?: number): void {
@@ -435,35 +434,6 @@ export class Z80 {
           }
           this.yyyy += 1||this.yyyyEnable;
         }
-      }
-
-      if (0) {
-        let pc = this.regs.PC.get();
-        let val = this.readMemCb(pc++);
-        switch (val) {
-          case 0xcb:
-            val = 256 + this.readMemCb(pc++);
-            break;
-          case 0xed:
-            val = 512 + this.readMemCb(pc++);
-            break;
-          case 0xdd:
-            val = 768 + this.readMemCb(pc++);
-        }
-        if (!this.ihist[val]) {
-          this.ihist[val] = 1;
-          const dasm = new Z80Dasm(this.readMemCb);
-          const asm = dasm.dasm(this.regs.PC.get());
-          const regs =
-            ' AF:' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC:' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
-            ' DE:' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL:' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
-            ' IX:' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY:' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
-            ' PC:' + ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ' SH:' + ('0000' + this.regs.SH.get().toString(16)).slice(-4) +
-            ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2) +
-            ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
-          console.log(asm + ' ' + regs + 'IC: ' + this.yyyy);
-        }
-        this.yyyy++;
       }
 
       this.executeInstruction(this.readOpcode());
@@ -549,10 +519,10 @@ export class Z80 {
 
   private delay: Z80Delay = new Z80Delay();
 
-  private ZSXYTable: number[] = new Array<number>(256);
-  private ZSPXYTable: number[] = new Array<number>(256);
-  private ZSPHTable: number[] = new Array<number>(256);
-  private DAATable: number[] = new Array<number>(0x800);
+  private ZSXYTable = new Uint8Array(256);
+  private ZSPXYTable = new Uint8Array(256);
+  private ZSPHTable = new Uint8Array(256);
+  private DAATable = new Uint16Array(0x800);
 
   // Callback functions for reading and writing memory and IO
   private readMemCb: (a: number) => number;

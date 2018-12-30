@@ -27,7 +27,7 @@ export class MapperRomBasic extends Mapper {
     let romOffset = 0;
 
     for (let page = 4; page < 8; page++) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
         romOffset++;

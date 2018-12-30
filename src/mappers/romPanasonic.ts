@@ -35,7 +35,7 @@ export class MapperRomPanasonic extends Mapper {
 
     this.pages = [];
     for (let romOffset = 0; romOffset < romData.length;) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
         romOffset++;
@@ -47,7 +47,7 @@ export class MapperRomPanasonic extends Mapper {
 
     this.sram = [];
     for (let offset = 0; offset < this.sramSize; offset += 0x2000) {
-      let sramData = new Array<number>(0x2000);
+      let sramData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         sramData[i] = 0xff;
       }
@@ -187,12 +187,12 @@ export class MapperRomPanasonic extends Mapper {
   }
 
 
-  private sram: Array<Array<number>>;
+  private sram: Array<Uint8Array>;
   private maxSRAMBank = 0;
   private control = 0;
   private slotInfo: Array<Slot>;
-  private pages: Array<Array<number>>;
-  private readBlock?: Array<number>;
+  private pages: Array<Uint8Array>;
+  private readBlock?: Uint8Array;
   private romMapper = [0, 0, 0, 0, 0, 0, 0, 0];
 }
 

@@ -36,7 +36,7 @@ export class MapperRomTc8566af extends Mapper {
     const pageCount = (romData.length + 0x3fff) >> 14;
     this.pages = [];
     for (let romOffset = 0; romOffset < 0x4000 * pageCount;) {
-      let pageData = new Array<number>(0x2000);
+      let pageData = new Uint8Array(0x2000);
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = romOffset < romData.length ? romData[romOffset] : 0xff;
         romOffset++;
@@ -132,7 +132,7 @@ export class MapperRomTc8566af extends Mapper {
   }
 
   private tc8566af: Tc8566af;
-  private pages: Array<Array<number>>;
+  private pages: Array<Uint8Array>;
   private slotInfo = new Array<Slot>(4);
   private mappedPage = 0;
 }
