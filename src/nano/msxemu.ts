@@ -17,86 +17,21 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Machine } from '../machines/machine';
-import { PanasonicFsA1 } from '../machines/msx2/panasonic_fs_a1'; 
-import { PhilipsVg8020 } from '../machines/msx/philips_vg_8020';
-import { GenericMsx2 } from '../machines/msx2/genericmsx2';
-import { GenericMsx2Plus } from '../machines/msx2plus/genericmsx2plus';
-import { PanasonicFsA1Wsx } from '../machines/msx2plus/panasonic_fs_a1wsx';
-import { PanasonicFsA1Gt } from '../machines/msxtr/panasonicfsa1gt';
-
+import { MachineManager } from '../machines/machinemanager';
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
 
 import { DiskManager } from '../disk/diskmanager';
 
-import { gameRom } from './gamerom';
-
-// Emulates MSX1 and MSX2 systems
 export class MsxEmu {
   constructor() {
     this.runStep = this.runStep.bind(this);
     this.refreshScreen = this.refreshScreen.bind(this);
-
-    this.createMachineMenu();
-  }
-
-  private createMachineMenu(): void {
-    const machinesDiv = document.getElementById('machines')
-    for (const machineName of [
-      PhilipsVg8020.NAME,
-      GenericMsx2.NAME,
-      PanasonicFsA1.NAME,
-      GenericMsx2Plus.NAME,
-      PanasonicFsA1Wsx.NAME,
-      PanasonicFsA1Gt.NAME
-    ]) {
-      const machineItem = '<a class="dropdown-item" href="#" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</a>';
-      machinesDiv!.innerHTML += machineItem;
-    }
-  }
-
-  private runMachine(event: CustomEvent): void {
-    this.setMachine(event.detail);
-  }
-
-  private setMachine(machineName: string): void {
-    let machineDiv = document.getElementById('machine-' + this.machineName);
-    machineDiv!.classList.remove('active');
-
-    switch (machineName) {
-      case PhilipsVg8020.NAME:
-        this.machine = new PhilipsVg8020(this.webAudio, this.diskManager);
-        break;
-      case GenericMsx2.NAME:
-        this.machine = new GenericMsx2(this.webAudio, this.diskManager);
-        break;
-      case PanasonicFsA1.NAME:
-        this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
-        break;
-      case GenericMsx2Plus.NAME:
-        this.machine = new GenericMsx2Plus(this.webAudio, this.diskManager);
-        break;
-      case PanasonicFsA1Wsx.NAME:
-        this.machine = new PanasonicFsA1Wsx(this.webAudio, this.diskManager);
-        break;
-      case PanasonicFsA1Gt.NAME:
-        this.machine = new PanasonicFsA1Gt(this.webAudio, this.diskManager);
-        break;
-      default:
-        this.machine = new GenericMsx2(this.webAudio, this.diskManager);
-        machineName = GenericMsx2.NAME;
-        break;
-    }
-    this.machineName = machineName;
-    machineDiv = document.getElementById('machine-' + this.machineName);
-    machineDiv!.classList.add('active');
-
-    this.stopEmulation();
-    this.machine.notifyWhenLoaded(this.startEmulation.bind(this));
   }
 
   public run(): void {
+    document.addEventListener('setmachine', this.changeMachine.bind(this));
     document.addEventListener('reset', this.resetEmulation.bind(this));
     document.addEventListener('file', this.fileEvent.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
@@ -106,11 +41,37 @@ export class MsxEmu {
     document.addEventListener('dragenter', (event) => { event.preventDefault(); });
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
 
-    //this.romMedia = this.mediaInfoFactory.mediaInfoFromData(new Uint8Array(gameRom));
+    this.createMachineMenu();
 
-    this.setMachine(this.machineName);
-
+    this.setMachine(this.machineManager.getDefaultMachineName());
+    
     requestAnimationFrame(this.refreshScreen);
+  }
+
+  private createMachineMenu(): void {
+    const machinesDiv = document.getElementById('machines')
+    for (const machineName of this.machineManager.getMachineNames()) {
+      const machineItem = '<a class="dropdown-item" href="#" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</a>';
+      machinesDiv!.innerHTML += machineItem;
+    }
+  }
+
+  private changeMachine(event: CustomEvent): void {
+    this.setMachine(event.detail);
+  }
+
+  private setMachine(machineName: string): void {
+    console.log("Set Machine " + machineName);
+    if (this.machine) {
+      const oldMachineDiv = document.getElementById('machine-' + this.machine!.getName());
+      oldMachineDiv!.classList.remove('active');
+    }
+    this.machine = this.machineManager.createMachine(machineName);
+    const newMachineDiv = document.getElementById('machine-' + this.machine!.getName());
+    newMachineDiv!.classList.add('active');
+
+    this.stopEmulation();
+    this.machine!.notifyWhenLoaded(this.startEmulation.bind(this));
   }
 
   private loadMedia(slot: number, type: MediaType, file: File): void {
@@ -202,9 +163,6 @@ export class MsxEmu {
     this.machine.init();
     this.machine.reset();
     
-    //this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, new Uint8Array(gameRom));
-    //this.diskManager.insertFloppyImage(0, this.diskMedia.data);
-
     // Insert cartridge rom if present
     if (this.romMedia[0]) {
       this.machine.insertRomMedia(this.romMedia[0], 0);
@@ -331,10 +289,9 @@ export class MsxEmu {
   private glRenderer = new WebGlRenderer();
   private webAudio = new WebAudio();
   private diskManager = new DiskManager();
+  private machineManager = new MachineManager(this.webAudio, this.diskManager);
 
   private diskMedia?: MediaInfo;
   private romMedia = new Array<MediaInfo>(2);
   private mediaInfoFactory = new MediaInfoFactory();
-
-  private machineName = GenericMsx2.NAME;
 }

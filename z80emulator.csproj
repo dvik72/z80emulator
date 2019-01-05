@@ -74,6 +74,7 @@
     <TypeScriptCompile Include="src\io\msxmidi.ts" />
     <TypeScriptCompile Include="src\io\rtc.ts" />
     <TypeScriptCompile Include="src\machines\machine.ts" />
+    <TypeScriptCompile Include="src\machines\machinemanager.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\genericmsx2plus.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\msx2plusbase.ts" />
     <TypeScriptCompile Include="src\machines\msx2plus\panasonic_fs_a1wsx.ts" />
