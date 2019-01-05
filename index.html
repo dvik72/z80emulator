@@ -1,13 +1,79 @@
 ﻿<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>blueMSX Live</title>
-  <link rel="stylesheet" href="app.css" type="text/css" />
-  <script data-main="src/webapp/webappboot" type="text/javascript" src="lib/require.js"></script>
+    <meta charset="utf-8" />
+    <title>blueMSX Live</title>
+    <link rel="stylesheet" href="app.css" type="text/css" />
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    <script data-main="src/webapp/webappboot" type="text/javascript" src="lib/require.js"></script>
 </head>
 <body style="background-color:#36363a">
+
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#"
+                       onclick="javascript: document.dispatchEvent(new Event('reset'));">Reset<span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarMenuLinkCartA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Cart 1
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarMenuLinkCartA">
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-carta' }));">Insert</a>
+                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                        <a class="dropdown-item" href="#">Rom Type</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarMenuLinkCartB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Cart 2
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarMenuLinkCartB">
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cartb' }));">Insert</a>
+                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                        <a class="dropdown-item" href="#">Rom Type</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarMenuLinkDiskA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Disk A
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarMenuLinkDiskA">
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-diska' }));">Insert</a>
+                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarMenuLinkDiskB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Disk B
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarMenuLinkDiskB">
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-diskb' }));">Insert</a>
+                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarMenuLinkMachine" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Machine
+                    </a>
+                    <div class="dropdown-menu" id="machines" aria-labelledby="navbarMenuLinkMachine">
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <canvas id="emuCanvas" width="640" height="480"></canvas>
     <div><span id="cpuusage"></span></div>
     <div><span id="info"></span></div>
+
+    <input type="file" id="fileLoader" name="files" title="Load File" style="display: none;" />
 </body>
 </html>

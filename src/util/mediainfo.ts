@@ -25,6 +25,9 @@ export enum MediaType {
   // Disk Media
   FLOPPY = 'Floppy Disk',
 
+  // Generic Cartridge
+  ROM = 'Cartridge',
+
   // Cartridge Media
   NORMAL_0x0000 = 'Normal',
   NORMAL_0x4000 = 'Normal - 0x4000',

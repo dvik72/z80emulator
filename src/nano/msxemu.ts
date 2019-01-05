@@ -37,24 +37,160 @@ export class MsxEmu {
   constructor() {
     this.runStep = this.runStep.bind(this);
     this.refreshScreen = this.refreshScreen.bind(this);
+
+    this.createMachineMenu();
   }
-  
-  run(): void {
-    document.addEventListener('keydown', this.keyDown.bind(this));
+
+  private createMachineMenu(): void {
+    const machinesDiv = document.getElementById('machines')
+    for (const machineName of [
+      PhilipsVg8020.NAME,
+      GenericMsx2.NAME,
+      PanasonicFsA1.NAME,
+      GenericMsx2Plus.NAME,
+      PanasonicFsA1Wsx.NAME,
+      PanasonicFsA1Gt.NAME
+    ]) {
+      const machineItem = '<a class="dropdown-item" href="#" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</a>';
+      machinesDiv!.innerHTML += machineItem;
+    }
+  }
+
+  private runMachine(event: CustomEvent): void {
+    this.setMachine(event.detail);
+  }
+
+  private setMachine(machineName: string): void {
+    let machineDiv = document.getElementById('machine-' + this.machineName);
+    machineDiv!.classList.remove('active');
+
+    switch (machineName) {
+      case PhilipsVg8020.NAME:
+        this.machine = new PhilipsVg8020(this.webAudio, this.diskManager);
+        break;
+      case GenericMsx2.NAME:
+        this.machine = new GenericMsx2(this.webAudio, this.diskManager);
+        break;
+      case PanasonicFsA1.NAME:
+        this.machine = new PanasonicFsA1(this.webAudio, this.diskManager);
+        break;
+      case GenericMsx2Plus.NAME:
+        this.machine = new GenericMsx2Plus(this.webAudio, this.diskManager);
+        break;
+      case PanasonicFsA1Wsx.NAME:
+        this.machine = new PanasonicFsA1Wsx(this.webAudio, this.diskManager);
+        break;
+      case PanasonicFsA1Gt.NAME:
+        this.machine = new PanasonicFsA1Gt(this.webAudio, this.diskManager);
+        break;
+      default:
+        this.machine = new GenericMsx2(this.webAudio, this.diskManager);
+        machineName = GenericMsx2.NAME;
+        break;
+    }
+    this.machineName = machineName;
+    machineDiv = document.getElementById('machine-' + this.machineName);
+    machineDiv!.classList.add('active');
+
+    this.stopEmulation();
+    this.machine.notifyWhenLoaded(this.startEmulation.bind(this));
+  }
+
+  public run(): void {
+    document.addEventListener('reset', this.resetEmulation.bind(this));
+    document.addEventListener('file', this.fileEvent.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
     document.addEventListener('drop', this.drop.bind(this));
     document.addEventListener('click', () => { this.webAudio.resume(); });
     document.addEventListener('dragover', (event) => { event.preventDefault(); });
     document.addEventListener('dragenter', (event) => { event.preventDefault(); });
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
-   
-    this.machine = new PanasonicFsA1Gt(this.webAudio, this.diskManager);
 
     //this.romMedia = this.mediaInfoFactory.mediaInfoFromData(new Uint8Array(gameRom));
 
-    this.machine.notifyWhenLoaded(this.startEmulation.bind(this));
+    this.setMachine(this.machineName);
 
     requestAnimationFrame(this.refreshScreen);
+  }
+
+  private loadMedia(slot: number, type: MediaType, file: File): void {
+    if (type == MediaType.UNKNOWN) {
+      if (file.name.slice(-3).toLowerCase() == 'dsk') {
+        type = MediaType.FLOPPY;
+      }
+      if (file.name.slice(-3).toLowerCase() == 'rom') {
+        type = MediaType.ROM;
+      }
+    }
+
+    let reader = new FileReader();
+    reader.onloadend = () => {
+      if (reader.result) {
+        if (reader.result instanceof ArrayBuffer) {
+          this.mediaLoaded(file.name, type, slot, new Uint8Array(reader.result));
+        }
+        else {
+          let data = new Uint8Array(reader.result.length);
+          for (let i = 0; i < reader.result.length; i++) {
+            data[i] = reader.result.charCodeAt(i);
+          }
+          this.mediaLoaded(file.name, type, slot, data);
+        }
+      }
+    }
+    reader.readAsBinaryString(file);
+  }
+
+  private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array): void {
+    if (type == MediaType.FLOPPY) {
+      this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, data);
+      this.diskManager.insertFloppyImage(slot, this.diskMedia.data);
+    }
+    if (type == MediaType.ROM) {
+      this.romMedia[slot] = this.mediaInfoFactory.mediaInfoFromData(data);
+      this.stopEmulation();
+      this.startEmulation();
+    }
+  }
+
+  private fileEvent(event: CustomEvent): void {
+    let slot = 0;
+    let type = MediaType.FLOPPY;
+
+    switch (event.detail) {
+      case 'insert-carta': {
+        slot = 0;
+        type = MediaType.ROM;
+        break;
+      }
+      case 'insert-cartb': {
+        slot = 1;
+        type = MediaType.ROM;
+        break;
+      }
+      case 'insert-diska': {
+        slot = 0;
+        type = MediaType.FLOPPY;
+        break;
+      }
+      case 'insert-diskb': {
+        slot = 1;
+        type = MediaType.FLOPPY;
+        break;
+      }
+    }
+
+    const element = document.getElementById('fileLoader');
+    element!.onchange = (event) => {
+      if (event.target instanceof HTMLInputElement) {
+        const file = (<any>event.target.files)[0];
+        if (file instanceof File) {
+          this.loadMedia(slot, type, file);
+        }
+      }
+    };
+
+    element!.click();
   }
 
   private startEmulation() {
@@ -70,19 +206,23 @@ export class MsxEmu {
     //this.diskManager.insertFloppyImage(0, this.diskMedia.data);
 
     // Insert cartridge rom if present
-    if (this.romMedia) {
-      this.machine.insertRomMedia(this.romMedia);
+    if (this.romMedia[0]) {
+      this.machine.insertRomMedia(this.romMedia[0], 0);
+    }
+    if (this.romMedia[1]) {
+      this.machine.insertRomMedia(this.romMedia[1], 1);
     }
 
     // Display cartridge info
     let info = '<br>No cartridge inserted. Drag rom file onto page to insert...';
-    if (this.romMedia) {
+    if (this.romMedia[0]) {
+      const romMedia = this.romMedia[0];
       info = '<br>';
-      info += '<br>Game title: ' + this.romMedia.title;
-      info += '<br>Company: ' + this.romMedia.company;
-      info += '<br>Year: ' + this.romMedia.year;
-      info += '<br>Country: ' + this.romMedia.country;
-      info += '<br>Cartridge type: ' + this.romMedia.type;
+      info += '<br>Game title: ' + romMedia.title;
+      info += '<br>Company: ' + romMedia.company;
+      info += '<br>Year: ' + romMedia.year;
+      info += '<br>Country: ' + romMedia.country;
+      info += '<br>Cartridge type: ' + romMedia.type;
     }
     const element = document.getElementById('info');
     if (element) {
@@ -101,6 +241,11 @@ export class MsxEmu {
 
   private stopEmulation(): void {
     this.isRunning = false;
+  }
+  
+  private resetEmulation(): void {
+    this.stopEmulation();
+    this.startEmulation();
   }
 
   private runStep(): void {
@@ -156,39 +301,12 @@ export class MsxEmu {
       if (event.dataTransfer.items.length == 1 && event.dataTransfer.items[0].kind === 'file') {
         const file = event.dataTransfer.items[0].getAsFile();
         if (file instanceof File) {
-          let reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result) {
-              if (reader.result instanceof ArrayBuffer) {
-                this.fileLoaded(file.name, new Uint8Array(reader.result));
-              }
-              else {
-                let data = new Uint8Array(reader.result.length);
-                for (let i = 0; i < reader.result.length; i++) {
-                  data[i] = reader.result.charCodeAt(i);
-                }
-                this.fileLoaded(file.name, data);
-              }
-            }
-          }
-          reader.readAsBinaryString(file);
+          this.loadMedia(0, MediaType.UNKNOWN, file);
         }
       }
     }
   }
 
-  private fileLoaded(filename: string, data: Uint8Array): void {
-    if (filename.slice(-3).toLowerCase() == 'dsk') {
-      this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, data);
-      this.diskManager.insertFloppyImage(0, this.diskMedia.data);
-    }
-    else {
-      this.romMedia = this.mediaInfoFactory.mediaInfoFromData(data);
-      this.stopEmulation();
-      this.startEmulation();
-    }
-  }
-  
   private keyDown(event: KeyboardEvent): void {
     event.preventDefault();
     this.machine && this.machine.keyDown(event.code);
@@ -215,8 +333,8 @@ export class MsxEmu {
   private diskManager = new DiskManager();
 
   private diskMedia?: MediaInfo;
-  private romMedia?: MediaInfo;
+  private romMedia = new Array<MediaInfo>(2);
   private mediaInfoFactory = new MediaInfoFactory();
 
-
+  private machineName = GenericMsx2.NAME;
 }
