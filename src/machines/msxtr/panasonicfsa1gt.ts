@@ -32,7 +32,7 @@ import { MapperRomPanasonicDram } from '../../mappers/rompanasonicdram';
 import { MapperKanji } from '../../mappers/romkanji';
 import { MapperSramMatsuchita } from '../../mappers/srammatsushita';
 import { MapperMsxMusic } from '../../mappers/rommsxmusic';
-import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romTc8566af';
+import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romtc8566af';
 import { MapperRomPanasonic } from '../../mappers/rompanasonic';
 
 

@@ -23,12 +23,9 @@ import { DiskManager } from '../../disk/diskmanager';
 import { MapperF4Device } from '../../mappers/f4device';
 import { MapperRamMapped } from '../../mappers/rammapped';
 import { MapperRomNormal } from '../../mappers/romnormal';
-import { MapperSramS1985 } from '../../mappers/srams1985';
 import { MapperKanji } from '../../mappers/romkanji';
-import { MapperSramMatsuchita } from '../../mappers/srammatsushita';
 import { MapperMsxMusic } from '../../mappers/rommsxmusic';
-import { MapperRomPanasonic } from '../../mappers/rompanasonic';
-import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romTc8566af';
+import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romtc8566af';
 
 
 export class GenericMsx2Plus extends Msx2PlusBase {

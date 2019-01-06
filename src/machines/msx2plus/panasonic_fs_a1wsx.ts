@@ -28,7 +28,7 @@ import { MapperKanji } from '../../mappers/romkanji';
 import { MapperSramMatsuchita } from '../../mappers/srammatsushita';
 import { MapperMsxMusic } from '../../mappers/rommsxmusic';
 import { MapperRomPanasonic } from '../../mappers/rompanasonic';
-import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romTc8566af';
+import { MapperRomTc8566af, Tc8566AfIo } from '../../mappers/romtc8566af';
 
 
 export class PanasonicFsA1Wsx extends Msx2PlusBase {

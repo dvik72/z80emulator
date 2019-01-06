@@ -95,7 +95,7 @@
     <TypeScriptCompile Include="src\mappers\rompanasonic.ts" />
     <TypeScriptCompile Include="src\mappers\rompanasonicdram.ts" />
     <TypeScriptCompile Include="src\mappers\romphilipsfdc.ts" />
-    <TypeScriptCompile Include="src\mappers\romTc8566af.ts" />
+    <TypeScriptCompile Include="src\mappers\romtc8566af.ts" />
     <TypeScriptCompile Include="src\mappers\s1990.ts" />
     <TypeScriptCompile Include="src\mappers\srammatsushita.ts" />
     <TypeScriptCompile Include="src\mappers\srams1985.ts" />
