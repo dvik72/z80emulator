@@ -34,22 +34,31 @@ import { MapperRomHarryFox } from './romharryfox';
 import { MapperRomNormal } from './romnormal';
 
 
-export function getSupportedCartridgeTypes(): Array<string> {
+export function getSupportedCartridgeTypeNames(): Array<string> {
+  let typeNames = new Array<string>();
+  for (const mediaType of getSupportedCartridgeTypes()) {
+    typeNames.push(mediaType.toString());
+  }
+  return typeNames;
+}
+
+
+export function getSupportedCartridgeTypes(): Array<MediaType> {
   return [
-    MediaType.UNKNOWN.toString(),
-    MediaType.ASCII8.toString(),
-    MediaType.ASCII8SRAM.toString(),
-    MediaType.ASCII16.toString(),
-    MediaType.ASCII16SRAM.toString(),
-    MediaType.KONAMI.toString(),
-    MediaType.KONAMISCC.toString(),
-    MediaType.NORMAL_0x4000.toString(),
-    MediaType.BASIC.toString(),
-    MediaType.NORMAL_MIRRORED.toString(),
-    MediaType.RTYPE.toString(),
-    MediaType.GAMEMASTER2.toString(),
-    MediaType.CROSSBLAIM.toString(),
-    MediaType.HARRYFOX.toString()
+    MediaType.UNKNOWN,
+    MediaType.ASCII8,
+    MediaType.ASCII8SRAM,
+    MediaType.ASCII16,
+    MediaType.ASCII16SRAM,
+    MediaType.KONAMI,
+    MediaType.KONAMISCC,
+    MediaType.NORMAL_0x4000,
+    MediaType.BASIC,
+    MediaType.NORMAL_MIRRORED,
+    MediaType.RTYPE,
+    MediaType.GAMEMASTER2,
+    MediaType.CROSSBLAIM,
+    MediaType.HARRYFOX
   ];
 }
 

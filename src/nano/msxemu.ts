@@ -21,7 +21,7 @@ import { MachineManager } from '../machines/machinemanager';
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
-import { getSupportedCartridgeTypes } from '../mappers/mapperfactory';
+import { getSupportedCartridgeTypes, getSupportedCartridgeTypeNames } from '../mappers/mapperfactory';
 
 import { DiskManager } from '../disk/diskmanager';
 
@@ -36,6 +36,7 @@ export class MsxEmu {
     document.addEventListener('reset', this.resetEmulation.bind(this));
     document.addEventListener('file', this.fileEvent.bind(this));
     document.addEventListener('eject', this.ejectEvent.bind(this));
+    document.addEventListener('setcarttype', this.setCartType.bind(this));
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
     document.addEventListener('drop', this.drop.bind(this));
@@ -63,9 +64,9 @@ export class MsxEmu {
   private createCartTypeMenu(): void {
     const cartADiv = document.getElementById('type-cart0');
     const cartBDiv = document.getElementById('type-cart1');
-    for (const cartType of getSupportedCartridgeTypes()) {
-      const cartItemA = '<button class="dropdown-item" type="button" id="type0-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: \'[0, ' + cartType + ']\'}));">' + cartType + '</button>';
-      const cartItemB = '<button class="dropdown-item" type="button" id="type1-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: \'[1, ' + cartType + ']\'}));">' + cartType + '</button>';
+    for (const cartType of getSupportedCartridgeTypeNames()) {
+      const cartItemA = '<button class="dropdown-item" type="button" id="type0-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: [0, \'' + cartType + '\']}));">' + cartType + '</button>';
+      const cartItemB = '<button class="dropdown-item" type="button" id="type1-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: [1, \'' + cartType + '\']}));">' + cartType + '</button>';
       cartADiv!.innerHTML += cartItemA;
       cartBDiv!.innerHTML += cartItemB;
     }
@@ -132,7 +133,7 @@ export class MsxEmu {
 
       if (oldMediaInfo) {
         let typeName = oldMediaInfo.type.toString();
-        if (getSupportedCartridgeTypes().indexOf(typeName) < 0) {
+        if (getSupportedCartridgeTypeNames().indexOf(typeName) < 0) {
           typeName = MediaType.UNKNOWN.toString();
         }
         const typeMenuId = 'type' + slot + '-' + typeName;
@@ -141,7 +142,7 @@ export class MsxEmu {
       }
 
       let typeName = mediaInfo.type.toString();
-      if (getSupportedCartridgeTypes().indexOf(typeName) < 0) {
+      if (getSupportedCartridgeTypeNames().indexOf(typeName) < 0) {
         typeName = MediaType.UNKNOWN.toString();
       }
       const typeMenuId = 'type' + slot + '-' + typeName;
@@ -154,6 +155,38 @@ export class MsxEmu {
     if (ejectMenuId.length > 0) {
       const menuItemDiv = document.getElementById(ejectMenuId);
       (<HTMLButtonElement>menuItemDiv!).disabled = false;
+    }
+  }
+
+  private setCartType(event: CustomEvent): void {
+    const slot = event.detail[0];
+    const newTypeName = event.detail[1];
+    const mediaInfo = this.romMedia[+slot];
+    if (mediaInfo) {
+      let typeName = mediaInfo.type.toString();
+      mediaInfo.type = MediaType.UNKNOWN;
+      for (const validType of getSupportedCartridgeTypes()) {
+        if (validType.toString() == newTypeName) {
+          mediaInfo.type = validType;
+        }
+      }
+      this.resetEmulation();
+      
+      if (getSupportedCartridgeTypeNames().indexOf(typeName) < 0) {
+        typeName = MediaType.UNKNOWN.toString();
+      }
+      let typeMenuId = 'type' + slot + '-' + typeName;
+      let typeItemDiv = document.getElementById(typeMenuId);
+      typeItemDiv && (<HTMLButtonElement>typeItemDiv!).classList.remove('active');
+
+      typeName = mediaInfo.type.toString();
+      if (getSupportedCartridgeTypeNames().indexOf(typeName) < 0) {
+        typeName = MediaType.UNKNOWN.toString();
+      }
+      typeMenuId = 'type' + slot + '-' + typeName;
+      typeItemDiv = document.getElementById(typeMenuId);
+      typeItemDiv && (<HTMLButtonElement>typeItemDiv!).classList.add('active');
+
     }
   }
 
