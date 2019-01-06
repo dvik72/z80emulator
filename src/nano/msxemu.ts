@@ -44,6 +44,7 @@ export class MsxEmu {
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
 
     this.createMachineMenu();
+    this.createCartTypeMenu();
 
     this.setMachine(this.machineManager.getDefaultMachineName());
     
@@ -51,11 +52,16 @@ export class MsxEmu {
   }
 
   private createMachineMenu(): void {
-    const machinesDiv = document.getElementById('machines')
+    const machinesDiv = document.getElementById('machines-menu');
     for (const machineName of this.machineManager.getMachineNames()) {
-      const machineItem = '<a class="dropdown-item" href="#" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</a>';
+      const machineItem = '<button class="dropdown-item" type="button" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</button>';
       machinesDiv!.innerHTML += machineItem;
     }
+  }
+
+  private createCartTypeMenu(): void {
+    const cartADiv = document.getElementById('type-cart0');
+    const cartBDiv = document.getElementById('type-cart1');
   }
 
   private changeMachine(event: CustomEvent): void {
@@ -119,7 +125,7 @@ export class MsxEmu {
 
     if (ejectMenuId.length > 0) {
       const menuItemDiv = document.getElementById(ejectMenuId);
-      menuItemDiv!.classList.remove('disabled');
+      (<HTMLButtonElement>menuItemDiv!).disabled = false;
     }
   }
 
@@ -146,7 +152,7 @@ export class MsxEmu {
     }
 
     const menuItemDiv = document.getElementById(event.detail);
-    menuItemDiv!.classList.add('disabled');
+    (<HTMLButtonElement>menuItemDiv!).disabled = true;
   }
 
   private fileEvent(event: CustomEvent): void {

@@ -57,6 +57,9 @@
     <TypeScriptSourceRoot />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="css\bootstrap-submenu.css" />
+    <Content Include="js\bootstrap-submenu.js" />
+    <Content Include="js\docs.js" />
     <Content Include="lib\require.js" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="tsconfig.json" />
