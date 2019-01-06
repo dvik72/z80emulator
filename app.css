@@ -8,14 +8,25 @@ span {
     color: #808080;
 }
 
+.col-fixed-40 {
+    background: #3b3b3b;
+    width: 40px;
+    height: 100%;
+    z-index: 1;
+}
+
+.col-fixed-640 {
+    background: #3b3b3b;
+    width: 640px;
+    height: 100%;
+    z-index: 1;
+}
+
 .cartmargin {
-    margin-left: 40px;
 }
 
 .diskmargin {
-    margin-left: 20px;
 }
 
 .settingsmargin {
-    margin-left: 390px;
 }
