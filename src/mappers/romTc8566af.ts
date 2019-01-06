@@ -25,11 +25,13 @@ import { Tc8566af } from '../disk/tc8566af';
 export enum Tc8566AfIo { MSX2, MSXTR };
 
 export class MapperRomTc8566af extends Mapper {
+  static NAME = 'Panasonic TC8566AF';
+
   constructor(
     private type: Tc8566AfIo,
     private diskManager: DiskManager,
     board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM TC8566AF');
+    super(MapperRomTc8566af.NAME);
 
     this.tc8566af = new Tc8566af(this.diskManager, board);
 

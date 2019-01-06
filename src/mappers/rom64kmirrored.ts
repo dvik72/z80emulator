@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRom64kMirrored extends Mapper {
+  static NAME = '64k Mirrored';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM 64k Mirrored');
+    super(MapperRom64kMirrored.NAME);
 
     // Align ROM size up to next valid rom size
     let size = 0x10000;

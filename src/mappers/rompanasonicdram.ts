@@ -22,12 +22,14 @@ import { Slot } from '../core/slotmanager';
 import { DramMapper } from '../core/drammanager';
 
 export class MapperRomPanasonicDram extends Mapper {
+  static NAME = 'Panasonic DRAM';
+
   constructor(
     private board: Board,
     private slot: number,
     private sslot: number,
     private startPage: number, romData: Uint8Array) {
-    super('Panasonic DRAM');
+    super(MapperRomPanasonicDram.NAME);
 
     const pages = (romData.length + 0x1fff) >> 13;
     const size = pages << 13;

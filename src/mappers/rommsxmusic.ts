@@ -23,8 +23,10 @@ import { Slot } from '../core/slotmanager';
 import { Ym2413 } from '../audio/ym2413';
 
 export class MapperMsxMusic extends Mapper {
+  static NAME = 'MSX MUsic';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('MSX MUsic');
+    super(MapperMsxMusic.NAME);
 
     let romOffset = 0;
 

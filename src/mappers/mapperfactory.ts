@@ -34,6 +34,25 @@ import { MapperRomHarryFox } from './romharryfox';
 import { MapperRomNormal } from './romnormal';
 
 
+export function getSupportedCartridgeTypes(): Array<string> {
+  return [
+    MediaType.UNKNOWN.toString(),
+    MediaType.ASCII8.toString(),
+    MediaType.ASCII8SRAM.toString(),
+    MediaType.ASCII16.toString(),
+    MediaType.ASCII16SRAM.toString(),
+    MediaType.KONAMI.toString(),
+    MediaType.KONAMISCC.toString(),
+    MediaType.NORMAL_0x4000.toString(),
+    MediaType.BASIC.toString(),
+    MediaType.NORMAL_MIRRORED.toString(),
+    MediaType.RTYPE.toString(),
+    MediaType.GAMEMASTER2.toString(),
+    MediaType.CROSSBLAIM.toString(),
+    MediaType.HARRYFOX.toString()
+  ];
+}
+
 export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: number, subslot: number): Mapper | undefined {
   switch (mediaInfo.type) {
     case MediaType.NORMAL_0x4000: return new MapperRomNormal(board, slot, subslot, 4, mediaInfo.data);

@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomNormal extends Mapper {
+  static NAME = 'Normal';
+
   constructor(board: Board, slot: number, sslot: number, startPage: number, romData: Uint8Array | number[]) {
-    super('ROM Normal');
+    super(MapperRomNormal.NAME);
 
     let pages = romData.length + 0x1fff >> 13;
     let romOffset = 0;

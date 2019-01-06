@@ -24,6 +24,8 @@ const SRAM_BASE = 0x80;
 const RAM_BASE = 0x180;
 
 export class MapperRomPanasonic extends Mapper {
+  static NAME = 'Panasonic';
+
   constructor(
     private board: Board,
     slot: number,
@@ -31,7 +33,7 @@ export class MapperRomPanasonic extends Mapper {
     private mappedPages: number,
     romData: Uint8Array,
     private sramSize: number) {
-    super('ROM Panasonic');
+    super(MapperRomPanasonic.NAME);
 
     this.pages = [];
     for (let romOffset = 0; romOffset < romData.length;) {

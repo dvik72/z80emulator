@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomRtype extends Mapper {
+  static NAME = 'R-Type';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM R-TYPE');
+    super(MapperRomRtype.NAME);
     
     this.pages = [];
     for (let romOffset = 0; romOffset < 0x60000;) {

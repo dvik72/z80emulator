@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 
 export class MapperKanji extends Mapper {
+  static NAME = 'Kanji';
+
   constructor(board: Board, private romData: Uint8Array) {
-    super('Kanji');
+    super(MapperKanji.NAME);
 
     board.getIoManager().registerPort(0xd8, new Port(this.read.bind(this), this.write.bind(this)));
     board.getIoManager().registerPort(0xd9, new Port(this.read.bind(this), this.write.bind(this)));

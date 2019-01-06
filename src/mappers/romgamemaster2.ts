@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomGameMaster2 extends Mapper {
+  static NAME = 'Game Master 2';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM Game Master 2');
+    super(MapperRomGameMaster2.NAME);
 
     this.pages = [];
     for (let romOffset = 0; romOffset < 0x20000;) {

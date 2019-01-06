@@ -23,8 +23,10 @@ import { DiskManager } from '../disk/diskmanager';
 import { Wd2793, Wd2793Type } from '../disk/wd2793';
 
 export class MapperRomPhilipsFdc extends Mapper {
+  static NAME = 'Philips WD2793';
+
   constructor(diskManager: DiskManager, board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM TC8566AF');
+    super(MapperRomPhilipsFdc.NAME);
 
     this.wd2793 = new Wd2793(diskManager, board, Wd2793Type.WD2793);
 

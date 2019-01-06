@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomAscii8 extends Mapper {
+  static NAME = 'ASCII-8';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM ASCII-8');
+    super(MapperRomAscii8.NAME);
     
     let size = 0x8000;
     while (size < romData.length) {

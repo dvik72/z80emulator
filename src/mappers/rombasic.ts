@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomBasic extends Mapper {
+  static NAME = 'Basic';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM Basic');
+    super(MapperRomBasic.NAME);
 
     let romOffset = 0;
 

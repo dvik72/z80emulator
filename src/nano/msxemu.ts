@@ -21,6 +21,7 @@ import { MachineManager } from '../machines/machinemanager';
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
+import { getSupportedCartridgeTypes } from '../mappers/mapperfactory';
 
 import { DiskManager } from '../disk/diskmanager';
 
@@ -62,6 +63,12 @@ export class MsxEmu {
   private createCartTypeMenu(): void {
     const cartADiv = document.getElementById('type-cart0');
     const cartBDiv = document.getElementById('type-cart1');
+    for (const cartType of getSupportedCartridgeTypes()) {
+      const cartItemA = '<button class="dropdown-item" type="button" id="type0-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: \'[0, ' + cartType + ']\'}));">' + cartType + '</button>';
+      const cartItemB = '<button class="dropdown-item" type="button" id="type1-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: \'[1, ' + cartType + ']\'}));">' + cartType + '</button>';
+      cartADiv!.innerHTML += cartItemA;
+      cartBDiv!.innerHTML += cartItemB;
+    }
   }
 
   private changeMachine(event: CustomEvent): void {
@@ -118,8 +125,29 @@ export class MsxEmu {
       ejectMenuId = 'eject-disk' + slot;
     }
     if (type == MediaType.ROM) {
-      this.romMedia[slot] = this.mediaInfoFactory.mediaInfoFromData(data);
+      const oldMediaInfo = this.romMedia[slot];
+      const mediaInfo = this.mediaInfoFactory.mediaInfoFromData(data);
+      this.romMedia[slot] = mediaInfo;
       ejectMenuId = 'eject-cart' + slot;
+
+      if (oldMediaInfo) {
+        let typeName = oldMediaInfo.type.toString();
+        if (getSupportedCartridgeTypes().indexOf(typeName) < 0) {
+          typeName = MediaType.UNKNOWN.toString();
+        }
+        const typeMenuId = 'type' + slot + '-' + typeName;
+        const typeItemDiv = document.getElementById(typeMenuId);
+        typeItemDiv && (<HTMLButtonElement>typeItemDiv!).classList.remove('active');
+      }
+
+      let typeName = mediaInfo.type.toString();
+      if (getSupportedCartridgeTypes().indexOf(typeName) < 0) {
+        typeName = MediaType.UNKNOWN.toString();
+      }
+      const typeMenuId = 'type' + slot + '-' + typeName;
+      const typeItemDiv = document.getElementById(typeMenuId);
+      typeItemDiv && (<HTMLButtonElement>typeItemDiv!).classList.add('active');
+
       this.resetEmulation();
     }
 

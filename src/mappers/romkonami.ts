@@ -21,8 +21,10 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
 export class MapperRomKonami extends Mapper {
+  static NAME = 'Konami';
+
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super('ROM Konami');
+    super(MapperRomKonami.NAME);
 
     let size = 0x8000;
     while (size < romData.length) {
