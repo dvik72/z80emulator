@@ -26,8 +26,8 @@
                         Cart 1
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarMenuLinkCartA">
-                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-carta' }));">Insert</a>
-                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart0' }));">Insert</a>
+                        <a class="dropdown-item disabled" id="eject-cart0" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart0' }));" tabindex="-1" aria-disabled="true">Eject</a>
                         <a class="dropdown-item" href="#">Rom Type</a>
                     </div>
                 </li>
@@ -36,8 +36,8 @@
                         Cart 2
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarMenuLinkCartB">
-                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cartb' }));">Insert</a>
-                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart1' }));">Insert</a>
+                        <a class="dropdown-item disabled" id="eject-cart1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart1' }));" href="#" tabindex="-1" aria-disabled="true">Eject</a>
                         <a class="dropdown-item" href="#">Rom Type</a>
                     </div>
                 </li>
@@ -46,8 +46,8 @@
                         Disk A
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarMenuLinkDiskA">
-                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-diska' }));">Insert</a>
-                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk0' }));">Insert</a>
+                        <a class="dropdown-item disabled" id="eject-disk0" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));" tabindex="-1" aria-disabled="true">Eject</a>
                     </div>
                 </li>
                 <li class="nav-item dropdown">
@@ -55,8 +55,8 @@
                         Disk B
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarMenuLinkDiskB">
-                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-diskb' }));">Insert</a>
-                        <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Eject</a>
+                        <a class="dropdown-item" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk1' }));">Insert</a>
+                        <a class="dropdown-item disabled" id="eject-disk1" href="#" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));" tabindex="-1" aria-disabled="true">Eject</a>
                     </div>
                 </li>
                 <li class="nav-item dropdown">

@@ -34,6 +34,8 @@ export class MsxEmu {
     document.addEventListener('setmachine', this.changeMachine.bind(this));
     document.addEventListener('reset', this.resetEmulation.bind(this));
     document.addEventListener('file', this.fileEvent.bind(this));
+    document.addEventListener('eject', this.ejectEvent.bind(this));
+    document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
     document.addEventListener('drop', this.drop.bind(this));
     document.addEventListener('click', () => { this.webAudio.resume(); });
@@ -103,15 +105,48 @@ export class MsxEmu {
   }
 
   private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array): void {
+    let ejectMenuId = '';
     if (type == MediaType.FLOPPY) {
-      this.diskMedia = new MediaInfo('Unknown Software', '', 1900, '', MediaType.FLOPPY, data);
+      this.diskMedia = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
       this.diskManager.insertFloppyImage(slot, this.diskMedia.data);
+      ejectMenuId = 'eject-disk' + slot;
     }
     if (type == MediaType.ROM) {
       this.romMedia[slot] = this.mediaInfoFactory.mediaInfoFromData(data);
-      this.stopEmulation();
-      this.startEmulation();
+      ejectMenuId = 'eject-cart' + slot;
+      this.resetEmulation();
     }
+
+    if (ejectMenuId.length > 0) {
+      const menuItemDiv = document.getElementById(ejectMenuId);
+      menuItemDiv!.classList.remove('disabled');
+    }
+  }
+
+  private ejectEvent(event: CustomEvent): void {
+    switch (event.detail) {
+      case 'eject-disk0': {
+        this.diskManager.ejectFloppyImage(0);
+        break;
+      }
+      case 'eject-disk1': {
+        this.diskManager.ejectFloppyImage(1);
+        break;
+      }
+      case 'eject-cart0': {
+        this.romMedia[0] = undefined;
+        this.resetEmulation();
+        break;
+      }
+      case 'eject-cart1': {
+        this.romMedia[1] = undefined;
+        this.resetEmulation();
+        break;
+      }
+    }
+
+    const menuItemDiv = document.getElementById(event.detail);
+    menuItemDiv!.classList.add('disabled');
   }
 
   private fileEvent(event: CustomEvent): void {
@@ -119,22 +154,22 @@ export class MsxEmu {
     let type = MediaType.FLOPPY;
 
     switch (event.detail) {
-      case 'insert-carta': {
+      case 'insert-cart0': {
         slot = 0;
         type = MediaType.ROM;
         break;
       }
-      case 'insert-cartb': {
+      case 'insert-cart1': {
         slot = 1;
         type = MediaType.ROM;
         break;
       }
-      case 'insert-diska': {
+      case 'insert-disk0': {
         slot = 0;
         type = MediaType.FLOPPY;
         break;
       }
-      case 'insert-diskb': {
+      case 'insert-disk1': {
         slot = 1;
         type = MediaType.FLOPPY;
         break;
@@ -164,23 +199,21 @@ export class MsxEmu {
     this.machine.reset();
     
     // Insert cartridge rom if present
-    if (this.romMedia[0]) {
-      this.machine.insertRomMedia(this.romMedia[0], 0);
-    }
-    if (this.romMedia[1]) {
-      this.machine.insertRomMedia(this.romMedia[1], 1);
-    }
+    const romMedia0 = this.romMedia[0];
+    romMedia0 && this.machine.insertRomMedia(romMedia0, 0);
+
+    const romMedia1 = this.romMedia[1];
+    romMedia1 && this.machine.insertRomMedia(romMedia1, 1);
 
     // Display cartridge info
     let info = '<br>No cartridge inserted. Drag rom file onto page to insert...';
-    if (this.romMedia[0]) {
-      const romMedia = this.romMedia[0];
+    if (romMedia0) {
       info = '<br>';
-      info += '<br>Game title: ' + romMedia.title;
-      info += '<br>Company: ' + romMedia.company;
-      info += '<br>Year: ' + romMedia.year;
-      info += '<br>Country: ' + romMedia.country;
-      info += '<br>Cartridge type: ' + romMedia.type;
+      info += '<br>Game title: ' + romMedia0.title;
+      info += '<br>Company: ' + romMedia0.company;
+      info += '<br>Year: ' + romMedia0.year;
+      info += '<br>Country: ' + romMedia0.country;
+      info += '<br>Cartridge type: ' + romMedia0.type;
     }
     const element = document.getElementById('info');
     if (element) {
@@ -292,6 +325,6 @@ export class MsxEmu {
   private machineManager = new MachineManager(this.webAudio, this.diskManager);
 
   private diskMedia?: MediaInfo;
-  private romMedia = new Array<MediaInfo>(2);
+  private romMedia = new Array<MediaInfo | undefined>(2);
   private mediaInfoFactory = new MediaInfoFactory();
 }
