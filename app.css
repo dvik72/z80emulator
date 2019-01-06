@@ -7,3 +7,15 @@ span {
     font-size: smaller;
     color: #808080;
 }
+
+.cartmargin {
+    margin-left: 40px;
+}
+
+.diskmargin {
+    margin-left: 20px;
+}
+
+.settingsmargin {
+    margin-left: 390px;
+}

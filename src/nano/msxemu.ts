@@ -56,7 +56,7 @@ export class MsxEmu {
   private createMachineMenu(): void {
     const machinesDiv = document.getElementById('machines-menu');
     for (const machineName of this.machineManager.getMachineNames()) {
-      const machineItem = '<button class="dropdown-item" type="button" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</button>';
+      const machineItem = '<button class="dropdown-item btn-sm" type="button" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</button>';
       machinesDiv!.innerHTML += machineItem;
     }
   }
@@ -65,8 +65,8 @@ export class MsxEmu {
     const cartADiv = document.getElementById('type-cart0');
     const cartBDiv = document.getElementById('type-cart1');
     for (const cartType of getSupportedCartridgeTypeNames()) {
-      const cartItemA = '<button class="dropdown-item" type="button" id="type0-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: [0, \'' + cartType + '\']}));">' + cartType + '</button>';
-      const cartItemB = '<button class="dropdown-item" type="button" id="type1-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: [1, \'' + cartType + '\']}));">' + cartType + '</button>';
+      const cartItemA = '<button class="dropdown-item btn-sm" type="button" id="type0-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: [0, \'' + cartType + '\']}));">' + cartType + '</button>';
+      const cartItemB = '<button class="dropdown-item btn-sm" type="button" id="type1-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setcarttype\', {detail: [1, \'' + cartType + '\']}));">' + cartType + '</button>';
       cartADiv!.innerHTML += cartItemA;
       cartBDiv!.innerHTML += cartItemB;
     }
@@ -287,21 +287,6 @@ export class MsxEmu {
 
     const romMedia1 = this.romMedia[1];
     romMedia1 && this.machine.insertRomMedia(romMedia1, 1);
-
-    // Display cartridge info
-    let info = '<br>No cartridge inserted. Drag rom file onto page to insert...';
-    if (romMedia0) {
-      info = '<br>';
-      info += '<br>Game title: ' + romMedia0.title;
-      info += '<br>Company: ' + romMedia0.company;
-      info += '<br>Year: ' + romMedia0.year;
-      info += '<br>Country: ' + romMedia0.country;
-      info += '<br>Cartridge type: ' + romMedia0.type;
-    }
-    const element = document.getElementById('info');
-    if (element) {
-      element.innerHTML = info;
-    }
 
     // Start emulation and renderer    
     this.isRunning = true;

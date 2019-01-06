@@ -58,6 +58,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="css\bootstrap-submenu.css" />
+    <Content Include="img\cart1.png" />
+    <Content Include="img\cart2.png" />
+    <Content Include="img\diska.png" />
+    <Content Include="img\diskb.png" />
+    <Content Include="img\power.png" />
+    <Content Include="img\settings.png" />
     <Content Include="js\bootstrap-submenu.js" />
     <Content Include="js\docs.js" />
     <Content Include="lib\require.js" />
