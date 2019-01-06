@@ -120,6 +120,7 @@ export class MsxEmu {
 
   private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array): void {
     let ejectMenuId = '';
+    let romTypeMenuId = '';
     if (type == MediaType.FLOPPY) {
       this.diskMedia = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
       this.diskManager.insertFloppyImage(slot, this.diskMedia.data);
@@ -130,6 +131,7 @@ export class MsxEmu {
       const mediaInfo = this.mediaInfoFactory.mediaInfoFromData(data);
       this.romMedia[slot] = mediaInfo;
       ejectMenuId = 'eject-cart' + slot;
+      romTypeMenuId = 'romtype-cart' + slot;
 
       if (oldMediaInfo) {
         let typeName = oldMediaInfo.type.toString();
@@ -154,6 +156,11 @@ export class MsxEmu {
 
     if (ejectMenuId.length > 0) {
       const menuItemDiv = document.getElementById(ejectMenuId);
+      (<HTMLButtonElement>menuItemDiv!).disabled = false;
+    }
+
+    if (romTypeMenuId.length > 0) {
+      const menuItemDiv = document.getElementById(romTypeMenuId);
       (<HTMLButtonElement>menuItemDiv!).disabled = false;
     }
   }
@@ -191,6 +198,8 @@ export class MsxEmu {
   }
 
   private ejectEvent(event: CustomEvent): void {
+    let romTypeMenuId = '';
+
     switch (event.detail) {
       case 'eject-disk0': {
         this.diskManager.ejectFloppyImage(0);
@@ -203,17 +212,24 @@ export class MsxEmu {
       case 'eject-cart0': {
         this.romMedia[0] = undefined;
         this.resetEmulation();
+        romTypeMenuId = 'romtype-cart0';
         break;
       }
       case 'eject-cart1': {
         this.romMedia[1] = undefined;
         this.resetEmulation();
+        romTypeMenuId = 'romtype-cart1';
         break;
       }
     }
 
     const menuItemDiv = document.getElementById(event.detail);
     (<HTMLButtonElement>menuItemDiv!).disabled = true;
+
+    if (romTypeMenuId.length > 0) {
+      const menuItemDiv = document.getElementById(romTypeMenuId);
+      (<HTMLButtonElement>menuItemDiv!).disabled = true;
+    }
   }
 
   private fileEvent(event: CustomEvent): void {
