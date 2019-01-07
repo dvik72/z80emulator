@@ -22,11 +22,51 @@ span {
     z-index: 1;
 }
 
+.emu-topmargin {
+    margin-top: 10px;
+}
+
 .cartmargin {
+    margin-top: 10px;
 }
 
 .diskmargin {
+    margin-top: 10px;
 }
 
 .settingsmargin {
+    margin-top: 10px;
+}
+
+.emu-row {
+    display: -webkit-flex; /* Safari */
+    -webkit-justify-content: center; /* Safari 6.1+ */
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.emu-col {
+    float: left;
+    min-height: 482px;
+}
+
+.emu-left, .emu-right {
+    width: 60px;
+    background: #3b3b3b;
+}
+
+.emu-middle {
+}
+
+.emu-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* Clear floats after the columns */
+.emu-row:after {
+    content: "";
+    display: table;
+    clear: both;
 }

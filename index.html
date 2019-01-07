@@ -15,79 +15,64 @@
 </head>
 
 <body style="background-color:#ffffff">
-    <div class="container">
-        <div class="row">
-            <div class="col">
-            </div>
-            <div class="col-fixed-40">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-fixed-40">
-                            <img src="img/power.png" type="button" onclick="javascript: document.dispatchEvent(new Event('reset'));">
+    <div class="emu-row">
+        <div class="emu-col emu-left">
+            <img class="emu-center emu-topmargin" src="img/power.png" type="button" onclick="javascript: document.dispatchEvent(new Event('reset'));">
 
-                            <div class="dropup cartmargin">
-                                <img src="img/cart1.png" class="dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                                <div class="dropdown-menu">
-                                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart0' }));">Insert</button>
-                                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-cart0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart0' }));">Eject</button>
-                                    <div class="dropdown-divider"></div>
-                                    <div class="dropdown dropright dropdown-submenu">
-                                        <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart0" type="button">Rom Type</button>
-                                        <div class="dropdown-menu" id="type-cart0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="dropup">
-                                <img src="img/cart2.png" class="dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                                <div class="dropdown-menu">
-                                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart1' }));">Insert</button>
-                                    <button class="dropdown-item btn-sm" type="button" id="eject-cart1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart1' }));">Eject</button>
-                                    <div class="dropdown-divider"></div>
-                                    <div class="dropdown dropright dropdown-submenu">
-                                        <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart1" type="button">Rom Type</button>
-                                        <div class="dropdown-menu" id="type-cart1">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="dropup diskmargin">
-                                <img src="img/diska.png" class="dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                                <div class="dropdown-menu">
-                                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk0' }));">Insert</button>
-                                    <button class="dropdown-item btn-sm" type="button" id="eject-disk0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));">Eject</button>
-                                </div>
-                            </div>
-
-                            <div class="dropup">
-                                <img src="img/diskb.png" class="dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                                <div class="dropdown-menu">
-                                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk1' }));">Insert</button>
-                                    <button class="dropdown-item btn-sm" type="button" id="eject-disk1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));">Eject</button>
-                                </div>
-                            </div>
-
-                            <div class="dropup settingsmargin">
-                                <img src="img/settings.png" class="dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                                <div class="dropdown-menu" id="machines-menu">
-                                </div>
-                            </div>
+            <div class="dropright cartmargin">
+                <img src="img/cart1.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                <div class="dropdown-menu">
+                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart0' }));">Insert</button>
+                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-cart0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart0' }));">Eject</button>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown dropright dropdown-submenu">
+                        <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart0" type="button">Rom Type</button>
+                        <div class="dropdown-menu" id="type-cart0">
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-fixed-640">
-                <canvas id="emuCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
+
+            <div class="dropright">
+                <img src="img/cart2.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                <div class="dropdown-menu">
+                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart1' }));">Insert</button>
+                    <button class="dropdown-item btn-sm" type="button" id="eject-cart1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart1' }));">Eject</button>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown dropright dropdown-submenu">
+                        <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart1" type="button">Rom Type</button>
+                        <div class="dropdown-menu" id="type-cart1">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col">
+
+            <div class="dropright diskmargin">
+                <img src="img/diska.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                <div class="dropdown-menu">
+                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk0' }));">Insert</button>
+                    <button class="dropdown-item btn-sm" type="button" id="eject-disk0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));">Eject</button>
+                </div>
+            </div>
+
+            <div class="dropright">
+                <img src="img/diskb.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                <div class="dropdown-menu">
+                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk1' }));">Insert</button>
+                    <button class="dropdown-item btn-sm" type="button" id="eject-disk1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));">Eject</button>
+                </div>
+            </div>
+
+            <div class="dropright settingsmargin">
+                <img src="img/settings.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                <div class="dropdown-menu" id="machines-menu">
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col">
-                <div><span id="cpuusage"></span></div>
-            </div>
+        <div class="emu-col emu-middle">
+            <canvas id="emuCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
+        </div>
+        <div class="emu-col emu-right">
         </div>
     </div>
     <input type="file" id="fileLoader" name="files" title="Load File" style="display: none;" />
