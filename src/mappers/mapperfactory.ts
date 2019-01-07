@@ -32,6 +32,7 @@ import { MapperRomGameMaster2 } from './romgamemaster2';
 import { MapperRomCrossBlaim } from './romcrossblaim';
 import { MapperRomHarryFox } from './romharryfox';
 import { MapperRomNormal } from './romnormal';
+import { MapperRomMegaFlashRomScc } from './rommegaflashromscc';
 
 
 export function getSupportedCartridgeTypeNames(): Array<string> {
@@ -58,7 +59,10 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.RTYPE,
     MediaType.GAMEMASTER2,
     MediaType.CROSSBLAIM,
-    MediaType.HARRYFOX
+    MediaType.HARRYFOX,
+    MediaType.MANBOW2,
+    MediaType.MANBOW2_V2,
+    MediaType.HAMARAJANIGHT
   ];
 }
 
@@ -77,6 +81,11 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
     case MediaType.GAMEMASTER2: return new MapperRomGameMaster2(board, slot, subslot, mediaInfo.data);
     case MediaType.CROSSBLAIM: return new MapperRomCrossBlaim(board, slot, subslot, mediaInfo.data);
     case MediaType.HARRYFOX: return new MapperRomHarryFox(board, slot, subslot, mediaInfo.data);
+    case MediaType.MANBOW2: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data.slice(0, 0x70000), 0x7f, 0x80000, false);
+    case MediaType.MANBOW2_V2: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0x7f, 0x100000, true);
+    case MediaType.HAMARAJANIGHT: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0xcf, 0x100000, true);
+//    case MediaType.MEGAFLSHSCC: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0, 0x80000, false);
+//    case MediaType.MEGAFLSHSCCPLUS: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0, 0x100000, true);
     default:
       console.log('Unsuported ROM type: ' + mediaInfo.type);
       break;

@@ -97,6 +97,7 @@
     <TypeScriptCompile Include="src\machines\msx\philips_vg_8020.ts" />
     <TypeScriptCompile Include="src\mappers\f4device.ts" />
     <TypeScriptCompile Include="src\mappers\romkanji.ts" />
+    <TypeScriptCompile Include="src\mappers\rommegaflashromscc.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />
     <TypeScriptCompile Include="src\mappers\rompanasonic.ts" />
@@ -126,6 +127,7 @@
     <TypeScriptCompile Include="src\mappers\turborio.ts" />
     <TypeScriptCompile Include="src\mappers\turborpcm.ts" />
     <TypeScriptCompile Include="src\mappers\turbortimer.ts" />
+    <TypeScriptCompile Include="src\memory\amdflash.ts" />
     <TypeScriptCompile Include="src\nano\gamerom.ts" />
     <TypeScriptCompile Include="src\util\mediainfo.ts" />
     <TypeScriptCompile Include="src\util\romdatabase.ts" />
