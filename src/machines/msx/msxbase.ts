@@ -19,6 +19,7 @@
 import { Machine } from '../machine';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 import { MediaInfo } from '../../util/mediainfo';
 
 import { Board } from '../../core/board';
@@ -35,11 +36,12 @@ export abstract class MsxBase extends Machine {
     name: string,
     private webAudio: WebAudio,
     private diskManager: DiskManager,
+    private ledManager: LedManager,
     romNames: string[]
   ) {
     super(name, romNames);
 
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
+    this.board = new Board(this.webAudio, this.ledManager, CPU_ENABLE_M1, true);
   }
 
   public init(): void {
@@ -47,7 +49,7 @@ export abstract class MsxBase extends Machine {
     this.cartrdigeSlots = new Array<number[]>();
 
     // Initialize board components
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
+    this.board = new Board(this.webAudio, this.ledManager, CPU_ENABLE_M1, true);
     this.msxPpi = new MsxPpi(this.board);
     this.vdp = new Vdp(this.board, VdpVersion.TMS9929A, VdpSyncMode.SYNC_AUTO, VdpConnectorType.MSX, 1);
     this.msxpsg = new MsxPsg(this.board, 2);

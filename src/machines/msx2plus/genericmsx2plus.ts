@@ -19,6 +19,7 @@
 import { Msx2PlusBase } from './msx2plusbase';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 
 import { MapperF4Device } from '../../mappers/f4device';
 import { MapperRamMapped } from '../../mappers/rammapped';
@@ -34,12 +35,14 @@ export class GenericMsx2Plus extends Msx2PlusBase {
 
   public constructor(
     webAudio: WebAudio,
-    diskManager: DiskManager
+    diskManager: DiskManager,
+    ledManager: LedManager
   ) {
     super(
       GenericMsx2Plus.NAME,
       webAudio,
       diskManager,
+      ledManager,
       ['msx2pbios', 'kanji', 'msx2pmus', 'msx2pext', 'msxkanji', 'panasonicdisk', 'xbasic']);
   }
 

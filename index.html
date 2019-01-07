@@ -14,7 +14,7 @@
     <script data-main="src/webapp/webappboot" type="text/javascript" src="lib/require.js" defer></script>
 </head>
 
-<body style="background-color:#ffffff">
+<body style="background-color:#f8f8f8">
     <div class="emu-row">
         <div class="emu-col emu-left">
             <img class="emu-center emu-topmargin" src="img/power.png" type="button" onclick="javascript: document.dispatchEvent(new Event('reset'));">
@@ -73,6 +73,34 @@
             <canvas id="emuCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
         </div>
         <div class="emu-col emu-right">
+            <div class="emu-led-box emu-led-group-separator">
+                <div class="emu-led" id="emu-led-fdd1"></div>
+                <div class="emu-led-description">FDD1</div>
+            </div>
+            <div class="emu-led-box">
+                <div class="emu-led" id="emu-led-fdd2"></div>
+                <div class="emu-led-description">FDD2</div>
+            </div>
+            <div class="emu-led-box">
+                <div class="emu-led" id="emu-led-cas"></div>
+                <div class="emu-led-description">CAS</div>
+            </div>
+            <div class="emu-led-box">
+                <div class="emu-led" id="emu-led-hdd"></div>
+                <div class="emu-led-description">HDD</div>
+            </div>
+            <div class="emu-led-box emu-led-group-separator">
+                <div class="emu-led" id="emu-led-caps"></div>
+                <div class="emu-led-description">CAPS</div>
+            </div>
+            <div class="emu-led-box">
+                <div class="emu-led" id="emu-led-kana"></div>
+                <div class="emu-led-description">KANA</div>
+            </div>
+            <div class="emu-led-box emu-led-group-separator">
+                <div class="emu-led" id="emu-led-r800"></div>
+                <div class="emu-led-description">R800</div>
+            </div>
         </div>
     </div>
     <input type="file" id="fileLoader" name="files" title="Load File" style="display: none;" />

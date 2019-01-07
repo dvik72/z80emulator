@@ -25,11 +25,13 @@ import { PanasonicFsA1Gt } from '../machines/msxtr/panasonicfsa1gt';
 
 import { WebAudio } from '../audio/webaudio';
 import { DiskManager } from '../disk/diskmanager';
+import { LedManager } from '../core/ledmanager';
 
 export class MachineManager {
   constructor(
     private webAudio: WebAudio,
-    private diskManager: DiskManager
+    private diskManager: DiskManager,
+    private ledManager: LedManager
   ) {
   }
 
@@ -44,17 +46,17 @@ export class MachineManager {
   public createMachine(name: string): Machine | undefined {
     switch (name) {
       case PanasonicFsA1.NAME:
-        return new PanasonicFsA1(this.webAudio, this.diskManager);
+        return new PanasonicFsA1(this.webAudio, this.diskManager, this.ledManager);
       case PhilipsVg8020.NAME:
-        return new PhilipsVg8020(this.webAudio, this.diskManager);
+        return new PhilipsVg8020(this.webAudio, this.diskManager, this.ledManager);
       case GenericMsx2.NAME:
-        return new GenericMsx2(this.webAudio, this.diskManager);
+        return new GenericMsx2(this.webAudio, this.diskManager, this.ledManager);
       case GenericMsx2Plus.NAME:
-        return new GenericMsx2Plus(this.webAudio, this.diskManager);
+        return new GenericMsx2Plus(this.webAudio, this.diskManager, this.ledManager);
       case PanasonicFsA1Wsx.NAME:
-        return new PanasonicFsA1Wsx(this.webAudio, this.diskManager);
+        return new PanasonicFsA1Wsx(this.webAudio, this.diskManager, this.ledManager);
       case PanasonicFsA1Gt.NAME:
-        return new PanasonicFsA1Gt(this.webAudio, this.diskManager);
+        return new PanasonicFsA1Gt(this.webAudio, this.diskManager, this.ledManager);
     }
 
     return undefined;

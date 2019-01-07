@@ -19,6 +19,7 @@
 import { Machine } from '../machine';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 import { MediaInfo } from '../../util/mediainfo';
 
 import { Board } from '../../core/board';
@@ -38,16 +39,17 @@ export class Msx2Base extends Machine {
     name: string,
     private webAudio: WebAudio,
     private diskManager: DiskManager,
+    private ledManager: LedManager,
     romNames: string[]
   ) {
     super(name, romNames);
 
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true);
+    this.board = new Board(this.webAudio, this.ledManager, CPU_ENABLE_M1, true);
   }
 
   public init(): void {
     // Initialize board components
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1, true, true);
+    this.board = new Board(this.webAudio, this.ledManager, CPU_ENABLE_M1, true, true);
     this.board.getSlotManager().setSubslotted(3, true);
     this.msxPpi = new MsxPpi(this.board);
     this.rtc = new Rtc(this.board);

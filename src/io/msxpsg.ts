@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Board } from '../core/board';
+import { LedType } from '../core/ledmanager';
 import { Ay8910, Ay8910ConnectorType, PsgType } from '../audio/ay8910';
 
 export class MsxPsg {
@@ -66,7 +67,7 @@ export class MsxPsg {
     if (address & 1) {
       this.joystickPort = (value >> 6) & 0x01;
 
-      // TODO: Set Kana led if value & 0x80
+      this.board.getLedManager().getLed(LedType.KANA).set((value & 0x80) == 0);
     }
     this.regs[address & 1] = value;
   }

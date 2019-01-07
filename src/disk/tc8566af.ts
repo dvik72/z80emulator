@@ -19,6 +19,7 @@
 import { DiskManager } from '../disk/diskmanager'
 import { Disk, DiskError } from './disk';
 import { Board } from '../core/board';
+import { LedType } from '../core/ledmanager';
 import { Timer } from '../core/timeoutmanager';
 
 enum Command {
@@ -130,6 +131,9 @@ export class Tc8566af {
     for (let i = 0; i < 512; i++) {
       this.sectorBuf[i] = this.fillerByte;
     }
+    
+    this.board.getLedManager().getLed(LedType.FDD1).set(false);
+    this.board.getLedManager().getLed(LedType.FDD2).set(false);
   }
 
   public readRegister(reg: number): number {
@@ -164,6 +168,9 @@ export class Tc8566af {
     switch (reg) {
       case 2:
         this.disk = this.diskManager.getFloppyDisk(value & 0x03);
+
+        this.board.getLedManager().getLed(LedType.FDD1).set((value & 0x10) != 0 && this.diskManager.getFloppyDisk(0).isEnabled());
+        this.board.getLedManager().getLed(LedType.FDD2).set((value & 0x20) != 0 && this.diskManager.getFloppyDisk(1).isEnabled());
         break;
 
       case 5:

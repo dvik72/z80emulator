@@ -16,25 +16,54 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Mapper } from './mapper';
-import { Board } from '../core/board';
-import { LedType } from '../core/ledmanager';
-import { Port } from '../core/iomanager';
+export enum LedType {
+  CAPS_LOCK = 0,
+  KANA = 1,
+  TURBOR = 2,
+  PAUSE = 3,
+  RENSHA = 4,
+  FDD1 = 5,
+  FDD2 = 6,
+  HDD = 7,
+  CAS = 8
+};
 
-export class MapperTurboRIo extends Mapper {
-  constructor(private board: Board) {
-    super('Turbo-R IO');
-
-    this.board.getIoManager().registerPort(0xa7, new Port(this.read.bind(this), this.write.bind(this)));
+export class Led {
+  public set(enable: boolean): void {
+    this.changed = this.changed || this.enabled != enable;
+    this.enabled = enable;
   }
 
-  private read(port: number): number {
-    // return switchGetPause() ? 1 : 0;
-    return 0;
+  public get(): boolean {
+    return this.enabled;
   }
 
-  private write(port: number, value: number): void {
-    this.board.getLedManager().getLed(LedType.PAUSE).set((value & 0x01) != 0);
-    this.board.getLedManager().getLed(LedType.TURBOR).set((value & 0x80) != 0);
+  public hasChanged(): boolean {
+    const changed = this.changed;
+    this.changed = false;
+    return changed;
   }
+
+  private enabled = false;
+  private changed = true;
+}
+
+export class LedManager {
+  constructor() {
+    for (let i = 0; i < 32; i++) {
+      this.leds[i] = new Led();
+    }
+  }
+
+  public getLed(led: LedType): Led {
+    return this.leds[led];
+  }
+
+  public setAll(enable: boolean): void {
+    for (let i = 0; i < 32; i++) {
+      this.leds[i].set(enable);
+    }
+  }
+
+  private leds = new Array<Led>(32);
 }

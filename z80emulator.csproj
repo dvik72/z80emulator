@@ -76,6 +76,7 @@
     <TypeScriptCompile Include="src\audio\ym2413.ts" />
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\core\drammanager.ts" />
+    <TypeScriptCompile Include="src\core\ledmanager.ts" />
     <TypeScriptCompile Include="src\core\rammanager.ts" />
     <TypeScriptCompile Include="src\disk\wd2793.ts" />
     <TypeScriptCompile Include="src\io\i8251.ts" />

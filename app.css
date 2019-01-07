@@ -8,20 +8,6 @@ span {
     color: #808080;
 }
 
-.col-fixed-40 {
-    background: #3b3b3b;
-    width: 40px;
-    height: 100%;
-    z-index: 1;
-}
-
-.col-fixed-640 {
-    background: #3b3b3b;
-    width: 640px;
-    height: 100%;
-    z-index: 1;
-}
-
 .emu-topmargin {
     margin-top: 10px;
 }
@@ -64,9 +50,59 @@ span {
     margin-left: auto;
     margin-right: auto;
 }
-/* Clear floats after the columns */
+
 .emu-row:after {
     content: "";
     display: table;
     clear: both;
+}
+
+.emu-led-box {
+    display: block;
+    margin-left: 10px;
+    margin-top: 5px;
+    -webkit-transform-style: preserve-3d;
+    -moz-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+}
+
+.emu-led-group-separator {
+    margin-top: 20px;
+}
+
+.emu-led-box:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.emu-led {
+    float: left;
+    background: #005000;
+    outline-color: #808080;
+    outline-style: inset;
+    outline-width: 2px;
+    height: 6px;
+    min-height: 6px;
+    width: 4px;
+    min-width: 4px;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.emu-led-on {
+    background: #00c000;
+}
+
+.emu-led-description {
+    float: left;
+    text-align: center;
+    color: #808080;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: xx-small;
+    margin-left: 7px;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
 }

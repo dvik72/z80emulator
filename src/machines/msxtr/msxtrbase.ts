@@ -19,6 +19,7 @@
 import { Machine } from '../machine';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 import { MediaInfo } from '../../util/mediainfo';
 
 import { Board } from '../../core/board';
@@ -37,6 +38,7 @@ export class MsxTrBase extends Machine {
     name: string,
     private webAudio: WebAudio,
     private diskManager: DiskManager,
+    private ledManager: LedManager,
     romNames: string[]
   ) {
     super(name, romNames);
@@ -44,7 +46,7 @@ export class MsxTrBase extends Machine {
 
   public init(): void {
     // Initialize board components
-    this.board = new Board(this.webAudio, CPU_ENABLE_M1 | CPU_VDP_IO_DELAY, true, true, true);
+    this.board = new Board(this.webAudio, this.ledManager, CPU_ENABLE_M1 | CPU_VDP_IO_DELAY, true, true, true);
     this.board.getSlotManager().setSubslotted(0, true);
     this.board.getSlotManager().setSubslotted(3, true);
     this.msxPpi = new MsxPpi(this.board);

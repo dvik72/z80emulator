@@ -19,6 +19,7 @@
 import { Machine } from '../machines/machine';
 import { MachineManager } from '../machines/machinemanager';
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
+import { LedManager, LedType } from '../core/ledmanager';
 import { WebGlRenderer } from '../video/webglrenderer';
 import { WebAudio } from '../audio/webaudio';
 import { getSupportedCartridgeTypes, getSupportedCartridgeTypeNames } from '../mappers/mapperfactory';
@@ -88,6 +89,31 @@ export class MsxEmu {
 
     this.stopEmulation();
     this.machine!.notifyWhenLoaded(this.startEmulation.bind(this));
+  }
+
+  private updateLed(ledType: LedType, ledName: string): void {
+    const led = this.ledManager.getLed(ledType);
+    if (led.hasChanged()) {
+      const newMachineDiv = document.getElementById('emu-led-' + ledName);
+      if (newMachineDiv) {
+        if (led.get()) {
+          newMachineDiv && newMachineDiv.classList.add('emu-led-on');
+        }
+        else {
+          newMachineDiv && newMachineDiv.classList.remove('emu-led-on');
+        }
+      }
+    }
+  }
+
+  private updateLeds(): void {
+    this.updateLed(LedType.FDD1, 'fdd1');
+    this.updateLed(LedType.FDD2, 'fdd2');
+    this.updateLed(LedType.CAS, 'cas');
+    this.updateLed(LedType.HDD, 'hdd');
+    this.updateLed(LedType.KANA, 'kana');
+    this.updateLed(LedType.CAPS_LOCK, 'caps');
+    this.updateLed(LedType.TURBOR, 'r800');
   }
 
   private loadMedia(slot: number, type: MediaType, file: File): void {
@@ -341,6 +367,7 @@ export class MsxEmu {
   }
   
   private refreshScreen(): void {
+    this.updateLeds();
     if (this.isRunning && this.machine) {
       const frameBuffer = this.machine.getFrameBuffer();
       const width = this.machine.getFrameBufferWidth();
@@ -390,7 +417,8 @@ export class MsxEmu {
   private glRenderer = new WebGlRenderer();
   private webAudio = new WebAudio();
   private diskManager = new DiskManager();
-  private machineManager = new MachineManager(this.webAudio, this.diskManager);
+  private ledManager = new LedManager();
+  private machineManager = new MachineManager(this.webAudio, this.diskManager, this.ledManager);
 
   private diskMedia?: MediaInfo;
   private romMedia = new Array<MediaInfo | undefined>(2);

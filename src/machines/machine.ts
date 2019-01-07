@@ -22,7 +22,7 @@ export abstract class Machine {
 
   public constructor(
     private machineName: string,
-    private romNames: string[]
+    romNames: string[]
   ) {
     for (let romName of romNames) {
       this.loadSystemRom(romName);

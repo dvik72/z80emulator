@@ -18,6 +18,7 @@
 
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
+import { LedType } from '../core/ledmanager';
 import { KeyClick } from '../audio/keyclick';
 import { I8255 } from './i8255';
 
@@ -309,6 +310,7 @@ export class MsxPpi {
       this.regCHi = value;
       
       this.keyClickAudio.click((value & 0x08) != 0);
+      this.board.getLedManager().getLed(LedType.CAPS_LOCK).set((value & 0x04) == 0);
     }
   }
 
@@ -316,7 +318,7 @@ export class MsxPpi {
     return 0xff;
   }
 
-  private readB(): number {
+  private getKeyState(): number {
     switch (this.row) {
       case 0: return ~(
         this.s[Key.EC_7] << 7 | this.s[Key.EC_6] << 6 | this.s[Key.EC_5] << 5 | this.s[Key.EC_4] << 4 |
@@ -366,6 +368,17 @@ export class MsxPpi {
       default: 
         return 0xff;
     }
+  }
+
+  private readB(): number {
+    const value = this.getKeyState();
+
+    if (this.row == 8) {
+      // Implement Rensha joystick autofire
+      this.board.getLedManager().getLed(LedType.RENSHA).set(false);
+    }
+
+    return value;
   }
 
   private readCLo(): number {

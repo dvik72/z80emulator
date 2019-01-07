@@ -19,6 +19,7 @@
 import { DiskManager } from '../disk/diskmanager'
 import { Disk, DiskError } from './disk';
 import { Board } from '../core/board';
+import { LedType } from '../core/ledmanager';
 
 
 const CMD_RESTORE = 0x00;
@@ -110,16 +111,16 @@ export class Wd2793 {
   public setMotor(motorOn: boolean) {
     switch (this.drive) {
       case 0:
-        // ledSetFdd1(motorOn);
-        // ledSetFdd2(0);
+        this.board.getLedManager().getLed(LedType.FDD1).set(motorOn);
+        this.board.getLedManager().getLed(LedType.FDD2).set(false);
         break;
       case 1:
-        // ledSetFdd1(0);
-        // ledSetFdd2(motorOn);
+        this.board.getLedManager().getLed(LedType.FDD1).set(false);
+        this.board.getLedManager().getLed(LedType.FDD2).set(motorOn);
         break;
       default:
-        // ledSetFdd1(0);
-        // ledSetFdd2(0);
+        this.board.getLedManager().getLed(LedType.FDD1).set(false);
+        this.board.getLedManager().getLed(LedType.FDD2).set(false);
         break;
     }
   }
@@ -357,8 +358,8 @@ export class Wd2793 {
       this.sectorBuf[i] = 0;  
     }
 
-    //ledSetFdd1(0);
-    //ledSetFdd2(0);
+    this.board.getLedManager().getLed(LedType.FDD1).set(false);
+    this.board.getLedManager().getLed(LedType.FDD2).set(false);
   }
   
   private readSector(): void {

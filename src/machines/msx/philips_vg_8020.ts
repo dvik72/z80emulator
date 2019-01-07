@@ -19,6 +19,7 @@
 import { MsxBase } from './msxbase';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 
 import { MapperRamNormal } from '../../mappers/ramnormal';
 import { MapperRomNormal } from '../../mappers/romnormal';
@@ -30,12 +31,14 @@ export class PhilipsVg8020 extends MsxBase {
 
   public constructor(
     webAudio: WebAudio,
-    diskManager: DiskManager
+    diskManager: DiskManager,
+    ledManager: LedManager
   ) {
     super(
       PhilipsVg8020.NAME,
       webAudio,
       diskManager,
+      ledManager,
       ['vg8020']
     );
   }

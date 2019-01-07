@@ -19,6 +19,7 @@
 import { Msx2Base } from './msx2base';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 
 import { MapperRamMapped } from '../../mappers/rammapped';
 import { MapperRomNormal } from '../../mappers/romnormal';
@@ -32,12 +33,14 @@ export class GenericMsx2 extends Msx2Base {
 
   public constructor(
     webAudio: WebAudio,
-    diskManager: DiskManager
+    diskManager: DiskManager,
+    ledManager: LedManager
   ) {
     super(
       GenericMsx2.NAME,
       webAudio,
       diskManager,
+      ledManager,
       ['msx2bios', 'msx2ext', 'philipsdisk', 'msx2pmus']);
   }
 

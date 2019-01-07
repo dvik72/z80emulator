@@ -19,6 +19,7 @@
 import { Msx2Base } from './msx2base';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 
 import { MapperRamNormal } from '../../mappers/ramnormal';
 import { MapperRomNormal } from '../../mappers/romnormal';
@@ -30,12 +31,14 @@ export class PanasonicFsA1 extends Msx2Base {
 
   public constructor(
     webAudio: WebAudio,
-    diskManager: DiskManager
+    diskManager: DiskManager,
+    ledManager: LedManager
   ) {
     super(
       PanasonicFsA1.NAME,
       webAudio,
       diskManager,
+      ledManager,
       ['a1bios', 'a1desk1', 'a1desk2', 'a1ext']);
   }
 

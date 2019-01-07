@@ -19,6 +19,7 @@
 import { MsxTrBase } from './msxtrbase';
 import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
+import { LedManager } from '../../core/ledmanager';
 
 import { MsxMidi } from '../../io/msxmidi';
 import { MapperF4Device } from '../../mappers/f4device';
@@ -42,12 +43,14 @@ export class PanasonicFsA1Gt extends MsxTrBase {
 
   public constructor(
     webAudio: WebAudio,
-    diskManager: DiskManager
+    diskManager: DiskManager,
+    ledManager: LedManager
   ) {
     super(
       PanasonicFsA1Gt.NAME,
       webAudio,
       diskManager,
+      ledManager,
       ['a1gtbios', 'a1gtdos', 'a1gtext', 'a1gtfirm', 'a1gtkdr', 'a1gtkfn', 'a1gtmus', 'a1gtopt']);
   }
 

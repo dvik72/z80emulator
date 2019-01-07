@@ -18,6 +18,7 @@
 
 import { Z80, TIMER_RANGE } from '../z80/z80';
 import { AudioManager } from './audiomanager';
+import { LedManager } from './ledmanager';
 import { IoManager, Port } from './iomanager';
 import { SlotManager } from './slotmanager';
 import { TimeoutManager } from './timeoutmanager';
@@ -49,6 +50,7 @@ const CLOCK_FREQ = 3579545;
 export class Board {
   constructor(
     webAudio: WebAudio,
+    private ledManager: LedManager,
     cpuFlags: number,
     enableSubslots: boolean,
     enableRamManager: boolean = false,
@@ -68,6 +70,8 @@ export class Board {
     this.timeoutManager.initialize(this.z80);
 
     this.audioManager = new AudioManager(webAudio, this);
+
+    this.ledManager.setAll(false);
   }
 
   public getIoManager(): IoManager {
@@ -137,6 +141,10 @@ export class Board {
 
   public syncAudio(): void {
     this.audioManager.sync();
+  }
+
+  public getLedManager(): LedManager {
+    return this.ledManager;
   }
 
   public setZ80Freq15(enable15: boolean) {
