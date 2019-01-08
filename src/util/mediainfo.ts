@@ -67,6 +67,7 @@ export enum MediaType {
   KONWORDPRO = 'Konami Word Pro',
   MATRAINK = 'Matra Inc',
   NETTOUYAKYUU = 'Netto Yakuu',
+  WIZARDRY = "Wizardry",
 };
 
 export class MediaInfo {
@@ -94,7 +95,7 @@ class Dump {
     if (json.megarom) {
       this.hash = json.megarom.hash && json.megarom.hash['#text'];
       let type = json.megarom.type;
-      this.type = this.typeFromString(type);;
+      this.type = this.typeFromString(type);
     } 
 
     if (json.rom) {
@@ -137,7 +138,7 @@ class Dump {
     if (iequals(name, "Zemina80in1")) return MediaType.KOREAN80;
     if (iequals(name, "Zemina90in1")) return MediaType.KOREAN90;
     if (iequals(name, "Zemina126in1")) return MediaType.KOREAN126;
-    if (iequals(name, "Wizardry")) return MediaType.ASCII8SRAM;
+    if (iequals(name, "Wizardry")) return MediaType.WIZARDRY;
     if (iequals(name, "GameMaster2")) return MediaType.GAMEMASTER2;
     if (iequals(name, "SuperLodeRunner")) return MediaType.LODERUNNER;
     if (iequals(name, "R-Type")) return MediaType.RTYPE;

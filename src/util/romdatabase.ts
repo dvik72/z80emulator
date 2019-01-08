@@ -55188,7 +55188,7 @@
             "#text": "GoodMSX"
           },
           "megarom": {
-            "type": "ASCII8SRAM8",
+            "type": "Wizardry",
             "hash": {
               "-algo": "sha1",
               "#text": "34635bf3518c7b33164f3d96da769c7a01102d28"

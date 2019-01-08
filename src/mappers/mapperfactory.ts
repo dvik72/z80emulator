@@ -22,11 +22,11 @@ import { Mapper } from '../mappers/mapper';
 
 import { MapperRomAscii8 } from './romascii8';
 import { MapperRomAscii16 } from './romascii16';
-import { MapperRomAscii8sram } from './romascii8sram';
+import { MapperRomAscii8sram, Ascii8SramType } from './romascii8sram';
 import { MapperRomAscii16sram } from './romascii16sram';
-import { MapperRomKoei } from './romkoei';
 import { MapperRomKonami } from './romkonami';
 import { MapperRomKonamiScc } from './romkonamiscc';
+import { MapperRomMajutsushi } from './rommajutsushi';
 import { MapperRomKorean80 } from './romkorean80';
 import { MapperRomKorean90 } from './romkorean90';
 import { MapperRomKorean126 } from './romkorean126';
@@ -67,9 +67,11 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.HARRYFOX,
     MediaType.LODERUNNER,
     MediaType.KOEI,
+    MediaType.WIZARDRY,
     MediaType.KOREAN80,
     MediaType.KOREAN90,
     MediaType.KOREAN126,
+    MediaType.MAJUTSUSHI,
     MediaType.MANBOW2,
     MediaType.MANBOW2_V2,
     MediaType.HAMARAJANIGHT
@@ -83,10 +85,12 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
     case MediaType.ASCII8: return new MapperRomAscii8(board, slot, subslot, mediaInfo.data);
     case MediaType.ASCII16: return new MapperRomAscii16(board, slot, subslot, mediaInfo.data);
     case MediaType.ASCII8SRAM: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data);
+    case MediaType.KOEI: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data, Ascii8SramType.KOEI);
+    case MediaType.WIZARDRY: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data, Ascii8SramType.WIZARDRY);
     case MediaType.ASCII16SRAM: return new MapperRomAscii16sram(board, slot, subslot, mediaInfo.data);
-    case MediaType.KOEI: return new MapperRomKoei(board, slot, subslot, mediaInfo.data);
     case MediaType.KONAMI: return new MapperRomKonami(board, slot, subslot, mediaInfo.data);
     case MediaType.KONAMISCC: return new MapperRomKonamiScc(board, slot, subslot, mediaInfo.data);
+    case MediaType.MAJUTSUSHI: return new MapperRomMajutsushi(board, slot, subslot, mediaInfo.data);
     case MediaType.NORMAL_MIRRORED: return new MapperRom64kMirrored(board, slot, subslot, mediaInfo.data);
     case MediaType.RTYPE: return new MapperRomRtype(board, slot, subslot, mediaInfo.data);
     case MediaType.GAMEMASTER2: return new MapperRomGameMaster2(board, slot, subslot, mediaInfo.data);

@@ -20,10 +20,22 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 
+export enum Ascii8SramType{
+  ASCII8,
+  KOEI,
+  WIZARDRY
+};
+
 export class MapperRomAscii8sram extends Mapper {
   static NAME = 'ASCII-8 SRAM';
 
-  constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
+  constructor(
+    board: Board,
+    slot: number,
+    sslot: number,
+    romData: Uint8Array,
+    sramType: Ascii8SramType = Ascii8SramType.ASCII8
+  ) {
     super(MapperRomAscii8sram.NAME);
 
     let size = 0x8000;
@@ -42,15 +54,22 @@ export class MapperRomAscii8sram extends Mapper {
       this.pages.push(pageData);
     }
 
-    // Initialize SRAM (should ideally store in a cookie or something...)
-    for (let i = 0; i < this.sram.length; i++) {
-      this.sram[i] = 0xff;
-    }
-
     for (let page = 0; page < 4; page++) {
       this.slotInfo[page] = new Slot(this.getName(), undefined, page == 1 ? this.writeCb.bind(this) : undefined);
       this.slotInfo[page].map(true, false, this.pages[0]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);
+    }
+
+    this.sramEnableBit = sramType == Ascii8SramType.WIZARDRY ? 0x80 : size >> 13;
+
+    const sramBanks = sramType == Ascii8SramType.KOEI ? 4 : 1;
+    this.sram = new Array<Uint8Array>(sramBanks);
+    for (let page = 0; page < sramBanks; page++) {
+      let sram = new Uint8Array(0x2000);
+      for (let i = 0; i < sram.length; i++) {
+        sram[i] = 0xff;
+      }
+      this.sram[page] = sram;
     }
   }
 
@@ -58,11 +77,11 @@ export class MapperRomAscii8sram extends Mapper {
     let bank = (address & 0x1800) >> 11;
 
     if (this.romMapper[bank] != value) {
-      if (value & ~this.romMask) {
-        this.slotInfo[bank].map(true, bank > 1, this.sram);
+      if (value & this.sramEnableBit) {
+        this.slotInfo[bank].map(true, bank > 1, this.sram[value & (this.sram.length - 1)]);
       }
       else {
-        this.slotInfo[bank].map(true, false, this.pages[value]);
+        this.slotInfo[bank].map(true, false, this.pages[value & this.romMask]);
       }
       this.romMapper[bank] = value;
     }
@@ -70,7 +89,8 @@ export class MapperRomAscii8sram extends Mapper {
 
   private romMask = 0;
   private pages: Array<Uint8Array>;
+  private sram: Array<Uint8Array>;
+  private sramEnableBit = 0;
   private slotInfo = new Array<Slot>(4);
   private romMapper = [0, 0, 0, 0];
-  private sram = new Uint8Array(0x2000);
 }

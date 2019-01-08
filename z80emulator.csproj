@@ -98,11 +98,11 @@
     <TypeScriptCompile Include="src\machines\msx\philips_vg_8020.ts" />
     <TypeScriptCompile Include="src\mappers\f4device.ts" />
     <TypeScriptCompile Include="src\mappers\romkanji.ts" />
-    <TypeScriptCompile Include="src\mappers\romkoei.ts" />
     <TypeScriptCompile Include="src\mappers\romkorean126.ts" />
     <TypeScriptCompile Include="src\mappers\romkorean80.ts" />
     <TypeScriptCompile Include="src\mappers\romkorean90.ts" />
     <TypeScriptCompile Include="src\mappers\romloderunner.ts" />
+    <TypeScriptCompile Include="src\mappers\rommajutsushi.ts" />
     <TypeScriptCompile Include="src\mappers\rommegaflashromscc.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />

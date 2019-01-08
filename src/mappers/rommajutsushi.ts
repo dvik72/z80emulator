@@ -19,12 +19,13 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
-
-export class MapperRomKoei extends Mapper {
-  static NAME = 'Koei';
+import { Dac } from '../audio/dac';
+ 
+export class MapperRomMajutsushi extends Mapper {
+  static NAME = 'Majutsushi';
 
   constructor(board: Board, slot: number, sslot: number, romData: Uint8Array) {
-    super(MapperRomKoei.NAME);
+    super(MapperRomMajutsushi.NAME);
 
     let size = 0x8000;
     while (size < romData.length) {
@@ -41,39 +42,36 @@ export class MapperRomKoei extends Mapper {
       }
       this.pages.push(pageData);
     }
-    
-    for (let page = 0; page < 4; page++) {
-      let sram = new Uint8Array(0x2000);
-      for (let i = 0; i < sram.length; i++) {
-        sram[i] = 0xff;
-      }
-      this.sram[page] = sram;
-    }
 
     for (let page = 0; page < 4; page++) {
-      this.slotInfo[page] = new Slot(this.getName(), undefined, page == 1 ? this.writeCb.bind(this) : undefined);
-      this.slotInfo[page].map(true, false, this.pages[0]);
+      this.slotInfo[page] = new Slot(this.getName(), undefined, this.writeCb.bind(this));
+      this.slotInfo[page].fullAddress = true;
+      this.slotInfo[page].map(true, false, this.pages[page]);
       board.getSlotManager().registerSlot(slot, sslot, page + 2, this.slotInfo[page]);
     }
+
+    this.dac = new Dac(board, 8, false);
   }
 
   private writeCb(address: number, value: number): void {
-    let bank = (address & 0x1800) >> 11;
+    if (address >= 0x5000 && address < 0x6000) {
+      this.dac.write(value);
+    }
+    if (address < 0x6000) {
+      return;
+    }
 
+    const bank = (address - 0x4000) >> 13;
+    value &= this.romMask;
     if (this.romMapper[bank] != value) {
-      if (value & ~this.romMask) {
-        this.slotInfo[bank].map(true, bank > 1, this.sram[value & 3]);
-      }
-      else {
-        this.slotInfo[bank].map(true, false, this.pages[value]);
-      }
       this.romMapper[bank] = value;
+      this.slotInfo[bank].map(true, false, this.pages[value]);
     }
   }
 
   private romMask = 0;
   private pages: Array<Uint8Array>;
-  private sram = new Array<Uint8Array>(4);
   private slotInfo = new Array<Slot>(4);
-  private romMapper = [0, 0, 0, 0];
+  private romMapper = [0, 1, 2, 3];
+  private dac: Dac;
 }
