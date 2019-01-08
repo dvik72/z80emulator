@@ -24,6 +24,7 @@ import { MapperRomAscii8 } from './romascii8';
 import { MapperRomAscii16 } from './romascii16';
 import { MapperRomAscii8sram } from './romascii8sram';
 import { MapperRomAscii16sram } from './romascii16sram';
+import { MapperRomKoei } from './romkoei';
 import { MapperRomKonami } from './romkonami';
 import { MapperRomKonamiScc } from './romkonamiscc';
 import { MapperRom64kMirrored } from './rom64kmirrored';
@@ -62,6 +63,7 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.CROSSBLAIM,
     MediaType.HARRYFOX,
     MediaType.LODERUNNER,
+    MediaType.KOEI,
     MediaType.MANBOW2,
     MediaType.MANBOW2_V2,
     MediaType.HAMARAJANIGHT
@@ -76,6 +78,7 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
     case MediaType.ASCII16: return new MapperRomAscii16(board, slot, subslot, mediaInfo.data);
     case MediaType.ASCII8SRAM: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data);
     case MediaType.ASCII16SRAM: return new MapperRomAscii16sram(board, slot, subslot, mediaInfo.data);
+    case MediaType.KOEI: return new MapperRomKoei(board, slot, subslot, mediaInfo.data);
     case MediaType.KONAMI: return new MapperRomKonami(board, slot, subslot, mediaInfo.data);
     case MediaType.KONAMISCC: return new MapperRomKonamiScc(board, slot, subslot, mediaInfo.data);
     case MediaType.NORMAL_MIRRORED: return new MapperRom64kMirrored(board, slot, subslot, mediaInfo.data);
