@@ -339,9 +339,9 @@ export class MsxEmu {
     this.wallTime += elapsedTime;
     if (this.wallTime > 1000) {
       const cpuUsage = ((1000 * this.emulationTime / this.wallTime | 0) / 10);
-      const element = document.getElementById('cpuusage');
+      const element = document.getElementById('emu-cpu-usage');
       if (element) {
-        element.innerHTML = 'CPU usage: ' + cpuUsage;
+        element.innerHTML = 'CPU: ' + cpuUsage;
       }
       this.wallTime = 0;
       this.emulationTime = 0;

@@ -121,3 +121,12 @@ span {
     min-width: 60px;
     margin-top: 5px;
 }
+
+.emu-cpu-usage {
+    float: left;
+    color: #808080;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: xx-small;
+    margin-top: 250px;
+    margin-left: 10px;
+}
