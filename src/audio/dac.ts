@@ -23,16 +23,22 @@ import { Port } from '../core/iomanager';
 class DacChannel {
   public write(volume?: number): void {
     if (volume != undefined) {
-      this.volume = (this.volume * this.count + volume) / ++this.count;
+      this.volume = volume;
+      this.fracVolume = (this.fracVolume * this.count + volume) / ++this.count;
     }
   }
 
   public sync(buffer: Float32Array, count: number): void {
-    for (let i = 0; i < count; i++) {
+    if (count > 0) {
+      buffer[0] = this.fracVolume;
+      this.count = 0;
+    }
+    for (let i = 1; i < count; i++) {
       buffer[i] = this.volume;
     }
   }
 
+  private fracVolume = 0;
   private volume = 0;
   private count = 0;
 }
@@ -45,7 +51,7 @@ export class Dac extends AudioDevice {
   ) {
     super('DAC', stereo);
 
-    this.range = 1 << (dacBits + 1);
+    this.range = 1 << dacBits;
     this.sync = this.sync.bind(this);
 
     this.board.getAudioManager().registerAudioDevice(this);
@@ -53,8 +59,8 @@ export class Dac extends AudioDevice {
   
   public write(leftVolume?: number, rightVolume?: number): void {
     this.board.syncAudio();
-    leftVolume != undefined && this.leftChannel.write(leftVolume / this.range);
-    rightVolume != undefined && this.rightChannel.write(rightVolume / this.range);
+    leftVolume != undefined && this.leftChannel.write(leftVolume / this.range * 0.9);
+    rightVolume != undefined && this.rightChannel.write(rightVolume / this.range * 0.9);
   }
 
   public sync(count: number): void {
