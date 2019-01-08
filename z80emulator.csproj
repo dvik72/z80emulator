@@ -58,6 +58,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="css\bootstrap-submenu.css" />
+    <Content Include="img\bluemsx.png" />
     <Content Include="img\cart1.png" />
     <Content Include="img\cart2.png" />
     <Content Include="img\diska.png" />
@@ -97,6 +98,7 @@
     <TypeScriptCompile Include="src\machines\msx\philips_vg_8020.ts" />
     <TypeScriptCompile Include="src\mappers\f4device.ts" />
     <TypeScriptCompile Include="src\mappers\romkanji.ts" />
+    <TypeScriptCompile Include="src\mappers\romloderunner.ts" />
     <TypeScriptCompile Include="src\mappers\rommegaflashromscc.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />

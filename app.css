@@ -106,3 +106,8 @@ span {
     top: 50%;
     transform: translateY(-50%);
 }
+
+.emu-logo {
+    margin-left: 14px;
+    margin-top: 266px;
+}
