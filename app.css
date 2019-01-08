@@ -109,5 +109,15 @@ span {
 
 .emu-logo {
     margin-left: 14px;
-    margin-top: 266px;
+    margin-top: 253px;
+}
+
+.emu-version {
+    float: left;
+    text-align: center;
+    color: #808080;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: xx-small;
+    min-width: 60px;
+    margin-top: 5px;
 }
