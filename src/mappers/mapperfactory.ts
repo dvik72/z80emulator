@@ -27,6 +27,9 @@ import { MapperRomAscii16sram } from './romascii16sram';
 import { MapperRomKoei } from './romkoei';
 import { MapperRomKonami } from './romkonami';
 import { MapperRomKonamiScc } from './romkonamiscc';
+import { MapperRomKorean80 } from './romkorean80';
+import { MapperRomKorean90 } from './romkorean90';
+import { MapperRomKorean126 } from './romkorean126';
 import { MapperRom64kMirrored } from './rom64kmirrored';
 import { MapperRomRtype } from './romrtype';
 import { MapperRomGameMaster2 } from './romgamemaster2';
@@ -64,6 +67,9 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.HARRYFOX,
     MediaType.LODERUNNER,
     MediaType.KOEI,
+    MediaType.KOREAN80,
+    MediaType.KOREAN90,
+    MediaType.KOREAN126,
     MediaType.MANBOW2,
     MediaType.MANBOW2_V2,
     MediaType.HAMARAJANIGHT
@@ -87,6 +93,9 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
     case MediaType.CROSSBLAIM: return new MapperRomCrossBlaim(board, slot, subslot, mediaInfo.data);
     case MediaType.HARRYFOX: return new MapperRomHarryFox(board, slot, subslot, mediaInfo.data);
     case MediaType.LODERUNNER: return new MapperRomLodeRunner(board, slot, subslot, mediaInfo.data);
+    case MediaType.KOREAN80: return new MapperRomKorean80(board, slot, subslot, mediaInfo.data);
+    case MediaType.KOREAN90: return new MapperRomKorean90(board, slot, subslot, mediaInfo.data);
+    case MediaType.KOREAN126: return new MapperRomKorean126(board, slot, subslot, mediaInfo.data);
     case MediaType.MANBOW2: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data.slice(0, 0x70000), 0x7f, 0x80000, false);
     case MediaType.MANBOW2_V2: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0x7f, 0x100000, true);
     case MediaType.HAMARAJANIGHT: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0xcf, 0x100000, true);
