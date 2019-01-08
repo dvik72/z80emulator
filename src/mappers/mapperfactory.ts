@@ -38,6 +38,7 @@ import { MapperRomHarryFox } from './romharryfox';
 import { MapperRomLodeRunner } from './romloderunner';
 import { MapperRomNormal } from './romnormal';
 import { MapperRomMegaFlashRomScc } from './rommegaflashromscc';
+import { MapperRomHolyQuran } from './romholyquran';
 
 
 export function getSupportedCartridgeTypeNames(): Array<string> {
@@ -74,6 +75,7 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.MAJUTSUSHI,
     MediaType.MANBOW2,
     MediaType.MANBOW2_V2,
+//    MediaType.HOLYQURAN,
     MediaType.HAMARAJANIGHT
   ];
 }
@@ -103,6 +105,7 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
     case MediaType.MANBOW2: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data.slice(0, 0x70000), 0x7f, 0x80000, false);
     case MediaType.MANBOW2_V2: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0x7f, 0x100000, true);
     case MediaType.HAMARAJANIGHT: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0xcf, 0x100000, true);
+    case MediaType.HOLYQURAN: return new MapperRomHolyQuran(board, slot, subslot, mediaInfo.data);
 //    case MediaType.MEGAFLSHSCC: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0, 0x80000, false);
 //    case MediaType.MEGAFLSHSCCPLUS: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0, 0x100000, true);
     default:
