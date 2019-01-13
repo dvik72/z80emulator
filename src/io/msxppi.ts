@@ -210,7 +210,7 @@ enum Key {
     case 'ArrowLeft': return Key.EC_LEFT;
     case 'ArrowRight': return Key.EC_RIGHT;
     case 'ArrowUp': return Key.EC_UP;
-    case 'Escape': return Key.EC_NONE;
+    case 'Escape': return Key.EC_ESC;
     case 'PrintScreen': return Key.EC_NONE;
     case 'ScrollLock': return Key.EC_NONE;
     case 'Pause': return Key.EC_PAUSE;
