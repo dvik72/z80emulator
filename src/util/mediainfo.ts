@@ -68,6 +68,8 @@ export enum MediaType {
   MATRAINK = 'Matra Inc',
   NETTOUYAKYUU = 'Netto Yakuu',
   WIZARDRY = "Wizardry",
+  MSXAUDIO = 'MSX-AUDIO',
+  MSXMUSIC = 'MSX-MUSIC'
 };
 
 export class MediaInfo {
@@ -151,6 +153,8 @@ class Dump {
     if (iequals(name, "Normal")) return MediaType.NORMAL_MIRRORED;
     if (iequals(name, "MatraInk")) return MediaType.MATRAINK;
     if (iequals(name, "NettouYakyuu")) return MediaType.NETTOUYAKYUU;
+    if (iequals(name, "MSX-AUDIO")) return MediaType.MSXAUDIO;
+    if (iequals(name, "MSX-MUSIC")) return MediaType.MSXMUSIC;
 
     return MediaType.UNKNOWN;
   }

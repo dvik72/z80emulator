@@ -4,6 +4,60 @@
     "-xml:lang": "en",
     "-timestamp": "1355086800",
     "software": [
+
+      {
+        "title": {
+          "-xml:lang": "en",
+          "#text": "MSX-Audio + BASIC"
+        },
+        "system": "MSX",
+        "company": "Panasonic",
+        "year": "1988",
+        "country": "JP",
+        "dump": {
+          "original": { "-value": "false" },
+          "megarom": {
+            "type": "MSX-AUDIO",
+            "hash": {
+              "-algo": "sha1",
+              "#text": "400fe724bddb6a1e6c28fd1815820cb764ef9e95"
+            }
+          }
+        },
+        "dump": {
+          "original": { "-value": "false" },
+          "megarom": {
+            "type": "MSX-AUDIO",
+            "hash": {
+              "-algo": "sha1",
+              "#text": "8be69f0f6cdd10b21bfbb315e689adc4b35ba150"
+            }
+          }
+        },
+        "dump": {
+          "original": { "-value": "false" },
+          "megarom": {
+            "type": "MSX-AUDIO",
+            "hash": {
+              "-algo": "sha1",
+              "#text": "930eae7057af1652abae794072b296a59decd61b"
+            }
+          }
+        },
+        "dump": {
+          "original": { "-value": "false" },
+          "megarom": {
+            "type": "MSX-AUDIO",
+            "hash": {
+              "-algo": "sha1",
+              "#text": "4061c461fa9ff21a6c0e46b3a71607e332d80ba3"
+            }
+          }
+        }
+      },
+
+
+
       {
         "title": {
           "-xml:lang": "en",

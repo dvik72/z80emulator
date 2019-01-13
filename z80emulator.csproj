@@ -74,6 +74,7 @@
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
     <TypeScriptCompile Include="src\audio\scc.ts" />
     <TypeScriptCompile Include="src\audio\webaudio.ts" />
+    <TypeScriptCompile Include="src\audio\y8950.ts" />
     <TypeScriptCompile Include="src\audio\ym2413.ts" />
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\core\drammanager.ts" />
@@ -105,6 +106,7 @@
     <TypeScriptCompile Include="src\mappers\romloderunner.ts" />
     <TypeScriptCompile Include="src\mappers\rommajutsushi.ts" />
     <TypeScriptCompile Include="src\mappers\rommegaflashromscc.ts" />
+    <TypeScriptCompile Include="src\mappers\rommsxaudio.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />
     <TypeScriptCompile Include="src\mappers\rompanasonic.ts" />
