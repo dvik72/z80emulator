@@ -643,7 +643,7 @@ export class Ym2413 extends AudioDevice {
     const audioBuffer = this.getAudioBufferMono();
 
     for (let index = 0; index < count; index++) {
-      audioBuffer[index] = this.calcSample() / 32768;
+      audioBuffer[index] = this.calcSample() / 32768 * 0.9;
     }
     this.checkMute();
   }
