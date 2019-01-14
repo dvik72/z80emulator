@@ -19,7 +19,11 @@
 import { AudioDevice } from '../core/audiomanager';
 import { Board, InterruptVector } from '../core/board';
 import { Timer } from '../core/timeoutmanager';
-import { Port } from '../core/iomanager';
+
+// Note to reader:
+// This file is inappropriate to use for educational purposes with
+// the only exception to learn how *not* to write code.
+
 
 const ym_deltat_decode_tableB1 = [
   1, 3, 5, 7, 9, 11, 13, 15,
@@ -82,15 +86,15 @@ class YM_DELTAT {
             this.portstate = 0x00;
           }
 
-          if (this.memory_size == 0) {
+          if (this.memory.length == 0) {
             this.flag = 0;
             this.eos = 1;
             //DELTAT->portstate = 0x00;
           } else {
-            if (this.end >= this.memory_size) {
-              this.end = this.memory_size - 1;
+            if (this.end >= this.memory.length) {
+              this.end = this.memory.length - 1;
             }
-            if (this.start >= this.memory_size) {
+            if (this.start >= this.memory.length) {
               this.flag = 0;
               this.eos = 1;
               this.portstate = 0x00;
@@ -124,9 +128,9 @@ class YM_DELTAT {
       case 0x07:
         break;
       case 0x08:
-        if ((this.start + this.write_pointer) < this.memory_size &&
+        if ((this.start + this.write_pointer) < this.memory.length &&
           (this.start + this.write_pointer) <= this.end) {
-          this.memory![this.start + this.write_pointer] = v;
+          this.memory[this.start + this.write_pointer] = v;
           this.write_pointer++;
           this.eos = 0;
         }
@@ -164,9 +168,9 @@ class YM_DELTAT {
       this.memread++;
       return 0;
     }
-    if ((this.start + this.read_pointer) < this.memory_size &&
+    if ((this.start + this.read_pointer) < this.memory.length &&
       (this.start + this.read_pointer) <= this.end) {
-      v = this.memory![this.start + this.read_pointer];
+      v = this.memory[this.start + this.read_pointer];
       this.read_pointer++;
       this.eos=0;
     }
@@ -235,7 +239,7 @@ class YM_DELTAT {
         }
         if (this.now_addr & 1) data = this.now_data & 0x0f;
         else {
-          this.now_data = this.memory![this.now_addr >> 1];
+          this.now_data = this.memory[this.now_addr >> 1];
           data = this.now_data >> 4;
         }
         this.now_addr++;
@@ -258,8 +262,7 @@ class YM_DELTAT {
     this.connectors[this.pan] += this.adpcml;
   }
 
-  private memory?: Uint8Array;
-  private memory_size = 0;
+  private memory = new Uint8Array(0);
   public freqbase = 0;
   public output_range = 0;
 
@@ -406,57 +409,6 @@ let AMS_TABLE: Int32Array;
 let VIB_TABLE: Int32Array;
 let ENV_CURVE = new Int32Array(2 * EG_ENT + 1);
 
-function OPLOpenTable(): void {
-  TL_TABLE = new Int32Array(TL_MAX * 2);
-  SIN_TABLE = new Int32Array(SIN_ENT * 4);
-  AMS_TABLE = new Int32Array(AMS_ENT * 2);
-  VIB_TABLE = new Int32Array(VIB_ENT * 2);
-
-  for (let t = 0; t < EG_ENT - 1; t++) {
-    const rate = ((1 << TL_BITS) - 1) / Math.pow(10, EG_STEP * t / 20);
-    TL_TABLE[t] = rate | 0;
-    TL_TABLE[TL_MAX + t] = -TL_TABLE[t];
-  }
-
-  for (let t = EG_ENT - 1; t < TL_MAX; t++) {
-    TL_TABLE[t] = TL_TABLE[TL_MAX + t] = 0;
-  }
-
-  const log10 = Math.log(10);
-  SIN_TABLE[0] = SIN_TABLE[SIN_ENT / 2] = EG_ENT - 1;
-  for (let s = 1; s <= SIN_ENT / 4; s++) {
-    let pom = Math.sin(2 * PI * s / SIN_ENT);
-    pom = 20 * Math.log(1 / pom) / log10;
-    const j = pom / EG_STEP | 0;
-
-    SIN_TABLE[s] = SIN_TABLE[SIN_ENT / 2 - s] = j;
-    SIN_TABLE[SIN_ENT / 2 + s] = SIN_TABLE[SIN_ENT - s] = TL_MAX + j;
-  }
-  for (let s = 0; s < SIN_ENT; s++) {
-    SIN_TABLE[SIN_ENT * 1 + s] = s < (SIN_ENT / 2) ? SIN_TABLE[s] : EG_ENT;
-    SIN_TABLE[SIN_ENT * 2 + s] = SIN_TABLE[s % (SIN_ENT / 2)];
-    SIN_TABLE[SIN_ENT * 3 + s] = (s / (SIN_ENT / 4)) & 1 ? EG_ENT : SIN_TABLE[SIN_ENT * 2 + s];
-  }
-
-  for (let i = 0; i < EG_ENT; i++) {
-    const pom = Math.pow(((EG_ENT - 1 - i) / EG_ENT), 8) * EG_ENT;
-    ENV_CURVE[i] = pom | 0;
-    ENV_CURVE[(EG_DST >> ENV_BITS) + i] = i;
-  }
-  ENV_CURVE[EG_OFF >> ENV_BITS] = EG_ENT - 1;
-  for (let i = 0; i < AMS_ENT; i++) {
-    const pom = (1.0 + Math.sin(2 * PI * i / AMS_ENT)) / 2;
-    AMS_TABLE[i] = (1.0 / EG_STEP) * pom | 0;
-    AMS_TABLE[AMS_ENT + i] = (4.8 / EG_STEP) * pom | 0;
-  }
-
-  for (let i = 0; i < VIB_ENT; i++) {
-    const pom = VIB_RATE * 0.06 * Math.sin(2 * PI * i / VIB_ENT);
-    VIB_TABLE[i] = VIB_RATE + (pom * 0.07) | 0;
-    VIB_TABLE[VIB_ENT + i] = VIB_RATE + (pom * 0.14) | 0;
-  }
-}
-
 const ML = 2;
 
 const MUL_TABLE = [
@@ -476,6 +428,57 @@ const ams = 1;
 const vib = 2;
 const feedback2 = 3;
 
+function OPLOpenTable(): void {
+  TL_TABLE = new Int32Array(TL_MAX * 2);
+  SIN_TABLE = new Int32Array(SIN_ENT * 4);
+  AMS_TABLE = new Int32Array(AMS_ENT * 2);
+  VIB_TABLE = new Int32Array(VIB_ENT * 2);
+
+  for (let t = 0; t < EG_ENT - 1; t++) {
+    const rate = ((1 << TL_BITS) - 1) / Math.pow(10, EG_STEP * t / 20);
+    TL_TABLE[t] = rate | 0;
+    TL_TABLE[TL_MAX + t] = -TL_TABLE[t];
+  }
+
+  for (let t = EG_ENT - 1; t < TL_MAX; t++) {
+    TL_TABLE[t] = TL_TABLE[TL_MAX + t] = 0;
+  }
+
+  const log10 = Math.log(10);
+  SIN_TABLE[0] = SIN_TABLE[SIN_ENT >> 1] = EG_ENT - 1;
+  for (let s = 1; s <= (SIN_ENT >> 2); s++) {
+    let pom = Math.sin(2 * Math.PI * s / SIN_ENT);
+    pom = 20 * Math.log(1 / pom) / log10;
+    const j = pom / EG_STEP | 0;
+
+    SIN_TABLE[s] = SIN_TABLE[(SIN_ENT >> 1) - s] = j;
+    SIN_TABLE[(SIN_ENT >> 1) + s] = SIN_TABLE[SIN_ENT - s] = TL_MAX + j;
+  }
+  for (let s = 0; s < SIN_ENT; s++) {
+    SIN_TABLE[SIN_ENT * 1 + s] = s < (SIN_ENT >> 1) ? SIN_TABLE[s] : EG_ENT;
+    SIN_TABLE[SIN_ENT * 2 + s] = SIN_TABLE[s % (SIN_ENT >> 1)];
+    SIN_TABLE[SIN_ENT * 3 + s] = (s / (SIN_ENT >> 2)) & 1 ? EG_ENT : SIN_TABLE[SIN_ENT * 2 + s];
+  }
+
+  for (let i = 0; i < EG_ENT; i++) {
+    const pom = Math.pow(((EG_ENT - 1 - i) / EG_ENT), 8) * EG_ENT;
+    ENV_CURVE[i] = pom | 0;
+    ENV_CURVE[(EG_DST >> ENV_BITS) + i] = i;
+  }
+  ENV_CURVE[EG_OFF >> ENV_BITS] = EG_ENT - 1;
+  for (let i = 0; i < AMS_ENT; i++) {
+    const pom = (1.0 + Math.sin(2 * Math.PI * i / AMS_ENT)) / 2;
+    AMS_TABLE[i] = (1.0 / EG_STEP) * pom | 0;
+    AMS_TABLE[AMS_ENT + i] = (4.8 / EG_STEP) * pom | 0;
+  }
+
+  for (let i = 0; i < VIB_ENT; i++) {
+    const pom = VIB_RATE * 0.06 * Math.sin(2 * PI * i / VIB_ENT);
+    VIB_TABLE[i] = VIB_RATE + (pom * 0.07) | 0;
+    VIB_TABLE[VIB_ENT + i] = VIB_RATE + (pom * 0.14) | 0;
+  }
+}
+
 function Limit(val: number, max: number, min: number): number {
   if (val > max)
     val = max;
@@ -489,7 +492,8 @@ class OPL_SLOT {
   constructor() { }
 
   public OP_OUT(env: number, con: number) {
-    const sinIndex = this.wavetableidx + (((this.Cnt + con) / (0x1000000 / SIN_ENT)) & (SIN_ENT - 1)) | 0;
+    const sinIndex = this.wavetableidx + (((this.Cnt + con) / (0x1000000 / SIN_ENT | 0)) & (SIN_ENT - 1)) | 0;
+
     return TL_TABLE[SIN_TABLE[sinIndex] + env];
   }
 
@@ -632,7 +636,7 @@ class OPL_CH {
     slot2.OPL_KEYOFF();
 
     slot1.TLL = slot1.TL + (this.ksl_base >> slot1.ksl);
-    slot1.TLL = slot1.TL + (this.ksl_base >> slot1.ksl);
+    slot2.TLL = slot2.TL + (this.ksl_base >> slot2.ksl);
 
     this.op1_out[0] = this.op1_out[1] = 0;
     slot1.OPL_KEYON();
@@ -660,6 +664,7 @@ class FM_OPL {
     this.deltat.initSampleRam(1024 * sampleram);
     this.clock = clock;
     this.rate = rate;
+    this.baseRate = rate;
 
     this.initialize();
     this.reset();
@@ -720,7 +725,7 @@ class FM_OPL {
   }
 
   private initialize(): void {
-    if (this.baseRate == this.clock / 72) {
+    if (this.baseRate == (this.clock / 72 | 0)) {
       this.freqbase = this.baseRate / this.rate;
       this.TimerBase = 1.0 / this.baseRate;
     }
@@ -738,7 +743,6 @@ class FM_OPL {
   }
 
   private writeReg(r: number, v: number): void {
-
     this.regs[r & 0xff] = v;
 
     switch (r & 0xe0) {
@@ -805,7 +809,6 @@ class FM_OPL {
               let sample = (256 * this.reg15 + this.reg16) * 128 / damp[this.reg17] | 0;
               if (sample > 0x7fff) sample -= 0x10000;
               this.dacSampleVolume = sample;
-              this.dacEnabled = 1;
             }
           case 0x16:
             this.reg16 = v & 0xc0;
@@ -949,7 +952,7 @@ class FM_OPL {
         {
           const slot = slot_array[r & 0x1f];
           if (slot == -1) return;
-          let CH = this.P_CH[slot / 2];
+          let CH = this.P_CH[slot >> 1];
           if (this.wavesel) {
             CH.SLOT[slot & 1].wavetableidx = (v & 0x03) * SIN_ENT;
           }
@@ -986,13 +989,9 @@ class FM_OPL {
       if (rythm)
         this.OPL_CALC_RH();
     }
-    this.connectors[outd] = this.connectors[outd] / (this.rate / this.baseRate) | 0;
 
-    this.dacCtrlVolume = this.dacSampleVolume - this.dacOldSampleVolume + 0x3fe7 * this.dacCtrlVolume / 0x4000 | 0;
-    this.dacOldSampleVolume = this.dacSampleVolume;
-    this.dacDaVolume += 2 * (this.dacCtrlVolume - this.dacDaVolume) / 3 | 0;
-    this.dacEnabled = this.dacDaVolume;
-    this.connectors[outd] += this.dacDaVolume << 14;
+    this.connectors[outd] = this.connectors[outd] / (this.rate / this.baseRate) | 0;
+    this.connectors[outd] += this.dacSampleVolume << 14;
 
     if (this.deltat.flag)
       this.deltat.calc();
@@ -1002,9 +1001,10 @@ class FM_OPL {
 
     if (!this.deltat.flag)
       this.status &= 0xfe;
-
-    return (data / (1 << (OPL_OUTSB - 3))) * 9 / 10 | 0;
+    
+    return data / (1 << OPL_OUTSB) * 0.5  | 0;
   }
+  xxx = 0;
 
   public reset(): void {
     this.mode = 0;
@@ -1042,7 +1042,6 @@ class FM_OPL {
     this.dacSampleVolumeSum = 0;
     this.dacCtrlVolume = 0;
     this.dacDaVolume = 0;
-    this.dacEnabled = 0;
 
     this.reg6 = 0;
     this.reg15 = 0;
@@ -1248,7 +1247,7 @@ class FM_OPL {
   private freqbase = 0;
   private TimerBase = 0;
 
-  private type = 0;
+  private type = OPL_TYPE_ADPCM | OPL_TYPE_KEYBOARD | OPL_TYPE_IO;
   public address = 0;
   private status = 0;
   private statusmask = 0;
@@ -1326,20 +1325,21 @@ export class Y8950 extends AudioDevice {
   public sync(count: number): void {
     const audioBuffer = this.getAudioBufferMono();
 
+    let d = 0;
     for (let i = 0; i < count; i++) {
       if (SAMPLERATE > this.sampleRate) {
         this.off -= SAMPLERATE - this.sampleRate;
         this.s1 = this.s2;
-        this.s2 = this.opl.updateOne() / 32768;
+        this.s2 = this.opl.updateOne();
         if (this.off < 0) {
           this.off += this.sampleRate;
           this.s1 = this.s2;
-          this.s2 = this.opl.updateOne() / 32768;
+          this.s2 = this.opl.updateOne();
         }
         audioBuffer[i] = ((this.s1 * (this.off >> 8) + this.s2 * ((SAMPLERATE - this.off) >> 8)) / (SAMPLERATE >> 8)) / 32768;
       }
       else {
-        audioBuffer[i] = this.opl.updateOne() / 32768;
+        audioBuffer[i] = (d=this.opl.updateOne()) / 32768;
       }
     }
   }
