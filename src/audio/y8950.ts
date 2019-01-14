@@ -324,9 +324,11 @@ const EG_AED = EG_DST;
 const EG_AST = 0;
 const EG_STEP = 96.0 / EG_ENT;
 const VIB_ENT = 512;
-const VIB_SHIFT = 32 - 9;
+const VIB_SHIFT = 32 - 13;
+const VIB_MASK = (1 << 28) - 1; 
 const AMS_ENT	= 512;
-const AMS_SHIFT = 32 - 9;
+const AMS_SHIFT = 32 - 13;
+const AMS_MASK = (1 << 28) - 1;
 const VIB_RATE = 256;
 
 const SLOT1 = 0;
@@ -418,15 +420,9 @@ const MUL_TABLE = [
   12.00 * ML | 0, 12.00 * ML | 0, 15.00 * ML | 0, 15.00 * ML | 0
 ];
 
-let RATE_0 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
 const WHITE_NOISE_db = 6.0;
 
-// Connector indexes
-const outd = 0;
-const ams = 1;
-const vib = 2;
-const feedback2 = 3;
+enum Connector { OUTD = 0, AMS = 1, VIB = 2, FEEDBACK2 = 3 };
 
 function OPLOpenTable(): void {
   TL_TABLE = new Int32Array(TL_MAX * 2);
@@ -473,7 +469,7 @@ function OPLOpenTable(): void {
   }
 
   for (let i = 0; i < VIB_ENT; i++) {
-    const pom = VIB_RATE * 0.06 * Math.sin(2 * PI * i / VIB_ENT);
+    const pom = VIB_RATE * 0.06 * Math.sin(2 * Math.PI * i / VIB_ENT);
     VIB_TABLE[i] = VIB_RATE + (pom * 0.07) | 0;
     VIB_TABLE[VIB_ENT + i] = VIB_RATE + (pom * 0.14) | 0;
   }
@@ -489,9 +485,14 @@ function Limit(val: number, max: number, min: number): number {
 }
 
 class OPL_SLOT {
-  constructor() { }
+  constructor(
+    private connectors: Int32Array
+  ) { }
 
   public OP_OUT(env: number, con: number) {
+    if (this.Cnt + con > 0xffffffff) {
+      this.Cnt -= 0x100000000;
+    }
     const sinIndex = this.wavetableidx + (((this.Cnt + con) / (0x1000000 / SIN_ENT | 0)) & (SIN_ENT - 1)) | 0;
 
     return TL_TABLE[SIN_TABLE[sinIndex] + env];
@@ -544,7 +545,7 @@ class OPL_SLOT {
       }
     }
 
-    return this.TLL + ENV_CURVE[this.evc >> ENV_BITS] + (this.ams ? ams : 0);
+    return this.TLL + ENV_CURVE[this.evc >> ENV_BITS] + (this.ams ? this.connectors[Connector.AMS] : 0);
   }
 
 
@@ -582,7 +583,7 @@ class OPL_CH {
   ) {
   }
 
-  public SLOT = [new OPL_SLOT(), new OPL_SLOT()];
+  public SLOT = [new OPL_SLOT(this.connectors), new OPL_SLOT(this.connectors)];
   public CON = 0;			/* connection type                     */
   public FB = 0;			/* feed back       :(shift down bit)   */
   public op1_out = [0, 0];	/* slot1 output for selfeedback        */
@@ -595,22 +596,22 @@ class OPL_CH {
 
   public OPL_CALC_CH(): void {
     let env_out = 0;
-    this.connectors[feedback2] = 0;
+    this.connectors[Connector.FEEDBACK2] = 0;
     /* SLOT	1 */
     let SLOT = this.SLOT[SLOT1];
     env_out = SLOT.OPL_CALC_SLOT();
     if (env_out < EG_ENT - 1) {
       /* PG */
-      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * vib / VIB_RATE | 0);
+      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * this.connectors[Connector.VIB] / VIB_RATE | 0);
       else SLOT.Cnt += SLOT.Incr;
       /* connectoion */
       if (this.FB) {
         const feedback1 = (this.op1_out[0] + this.op1_out[1]) >> this.FB;
         this.op1_out[1] = this.op1_out[0];
-        this.connectors[this.CON ? outd : feedback2] += this.op1_out[0] = SLOT.OP_OUT(env_out, feedback1);
+        this.connectors[this.CON ? Connector.OUTD : Connector.FEEDBACK2] += this.op1_out[0] = SLOT.OP_OUT(env_out, feedback1);
       }
       else {
-        this.connectors[this.CON ? outd : feedback2] += SLOT.OP_OUT(env_out, 0);
+        this.connectors[this.CON ? Connector.OUTD : Connector.FEEDBACK2] += SLOT.OP_OUT(env_out, 0);
       }
     } else {
       this.op1_out[1] = this.op1_out[0];
@@ -621,10 +622,10 @@ class OPL_CH {
     env_out = SLOT.OPL_CALC_SLOT();
     if (env_out < EG_ENT - 1) {
       /* PG */
-      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * vib / VIB_RATE | 0);
+      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * this.connectors[Connector.VIB] / VIB_RATE | 0);
       else SLOT.Cnt += SLOT.Incr;
       /* connectoion */
-      this.connectors[outd] += SLOT.OP_OUT(env_out, feedback2);
+      this.connectors[Connector.OUTD] += SLOT.OP_OUT(env_out, this.connectors[Connector.FEEDBACK2]);
     }
   }
 
@@ -977,10 +978,10 @@ class FM_OPL {
     let vibIncr = this.vibIncr;
 
     let R_CH = rythm ? 6 : 9;
-    let ams = AMS_TABLE[this.ams_table_idx + ((amsCnt += amsIncr) >> AMS_SHIFT)];
-    let vib = VIB_TABLE[this.vib_table_idx + ((vibCnt += vibIncr) >> VIB_SHIFT)];
+    this.connectors[Connector.AMS] = AMS_TABLE[this.ams_table_idx + ((amsCnt = amsCnt + amsIncr & AMS_MASK) >> AMS_SHIFT)];
+    this.connectors[Connector.VIB] = VIB_TABLE[this.vib_table_idx + ((vibCnt = vibCnt + vibIncr & VIB_MASK) >> VIB_SHIFT)];
 
-    this.connectors[outd] = 0;
+    this.connectors[Connector.OUTD] = 0;
     let count = this.rate / this.baseRate | 0;
     while (count--) {
       for (let i = 0; i < R_CH; i++)
@@ -990,12 +991,12 @@ class FM_OPL {
         this.OPL_CALC_RH();
     }
 
-    this.connectors[outd] = this.connectors[outd] / (this.rate / this.baseRate) | 0;
-    this.connectors[outd] += this.dacSampleVolume << 14;
+    this.connectors[Connector.OUTD] = this.connectors[Connector.OUTD] / (this.rate / this.baseRate) | 0;
+    this.connectors[Connector.OUTD] += this.dacSampleVolume << 14;
 
     if (this.deltat.flag)
       this.deltat.calc();
-    data = this.connectors[outd];//Limit( outd ,	OPL_MAXOUT,	OPL_MINOUT );
+    data = this.connectors[Connector.OUTD];//Limit( outd ,	OPL_MAXOUT,	OPL_MINOUT );
     this.amsCnt = amsCnt;
     this.vibCnt = vibCnt;
 
@@ -1004,7 +1005,6 @@ class FM_OPL {
     
     return data / (1 << OPL_OUTSB) * 0.5  | 0;
   }
-  xxx = 0;
 
   public reset(): void {
     this.mode = 0;
@@ -1058,8 +1058,8 @@ class FM_OPL {
 
     if (SLOT.ksr != ksr) {
       SLOT.ksr = ksr;
-      SLOT.evsa = SLOT.AR ? this.AR_TABLE[(SLOT.AR << 2) + ksr] : RATE_0[ksr];
-      SLOT.evsd = SLOT.DR ? this.DR_TABLE[(SLOT.DR << 2) + ksr] : RATE_0[ksr];
+      SLOT.evsa = SLOT.AR ? this.AR_TABLE[(SLOT.AR << 2) + ksr] : 0;
+      SLOT.evsd = SLOT.DR ? this.DR_TABLE[(SLOT.DR << 2) + ksr] : 0;
       SLOT.evsr = this.DR_TABLE[SLOT.RR + ksr];
     }
     SLOT.TLL = SLOT.TL + (CH.ksl_base >> SLOT.ksl);
@@ -1105,11 +1105,11 @@ class FM_OPL {
     const dr = v & 0x0f;
 
     SLOT.AR = ar;
-    SLOT.evsa = SLOT.AR ? this.AR_TABLE[(SLOT.AR << 2) + SLOT.ksr] : RATE_0[SLOT.ksr];
+    SLOT.evsa = SLOT.AR ? this.AR_TABLE[(SLOT.AR << 2) + SLOT.ksr] : 0;
     if (SLOT.evm == ENV_MOD_AR) SLOT.evs = SLOT.evsa;
 
     SLOT.DR = dr;
-    SLOT.evsd = SLOT.DR ? this.DR_TABLE[(SLOT.DR << 2) + SLOT.ksr] : RATE_0[SLOT.ksr];
+    SLOT.evsd = SLOT.DR ? this.DR_TABLE[(SLOT.DR << 2) + SLOT.ksr] : 0;
     if (SLOT.evm == ENV_MOD_DR) SLOT.evs = SLOT.evsd;
   }
 
@@ -1159,32 +1159,32 @@ class FM_OPL {
   public OPL_CALC_RH(): void {
     const whitenoise = ((Math.random() * 0xfffffff & 1) * (WHITE_NOISE_db / EG_STEP | 0)) | 0;
 
-    this.connectors[feedback2] = 0;
+    this.connectors[Connector.FEEDBACK2] = 0;
     let CH = this.P_CH;
     let SLOT = CH[6].SLOT[SLOT1];
     let env_out = SLOT.OPL_CALC_SLOT();
     if (env_out < EG_ENT - 1) {
-      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * vib / VIB_RATE | 0);
+      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * this.connectors[Connector.VIB] / VIB_RATE | 0);
       else SLOT.Cnt += SLOT.Incr;
       if (CH[6].FB) {
         let feedback1 = (CH[6].op1_out[0] + CH[6].op1_out[1]) >> CH[6].FB;
         CH[6].op1_out[1] = CH[6].op1_out[0];
-        this.connectors[feedback2] = CH[6].op1_out[0] = SLOT.OP_OUT(env_out, feedback1);
+        this.connectors[Connector.FEEDBACK2] = CH[6].op1_out[0] = SLOT.OP_OUT(env_out, feedback1);
       }
       else {
-        this.connectors[feedback2] = SLOT.OP_OUT(env_out, 0);
+        this.connectors[Connector.FEEDBACK2] = SLOT.OP_OUT(env_out, 0);
       }
     } else {
-      this.connectors[feedback2] = 0;
+      this.connectors[Connector.FEEDBACK2] = 0;
       CH[6].op1_out[1] = CH[6].op1_out[0];
       CH[6].op1_out[0] = 0;
     }
     SLOT = CH[6].SLOT[SLOT2];
     env_out = SLOT.OPL_CALC_SLOT();
     if (env_out < EG_ENT - 1) {
-      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * vib / VIB_RATE) | 0;
+      if (SLOT.vib) SLOT.Cnt += (SLOT.Incr * this.connectors[Connector.VIB] / VIB_RATE) | 0;
       else SLOT.Cnt += SLOT.Incr;
-      this.connectors[outd] += SLOT.OP_OUT(env_out, feedback2) * 2;
+      this.connectors[Connector.OUTD] += SLOT.OP_OUT(env_out, this.connectors[Connector.FEEDBACK2]) * 2;
     }
 
     const env_sd = this.SLOT7_2!.OPL_CALC_SLOT() + whitenoise;
@@ -1192,29 +1192,29 @@ class FM_OPL {
     const env_top = this.SLOT8_2!.OPL_CALC_SLOT();
     const env_hh = this.SLOT7_1!.OPL_CALC_SLOT() + whitenoise;
 
-    if (this.SLOT7_1!.vib) this.SLOT7_1!.Cnt += (2 * this.SLOT7_1!.Incr * vib / VIB_RATE | 0);
+    if (this.SLOT7_1!.vib) this.SLOT7_1!.Cnt += (2 * this.SLOT7_1!.Incr * this.connectors[Connector.VIB] / VIB_RATE | 0);
     else this.SLOT7_1!.Cnt += 2 * this.SLOT7_1!.Incr;
-    if (this.SLOT7_2!.vib) this.SLOT7_2!.Cnt += ((CH[7].fc * 8) * vib / VIB_RATE | 0);
+    if (this.SLOT7_2!.vib) this.SLOT7_2!.Cnt += ((CH[7].fc * 8) * this.connectors[Connector.VIB] / VIB_RATE | 0);
     else this.SLOT7_2!.Cnt += (CH[7].fc * 8);
-    if (this.SLOT8_1!.vib) this.SLOT8_1!.Cnt += (this.SLOT8_1!.Incr * vib / VIB_RATE | 0);
+    if (this.SLOT8_1!.vib) this.SLOT8_1!.Cnt += (this.SLOT8_1!.Incr * this.connectors[Connector.VIB] / VIB_RATE | 0);
     else this.SLOT8_1!.Cnt += this.SLOT8_1!.Incr;
-    if (this.SLOT8_2!.vib) this.SLOT8_2!.Cnt += ((CH[8].fc * 48) * vib / VIB_RATE | 0);
+    if (this.SLOT8_2!.vib) this.SLOT8_2!.Cnt += ((CH[8].fc * 48) * this.connectors[Connector.VIB] / VIB_RATE | 0);
     else this.SLOT8_2!.Cnt += (CH[8].fc * 48) | 0;
 
     const tone8 = this.SLOT8_2!.OP_OUT(whitenoise, 0);
 
     /* SD */
     if (env_sd < EG_ENT - 1)
-      this.connectors[outd] += this.SLOT7_1!.OP_OUT(env_sd, 0) * 8;
+      this.connectors[Connector.OUTD] += this.SLOT7_1!.OP_OUT(env_sd, 0) * 8;
     /* TAM */
     if (env_tam < EG_ENT - 1)
-      this.connectors[outd] += this.SLOT8_1!.OP_OUT(env_tam, 0) * 2;
+      this.connectors[Connector.OUTD] += this.SLOT8_1!.OP_OUT(env_tam, 0) * 2;
     /* TOP-CY */
     if (env_top < EG_ENT - 1)
-      this.connectors[outd] += this.SLOT7_2!.OP_OUT(env_top, tone8) * 2;
+      this.connectors[Connector.OUTD] += this.SLOT7_2!.OP_OUT(env_top, tone8) * 2;
     /* HH */
     if (env_hh < EG_ENT - 1)
-      this.connectors[outd] += this.SLOT7_2!.OP_OUT(env_hh, tone8) * 2;
+      this.connectors[Connector.OUTD] += this.SLOT7_2!.OP_OUT(env_hh, tone8) * 2;
   }
 
   public init_timetables(ARRATE: number, DRRATE: number) {
