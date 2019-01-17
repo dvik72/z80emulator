@@ -1467,7 +1467,7 @@ export class Vdp {
               const charTableOffset = this.chrTabBase & ((~0 << 12) | this.renderCharOffset);
               this.renderPattern = this.vram[patternBase | this.vram[charTableOffset] * 8];
 
-              const colPattern = this.vram[this.colTabBase & ((~0 << 9) | (this.renderCharOffset++ >> 3))];
+              const colPattern = this.vram[this.colTabBase & ((~0 << 9) | (this.renderCharOffset >> 3))];
               if ((colPattern << (x & 7)) & 0x80) {
                 this.renderColors = [xbgColor, xfgColor];
               }
@@ -1475,6 +1475,7 @@ export class Vdp {
                 this.renderColors = [bgColor, fgColor];
               }
 
+              this.renderCharOffset++;
               this.renderShift = 8;
             }
 
@@ -2101,31 +2102,30 @@ export class Vdp {
       const y = scanLine - this.firstLine + this.vScroll();
       const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
       const charTableBase = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7)));
-      let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
       let edgeMaskCount = (x2 > 0 && x < 1) ? this.isEdgeMasked() ? 8 : this.lineHScroll & 7 : 0;
 
       while (x < x2) {
         for (let i = 0; i < 2; i++) {
+          let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           let t0 = this.vram[charTableOffset];
           let t1 = this.vram[charTableOffset + this.vram128];
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+          this.scrollIndex += 2;
+          charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           let t2 = this.vram[charTableOffset];
           let t3 = this.vram[charTableOffset + this.vram128];
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
-
+          this.scrollIndex += 2;
+      
           const k = (t0 & 0x07) | ((t1 & 0x07) << 3);
           const j = (t2 & 0x07) | ((t3 & 0x07) << 3);
 
-          let t = t0 >> 3, col = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++;
-          this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : t & 1 ? this.palette[t >> 1] : this.yjkColor[t][j][k];
-          col = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++, t = t1 >> 3;
-          this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : t & 1 ? this.palette[t >> 1] : this.yjkColor[t][j][k];
-          col = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++, t = t2 >> 3;
-          this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : t & 1 ? this.palette[t >> 1] : this.yjkColor[t][j][k];
-          col = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++, t = t3 >> 3;
-          this.frameBuffer[this.frameOffset++] = col ? this.palette[col >> 1] : t & 1 ? this.palette[t >> 1] : this.yjkColor[t][j][k];
+          const colA = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++;
+          this.frameBuffer[this.frameOffset++] = colA ? this.palette[colA >> 1] : t0 & 8 ? this.palette[t0 >> 4] : this.yjkColor[t0 >> 3][j][k];
+          const colB = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++;
+          this.frameBuffer[this.frameOffset++] = colB ? this.palette[colB >> 1] : t1 & 8 ? this.palette[t1 >> 4] : this.yjkColor[t1 >> 3][j][k];
+          const colC = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++;
+          this.frameBuffer[this.frameOffset++] = colC ? this.palette[colC >> 1] : t2 & 8 ? this.palette[t2 >> 4] : this.yjkColor[t2 >> 3][j][k];
+          const colD = edgeMaskCount-- > 0 ? this.bgColor << 1 : this.spriteLine[this.spriteLineOffset]; this.spriteLineOffset++;
+          this.frameBuffer[this.frameOffset++] = colD ? this.palette[colD >> 1] : t3 & 8 ? this.palette[t3 >> 4] : this.yjkColor[t3 >> 3][j][k];
         }
         x++;
       }
@@ -2169,19 +2169,18 @@ export class Vdp {
       const y = scanLine - this.firstLine + this.vScroll();
       const oddPage = ((~this.status[2] & 0x02) << 7) & ((this.regs[9] & 0x04) << 6);
       const charTableBase = (this.chrTabBase & (~oddPage << 7) & ((~0 << 15) | (y << 7)));
-      let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
       let edgeMaskCount = (x2 > 0 && x < 1) ? this.isEdgeMasked() ? 8 : this.lineHScroll & 7 : 0;
-
+      
       while (x < x2) {
         for (let i = 0; i < 2; i++) {
+          let charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           let t0 = this.vram[charTableOffset];
           let t1 = this.vram[charTableOffset + this.vram128];
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+          this.scrollIndex += 2;
+          charTableOffset = (charTableBase | ((this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
           let t2 = this.vram[charTableOffset];
           let t3 = this.vram[charTableOffset + this.vram128];
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
-          charTableOffset = (charTableBase | ((++this.scrollIndex >> 1) & 0x7f)) ^ (this.lineHScroll512 & (this.scrollIndex << 7));
+          this.scrollIndex += 2;
 
           const k = (t0 & 0x07) | ((t1 & 0x07) << 3);
           const j = (t2 & 0x07) | ((t3 & 0x07) << 3);

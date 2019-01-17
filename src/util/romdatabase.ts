@@ -8,6 +8,26 @@
       {
         "title": {
           "-xml:lang": "en",
+          "#text": "MoonSound firmware"
+        },
+        "system": "MSX",
+        "company": "Yamaha - Sunrise",
+        "year": "1995",
+        "country": "NL",
+        "dump": {
+          "original": { "-value": "false" },
+          "megarom": {
+            "type": "MoonSound",
+            "hash": {
+              "-algo": "sha1",
+              "#text": "32760893ce06dbe3930627755ba065cc3d8ec6ca"
+            }
+          }
+        }
+      },
+      {
+        "title": {
+          "-xml:lang": "en",
           "#text": "MSX-Audio + BASIC"
         },
         "system": "MSX",

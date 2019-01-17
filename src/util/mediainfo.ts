@@ -69,7 +69,8 @@ export enum MediaType {
   NETTOUYAKYUU = 'Netto Yakuu',
   WIZARDRY = "Wizardry",
   MSXAUDIO = 'MSX-AUDIO',
-  MSXMUSIC = 'MSX-MUSIC'
+  MSXMUSIC = 'MSX-MUSIC',
+  MOONSOUND = 'MoonSound'
 };
 
 export class MediaInfo {
@@ -155,6 +156,7 @@ class Dump {
     if (iequals(name, "NettouYakyuu")) return MediaType.NETTOUYAKYUU;
     if (iequals(name, "MSX-AUDIO")) return MediaType.MSXAUDIO;
     if (iequals(name, "MSX-MUSIC")) return MediaType.MSXMUSIC;
+    if (iequals(name, "MoonSound")) return MediaType.MOONSOUND;
 
     return MediaType.UNKNOWN;
   }

@@ -37,6 +37,10 @@ export class Timer {
     this.setTimeoutCb(this);
   }
 
+  isRunning(): boolean {
+    return this.next != this.prev;
+  }
+
   stop(): void {
     this.unlink();
   }
@@ -52,8 +56,7 @@ export class Timer {
     this.prev = this;
     this.expiredCb = expiredCb;
   }
-
-
+  
   unlink(): void {
     this.prev.next = this.next;
     this.next.prev = this.prev;

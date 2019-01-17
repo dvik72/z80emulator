@@ -72,10 +72,13 @@
     <Content Include="tsconfig.json" />
     <TypeScriptCompile Include="src\audio\dac.ts" />
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
+    <TypeScriptCompile Include="src\audio\moonsound.ts" />
     <TypeScriptCompile Include="src\audio\scc.ts" />
     <TypeScriptCompile Include="src\audio\webaudio.ts" />
     <TypeScriptCompile Include="src\audio\y8950.ts" />
     <TypeScriptCompile Include="src\audio\ym2413.ts" />
+    <TypeScriptCompile Include="src\audio\ymf262.ts" />
+    <TypeScriptCompile Include="src\audio\ymf278.ts" />
     <TypeScriptCompile Include="src\core\audiomanager.ts" />
     <TypeScriptCompile Include="src\core\drammanager.ts" />
     <TypeScriptCompile Include="src\core\ledmanager.ts" />
@@ -106,6 +109,7 @@
     <TypeScriptCompile Include="src\mappers\romloderunner.ts" />
     <TypeScriptCompile Include="src\mappers\rommajutsushi.ts" />
     <TypeScriptCompile Include="src\mappers\rommegaflashromscc.ts" />
+    <TypeScriptCompile Include="src\mappers\rommoonsound.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxaudio.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />

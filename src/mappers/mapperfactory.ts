@@ -40,6 +40,7 @@ import { MapperRomNormal } from './romnormal';
 import { MapperRomMegaFlashRomScc } from './rommegaflashromscc';
 import { MapperRomHolyQuran } from './romholyquran';
 import { MapperRomMsxAudio } from './rommsxaudio'
+import { MapperRomMoonsound } from './rommoonsound';
 
 
 export function getSupportedCartridgeTypeNames(): Array<string> {
@@ -78,7 +79,8 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.MANBOW2_V2,
 //    MediaType.HOLYQURAN,
     MediaType.HAMARAJANIGHT,
-    MediaType.MSXAUDIO
+    MediaType.MSXAUDIO,
+    MediaType.MOONSOUND
   ];
 }
 
@@ -111,6 +113,7 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
       //    case MediaType.MEGAFLSHSCC: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0, 0x80000, false);
       //    case MediaType.MEGAFLSHSCCPLUS: return new MapperRomMegaFlashRomScc(board, slot, subslot, mediaInfo.data, 0, 0x100000, true);
     case MediaType.MSXAUDIO: return new MapperRomMsxAudio(board, slot, subslot, mediaInfo.data);
+    case MediaType.MOONSOUND: return new MapperRomMoonsound(board, mediaInfo.data, 640);
     default:
       console.log('Unsuported ROM type: ' + mediaInfo.type);
       break;
