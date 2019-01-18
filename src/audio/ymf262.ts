@@ -658,7 +658,6 @@ class Channel {
 export class Ymf262 {
   constructor(
     private board: Board,
-    private volume: number,
     private oplOversampling = 1
   ) {
     this.timer1 = this.board.getTimeoutManager().createTimer(name, this.onTimer1.bind(this));
@@ -697,7 +696,7 @@ export class Ymf262 {
         this.advance_lfo();
 
         // clear channel outputs 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 18; i++) {
           chanOut[i] = 0;
         }
 
@@ -952,7 +951,7 @@ export class Ymf262 {
             {
               const prev = this.timer1Period;
               this.timer1Period = 256 - v;
-              if (this.timer1Period != prev && this.timer1.isRunning()) {
+              if (this.timer1Period != prev || !this.timer1.isRunning()) {
                 this.timer1.setTimeout(
                   this.board.getSystemTime() +
                   this.board.getSystemFrequency() / 12380 * this.timer1Period);
@@ -964,7 +963,7 @@ export class Ymf262 {
             {
               const prev = this.timer2Period;
               this.timer2Period = 4 * (256 - v);
-              if (this.timer2Period != prev && this.timer2.isRunning()) {
+              if (this.timer2Period != prev || !this.timer2.isRunning()) {
                 this.timer2.setTimeout(
                   this.board.getSystemTime() +
                   this.board.getSystemFrequency() / 12380 * this.timer2Period);

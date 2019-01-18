@@ -31,9 +31,8 @@ export class Moonsound extends AudioDevice {
 
     this.board.getAudioManager().registerAudioDevice(this);
 
-    const volume = 32000;
-    this.ymf262 = new Ymf262(this.board, volume);
-    this.ymf278 = new Ymf278(ramSize, romData, this.board.getSystemTime(), volume);
+    this.ymf262 = new Ymf262(this.board);
+    this.ymf278 = new Ymf278(this.board, ramSize, romData);
 
     this.ymf262.setSampleRate(this.sampleRate);
     this.ymf278.setSampleRate(this.sampleRate);
@@ -41,7 +40,7 @@ export class Moonsound extends AudioDevice {
 
   public reset() {
     this.ymf262.reset();
-    this.ymf278.reset(this.board.getSystemTime());
+    this.ymf278.reset();
   }
 
   public read(ioPort: number): number {
@@ -51,7 +50,7 @@ export class Moonsound extends AudioDevice {
       switch (ioPort & 0x01) {
         case 1: // read wave register
           this.board.syncAudio();
-          result = this.ymf278.readReg(this.opl4latch, this.board.getSystemTime());
+          result = this.ymf278.readReg(this.opl4latch);
           break;
       }
     } else {
@@ -59,8 +58,7 @@ export class Moonsound extends AudioDevice {
         case 0: // read status
         case 2:
           this.board.syncAudio();
-          result = this.ymf262.readStatus() |
-            this.ymf278.readStatus(this.board.getSystemTime());
+          result = this.ymf262.readStatus() | this.ymf278.readStatus();
           break;
         case 1:
         case 3: // read fm register
@@ -81,7 +79,7 @@ export class Moonsound extends AudioDevice {
           break;
         case 1:
           this.board.syncAudio();
-          this.ymf278.writeReg(this.opl4latch, value, this.board.getSystemTime());
+          this.ymf278.writeReg(this.opl4latch, value);
           break;
       }
     } else {
@@ -104,14 +102,14 @@ export class Moonsound extends AudioDevice {
 
   public sync(count: number): void {
     const audioBufferLeft = this.getAudioBufferLeft();
-    const audioBufferRight = this.getAudioBufferLeft();
+    const audioBufferRight = this.getAudioBufferRight();
 
     const ymf262Buffers = this.ymf262.sync(count);
     const ymf278Buffers = this.ymf278.sync(count);
 
     for (let i = 0; i < count; i++) {
-      audioBufferLeft[i] = (ymf262Buffers[0][i] + ymf278Buffers[0][i]) / 65535;
-      audioBufferRight[i] = (ymf262Buffers[1][i] + ymf278Buffers[1][i]) / 65535;
+      audioBufferLeft[i] = (ymf262Buffers[0][i] + ymf278Buffers[0][i] / 8) / 65535;
+      audioBufferRight[i] = (ymf262Buffers[1][i] + ymf278Buffers[1][i] / 8) / 65535;
     }
   }
 

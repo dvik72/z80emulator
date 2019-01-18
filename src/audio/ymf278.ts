@@ -16,6 +16,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { Board } from '../core/board';
+
 
 const EG_SH = 16;	// 16.16 fixed point (EG timing)
 const EG_TIMER_OVERFLOW = 1 << EG_SH;
@@ -269,15 +271,11 @@ class Slot {
 
 export class Ymf278 {
   public constructor(
+    private board: Board,
     ramSize: number,
     private rom: Uint8Array,
-    time: number,
-    volume: number,
     private oplOversampling = 1
   ) {
-    this.LD_Time = 0;
-    this.BUSY_Time = 0;
-    this.memadr = 0;	// avoid UMR
     this.ram = new Uint8Array(1024 * ramSize);
     for (let i = 0; i < this.ram.length; i++) {
       this.ram[i] = 0;
@@ -287,12 +285,12 @@ export class Ymf278 {
       this.slots[i] = new Slot();
     }
 
-    this.setInternalVolume(volume);
+    this.setInternalVolume();
 
-    this.reset(time);
+    this.reset();
   }
 
-  public reset(time: number): void {
+  public reset(): void {
     this.eg_timer = 0;
     this.eg_cnt = 0;
     
@@ -300,7 +298,7 @@ export class Ymf278 {
       this. slots[i].reset();
     }
     for (let i = 255; i >= 0; i--) { // reverse order to avoid UMR
-      this.writeReg(i, 0, time);
+      this.writeReg(i, 0);
     }
 
     this.internalMute = true;
@@ -314,17 +312,22 @@ export class Ymf278 {
     this.pcm_l = 0;
     this.pcm_r = 0;
 
+    const time = this.board.getSystemTime();
     this.BUSY_Time = time;
-    this.LD_Time = time;  }
+    this.BUSY_Time_Length = 0;
+    this.LD_Time = time;
+  }
 
-  public writeReg(reg: number, data: number, time: number): void {
-    this.BUSY_Time = time + 88 * 6 / 9;
+  public writeReg(reg: number, data: number): void {
+    const time = this.board.getSystemTime();
+    this.BUSY_Time = time;
+    this.BUSY_Time_Length = 60;
 
     // Handle slot registers specifically
     if (reg >= 0x08 && reg <= 0xF7) {
       const snum = (reg - 8) % 24;
       const slot = this.slots[snum];
-      switch ((reg - 8) / 24) {
+      switch ((reg - 8) / 24 | 0) {
         case 0: {
           this.LD_Time = time;
           slot.wave = (slot.wave & 0x100) | data;
@@ -471,7 +474,7 @@ export class Ymf278 {
           break;
 
         case 0x06:  // memory data
-          this.BUSY_Time += 28 * 6 / 9;
+          this.BUSY_Time_Length += 18;
           this.writeMem(this.memadr, data);
           this.memadr = (this.memadr + 1) & 0xFFFFFF;
           break;
@@ -492,15 +495,17 @@ export class Ymf278 {
     this.regs[reg] = data;
   }
 
-  public readReg(reg: number, time: number): number {
+  public readReg(reg: number): number {
+  const time = this.board.getSystemTime();
     this.BUSY_Time = time;
+    this.BUSY_Time_Length = 0;
     
     switch (reg) {
       case 2: // 3 upper bits are device ID
         return (this.regs[2] & 0x1F) | 0x20;
 
       case 6: // Memory Data Register
-        this.BUSY_Time += 38 * 6 / 9;
+        this.BUSY_Time_Length += 25;
         const result = this.readMem(this.memadr);
         this.memadr = (this.memadr + 1) & 0xFFFFFF;
         return result;
@@ -510,12 +515,12 @@ export class Ymf278 {
     }
   }
 
-  public readStatus(time: number): number {
+  public readStatus(): number {
     let result = 0;
-    if (time - this.BUSY_Time < 88 * 6 / 9) {
+    if (this.board.getTimeSince(this.BUSY_Time) < this.BUSY_Time_Length) {
       result |= 0x01;
     }
-    if (time - this.LD_Time < 10000 * 6 / 9) {
+    if (this.board.getTimeSince(this.LD_Time) < 6600) {
       result |= 0x02;
     }
     return result;
@@ -533,8 +538,8 @@ export class Ymf278 {
     this.eg_timer_add = (1 << EG_SH) / this.oplOversampling | 0;
   }
 
-  public setInternalVolume(volume: number): void {
-    volume /= 32;
+  public setInternalVolume(): void {
+    let volume = 32768 / 32;
     // Volume table, 1 = -0.375dB, 8 = -3dB, 256 = -96dB
     for (let i = 0; i < 256; i++) {
       this.volume[i] = 4.0 * volume * Math.pow(2.0, (-0.375 / 6) * i);
@@ -893,8 +898,9 @@ export class Ymf278 {
   
   private regs = new Uint8Array(256);
 
-  private LD_Time = 0; // unsigned long
-  private BUSY_Time = 0; // unsigned long
+  private LD_Time = 0;
+  private BUSY_Time = 0;
+  private BUSY_Time_Length = 0;
 
   private internalMute = true;
 
