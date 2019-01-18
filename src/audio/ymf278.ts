@@ -655,7 +655,7 @@ export class Ymf278 {
       }
       case 1: {
         // 12 bit
-        const addr = op.startaddr + ((op.pos / 2) * 3);
+        const addr = op.startaddr + ((op.pos >> 1) * 3);
         if (op.pos & 1) {
           sample = this.readMem(addr + 2) << 8 |
             ((this.readMem(addr + 1) << 4) & 0xF0);
@@ -676,6 +676,7 @@ export class Ymf278 {
         // TODO unspecified
         sample = 0;
     }
+    if (sample > 32767) sample -= 65536;
     return sample;
   }
 

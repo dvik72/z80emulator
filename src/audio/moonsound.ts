@@ -108,8 +108,8 @@ export class Moonsound extends AudioDevice {
     const ymf278Buffers = this.ymf278.sync(count);
 
     for (let i = 0; i < count; i++) {
-      audioBufferLeft[i] = (ymf262Buffers[0][i] + ymf278Buffers[0][i] / 8) / 65535;
-      audioBufferRight[i] = (ymf262Buffers[1][i] + ymf278Buffers[1][i] / 8) / 65535;
+      audioBufferLeft[i] = (ymf262Buffers[0][i] + ymf278Buffers[0][i]) / 180000;
+      audioBufferRight[i] = (ymf262Buffers[1][i] + ymf278Buffers[1][i]) / 180000;
     }
   }
 

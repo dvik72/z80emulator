@@ -142,7 +142,7 @@ export class AudioManager {
       this.outVolumeRight += 2 * (this.volumeRight - this.outVolumeRight) / 3;
 
       // Clip volumes if needed
-      const logClip = true;
+      const logClip = false;
       if (this.outVolumeLeft >= 1) { logClip && console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = 0.99999; }
       if (this.outVolumeLeft <= -1) { logClip && console.log('clip: ' + this.outVolumeLeft); this.outVolumeLeft = -0.99999; }
       if (this.outVolumeRight >= 1) { logClip && console.log('clip: ' + this.outVolumeRight); this.outVolumeRight = 0.99999; }
