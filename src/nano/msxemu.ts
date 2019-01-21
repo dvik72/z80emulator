@@ -350,6 +350,9 @@ export class MsxEmu {
     this.lastSyncTime += elapsedTime;
     if (this.isRunning && this.machine) {
       this.runCount += elapsedTime;
+      if (this.runCount > 200) {
+        this.runCount = 0;
+      }
       if (this.runCount > 10) {
         this.machine.runStep(10);
         this.runCount -= 10;

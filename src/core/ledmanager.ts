@@ -29,8 +29,10 @@ export enum LedType {
 };
 
 export class Led {
+  constructor(private id: number) { }
+
   public set(enable: boolean): void {
-    this.changed = this.changed || this.enabled != enable;
+    this.changed = this.changed || this.enabled !== enable;
     this.enabled = enable;
   }
 
@@ -51,7 +53,7 @@ export class Led {
 export class LedManager {
   constructor() {
     for (let i = 0; i < 32; i++) {
-      this.leds[i] = new Led();
+      this.leds[i] = new Led(i);
     }
   }
 
