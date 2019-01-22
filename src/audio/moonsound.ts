@@ -25,14 +25,15 @@ export class Moonsound extends AudioDevice {
   constructor(
     private board: Board,
     romData: Uint8Array,
-    ramSize: number
+    ramSize: number,
+    overSampling: number = 1
   ) {
     super('Moonsound', true);
 
     this.board.getAudioManager().registerAudioDevice(this);
 
-    this.ymf262 = new Ymf262(this.board);
-    this.ymf278 = new Ymf278(this.board, ramSize, romData);
+    this.ymf262 = new Ymf262(this.board, overSampling);
+    this.ymf278 = new Ymf278(this.board, ramSize, romData, overSampling);
 
     this.ymf262.setSampleRate(this.sampleRate);
     this.ymf278.setSampleRate(this.sampleRate);

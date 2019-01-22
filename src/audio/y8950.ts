@@ -1280,14 +1280,6 @@ class FM_OPL {
   private reg17 = 0;
 };
 
-
-
-
-
-
-
-
-
 const FREQUENCY = 3579545;
 const SAMPLERATE = FREQUENCY / 72 | 0;
 

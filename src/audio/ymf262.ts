@@ -777,7 +777,7 @@ export class Ymf262 {
         this.advance();
       }
       audioBufferLeft[bufferIndex] = (a << 3) / this.oplOversampling;
-      audioBufferLeft[bufferIndex] = (b << 3) / this.oplOversampling;
+      audioBufferRight[bufferIndex] = (b << 3) / this.oplOversampling;
     }
 
     this.checkMute();
