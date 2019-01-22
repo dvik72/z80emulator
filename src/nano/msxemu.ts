@@ -26,10 +26,26 @@ import { getSupportedCartridgeTypes, getSupportedCartridgeTypeNames } from '../m
 
 import { DiskManager } from '../disk/diskmanager';
 
+class SpecialRom {
+  constructor(
+    public mediaInfo: MediaInfo,
+    public filename?: string
+  ) {}
+}
+
+let SPECIAL_ROMS: { [romType: string]: SpecialRom ; } = { };
+
+function initSpecialRoms() {
+  SPECIAL_ROMS[MediaType.MSXAUDIO] = new SpecialRom(new MediaInfo('Msx Audio', 'Yamaha', 1988, 'JP', MediaType.MSXAUDIO, new Uint8Array(0)));
+  SPECIAL_ROMS[MediaType.MOONSOUND] = new SpecialRom(new MediaInfo('MoonSound', 'Yamaha - Sunrise', 1995, 'NL', MediaType.MOONSOUND, new Uint8Array(0)), 'moonsound');
+}
+
 export class MsxEmu {
   constructor() {
     this.runStep = this.runStep.bind(this);
     this.refreshScreen = this.refreshScreen.bind(this);
+
+    initSpecialRoms();
   }
 
   public run(): void {
@@ -37,6 +53,7 @@ export class MsxEmu {
     document.addEventListener('reset', this.resetEmulation.bind(this));
     document.addEventListener('file', this.fileEvent.bind(this));
     document.addEventListener('eject', this.ejectEvent.bind(this));
+    document.addEventListener('insertspecial', this.insertSpecialCart.bind(this));
     document.addEventListener('setcarttype', this.setCartType.bind(this));
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
@@ -47,6 +64,7 @@ export class MsxEmu {
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
 
     this.createMachineMenu();
+    this.createCartSpecialMenu();
     this.createCartTypeMenu();
 
     this.setMachine(this.machineManager.getDefaultMachineName());
@@ -59,6 +77,17 @@ export class MsxEmu {
     for (const machineName of this.machineManager.getMachineNames()) {
       const machineItem = '<button class="dropdown-item btn-sm" type="button" id="machine-' + machineName + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setmachine\', {detail: \'' + machineName + '\'}));">' + machineName + '</button>';
       machinesDiv!.innerHTML += machineItem;
+    }
+  }
+
+  private createCartSpecialMenu(): void {
+    const cartADiv = document.getElementById('type-special0');
+    const cartBDiv = document.getElementById('type-special1');
+    for (const cartType in SPECIAL_ROMS) {
+      const cartItemA = '<button class="dropdown-item btn-sm" type="button" id="special0-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'insertspecial\', {detail: [0, \'' + cartType + '\']}));">' + cartType + '</button>';
+      const cartItemB = '<button class="dropdown-item btn-sm" type="button" id="special1-' + cartType + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'insertspecial\', {detail: [1, \'' + cartType + '\']}));">' + cartType + '</button>';
+      cartADiv!.innerHTML += cartItemA;
+      cartBDiv!.innerHTML += cartItemB;
     }
   }
 
@@ -144,7 +173,7 @@ export class MsxEmu {
     reader.readAsBinaryString(file);
   }
 
-  private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array): void {
+  private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array, mediaInfo?: MediaInfo): void {
     let ejectMenuId = '';
     let romTypeMenuId = '';
     if (type == MediaType.FLOPPY) {
@@ -154,7 +183,9 @@ export class MsxEmu {
     }
     if (type == MediaType.ROM) {
       const oldMediaInfo = this.romMedia[slot];
-      const mediaInfo = this.mediaInfoFactory.mediaInfoFromData(data);
+      if (!mediaInfo) {
+        mediaInfo = this.mediaInfoFactory.mediaInfoFromData(data);
+      }
       this.romMedia[slot] = mediaInfo;
       ejectMenuId = 'eject-cart' + slot;
       romTypeMenuId = 'romtype-cart' + slot;
@@ -188,6 +219,62 @@ export class MsxEmu {
     if (romTypeMenuId.length > 0) {
       const menuItemDiv = document.getElementById(romTypeMenuId);
       (<HTMLButtonElement>menuItemDiv!).disabled = false;
+    }
+  }
+
+  private insertSpecialCart(event: CustomEvent): void {
+    const slot = event.detail[0];
+    const typeName = event.detail[1];
+    const type = this.typeStringToMediaType(typeName);
+
+    const specialRom = SPECIAL_ROMS[type];
+    if (specialRom.filename == null) {
+      this.mediaLoaded(type.toString(), MediaType.ROM, slot, new Uint8Array(0), specialRom.mediaInfo);
+    }
+    else {
+      this.loadSpecialRom(slot, specialRom, specialRom.filename);
+    }
+  }
+
+  private typeStringToMediaType(typeName: string): MediaType {
+    for (const type of getSupportedCartridgeTypes()) {
+      if (type.toString() == typeName) {
+        return type;
+      }
+    }
+    return MediaType.UNKNOWN;
+  }
+
+  private loadSpecialRom(slot: number, specialRom: SpecialRom, romName: string): void {
+    let httpReq = new XMLHttpRequest();
+    httpReq.open('GET', '../../systemroms/' + romName + '.bin', true);
+    httpReq.responseType = 'arraybuffer';
+
+    const loadSpecialRomComplete = this.loadSpecialRomComplete.bind(this);
+
+    httpReq.onreadystatechange = function () {
+      if (httpReq.readyState === XMLHttpRequest.DONE) {
+        let romData: Uint8Array | null = null;
+        if (httpReq.status == 200) {
+          const arrayBuffer = httpReq.response;
+          if (arrayBuffer instanceof ArrayBuffer) {
+            romData = new Uint8Array(arrayBuffer);
+          }
+        }
+        if (!romData) {
+          console.log('Failed loading system rom: ' + romName);
+        }
+        loadSpecialRomComplete(romName, specialRom, slot, romData);
+      }
+    };
+
+    httpReq.send(null);
+  }
+
+  private loadSpecialRomComplete(romName: string, specialRom: SpecialRom, slot: number, romData: Uint8Array | null): void {
+    if (romData) {
+      specialRom.mediaInfo.data = romData;
+      this.mediaLoaded(romName, MediaType.ROM, slot, romData, specialRom.mediaInfo);
     }
   }
 

@@ -23,6 +23,11 @@
                 <img src="img/cart1.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
                 <div class="dropdown-menu">
                     <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart0' }));">Insert</button>
+                    <div class="dropdown dropright dropdown-submenu">
+                        <button class="dropdown-item dropdown-toggle btn-sm" id="romspecial-cart0" type="button">Insert Special</button>
+                        <div class="dropdown-menu" id="type-special0">
+                        </div>
+                    </div>
                     <button class="dropdown-item btn-sm" type="button" disabled id="eject-cart0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart0' }));">Eject</button>
                     <div class="dropdown-divider"></div>
                     <div class="dropdown dropright dropdown-submenu">
@@ -37,6 +42,11 @@
                 <img src="img/cart2.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
                 <div class="dropdown-menu">
                     <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart1' }));">Insert</button>
+                    <div class="dropdown dropright dropdown-submenu">
+                        <button class="dropdown-item dropdown-toggle btn-sm" id="romspecial-cart1" type="button">Insert Special</button>
+                        <div class="dropdown-menu" id="type-special1">
+                        </div>
+                    </div>
                     <button class="dropdown-item btn-sm" type="button" id="eject-cart1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart1' }));">Eject</button>
                     <div class="dropdown-divider"></div>
                     <div class="dropdown dropright dropdown-submenu">
@@ -51,7 +61,7 @@
                 <img src="img/diska.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
                 <div class="dropdown-menu">
                     <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk0' }));">Insert</button>
-                    <button class="dropdown-item btn-sm" type="button" id="eject-disk0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));">Eject</button>
+                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-disk0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));">Eject</button>
                 </div>
             </div>
 
@@ -59,7 +69,7 @@
                 <img src="img/diskb.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
                 <div class="dropdown-menu">
                     <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk1' }));">Insert</button>
-                    <button class="dropdown-item btn-sm" type="button" id="eject-disk1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));">Eject</button>
+                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-disk1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));">Eject</button>
                 </div>
             </div>
 
@@ -106,7 +116,7 @@
             <div class="emu-logo">
                 <img src="img/bluemsx.png" width="32" height="32" />
             </div>
-            <div class="emu-version">v 0.0.6</div>
+            <div class="emu-version">v 0.1.0</div>
         </div>
     </div>
     <input type="file" id="fileLoader" name="files" title="Load File" style="display: none;" />

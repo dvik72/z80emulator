@@ -175,6 +175,7 @@
     <Content Include="systemroms\a1gtkfn.bin" />
     <Content Include="systemroms\a1gtmus.bin" />
     <Content Include="systemroms\a1gtopt.bin" />
+    <Content Include="systemroms\moonsound.bin" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
