@@ -39,9 +39,153 @@ const CM_HMMM = 0x0d;
 const CM_YMMM = 0x0e;
 const CM_HMMC = 0x0f;
 
-const MASK = [ 0x0f, 0x03, 0x0f, 0xff ];
-const PPB = [ 2, 4, 2, 1 ];
-const PPL = [ 256, 512, 512, 256 ];
+
+const MXD = 0x20;
+const MXS = 0x10;
+const DIY = 0x08;
+const DIX = 0x04;
+const EQ = 0x02;
+const MAJ = 0x01;
+
+abstract class GraphicMode {
+  constructor(
+    protected vram: Uint8Array,
+    public COLOR_MASK: number,
+    public PIXELS_PER_BYTE: number,
+    public PIXELS_PER_BYTE_SHIFT: number,
+    public PIXELS_PER_LINE: number,
+    private OP_OFFSET_MASK: number,
+    private OP_OFFSET_SHIFT: number,
+    private OP_COLOR_MASK: number
+  ) {
+    this.offset[0] = 0;
+    this.offset[1] = this.vram.length > 0x20000 ? 0x20000 : 0;
+    this.mask[0] = this.vram.length > 0x20000 ? 0x1ffff : this.vram.length - 1;
+    this.mask[1] = this.vram.length > 0x20000 ? 0xffff : this.vram.length - 1;
+
+    this.updateOffsets(0);
+  }
+
+  public updateOffsets(arg: number): void {
+    this.indexRead = this.offset[(arg >> 4) & 1];
+    this.indexWrite = this.offset[(arg >> 5) & 1];
+    this.maskRead = this.mask[(arg >> 4) & 1];
+    this.maskWrite = this.mask[(arg >> 5) & 1];
+  }
+
+  public abstract getAddress(x: number, y: number): number;
+
+  public readVram(x: number, y: number): number {
+    const address = this.getAddress(x, y);
+    return this.vram[this.indexRead + (address & this.maskRead)];
+  }
+  public writeVram(x: number, y: number, value: number): void {
+    const address = this.getAddress(x, y);
+    if (!(address & ~this.maskWrite)) this.vram[this.indexWrite + (address & this.maskWrite)] = value;
+  }
+
+  public getPixel(x: number, y: number): number {
+    const address = this.getAddress(x, y);
+    return (this.vram[this.indexRead + (address & this.maskRead)] >> (
+      ((~x) & this.OP_OFFSET_MASK) << this.OP_OFFSET_SHIFT)) & this.OP_COLOR_MASK;
+  }
+
+  public setPixel(x: number, y: number, cl: number, op: number): void {
+    const i = this.getAddress(x, y);
+    const sh = (~x & this.OP_OFFSET_MASK) << this.OP_OFFSET_SHIFT;
+    const m = ~(this.OP_COLOR_MASK << sh);
+    cl <<= sh;
+
+    switch (op) {
+      case 0: // Imp
+        this.vram[i] = (this.vram[i] & m) | cl;
+        break;
+      case 1: // And
+        this.vram[i] = this.vram[i] & (cl | m);
+        break;
+      case 2: // Or
+        this.vram[i] |= cl;
+        break;
+      case 3: // Xor
+        this.vram[i] ^= cl;
+        break;
+      case 4: //Not
+        this.vram[i] = (this.vram[i] & m) | ~(cl | m);
+        break;
+      case 8: // Transparent imp
+        if (cl) this.vram[i] = (this.vram[i] & m) | cl;
+        break;
+      case 9: // Transparent and
+        if (cl) this.vram[i] = this.vram[i] & (cl | m);
+        break;
+      case 10: // Transparent or
+        if (cl) this.vram[i] |= cl;
+        break;
+      case 11: // Transparent xor
+        if (cl) this.vram[i] ^= cl;
+        break;
+      case 12:// Transparent not
+        if (cl) this.vram[i] = (this.vram[i] & m) | ~(cl | m);
+        break;
+    }
+  }
+
+  protected indexRead = 0;
+  protected indexWrite = 0;
+  protected maskRead = 0;
+  protected maskWrite = 0;
+  private offset = new Array<number>(2);
+  private mask = new Array<number>(2);
+}
+
+class Graphic4Mode extends GraphicMode {
+  constructor(
+    vram: Uint8Array
+  ) {
+    super(vram, 0x0f, 2, 1, 256, 1, 2, 15);
+  }
+
+  public getAddress(x: number, y: number): number {
+    return ((y & 1023) << 7) | ((x & 255) >> 1);
+  }
+}
+
+class Graphic5Mode extends GraphicMode {
+  constructor(
+    vram: Uint8Array
+  ) {
+    super(vram, 0x03, 4, 2, 512, 3, 1, 3);
+  }
+
+  public getAddress(x: number, y: number): number {
+    return ((y & 1023) << 7) | ((x & 511) >> 2);
+  }
+}
+
+class Graphic6Mode extends GraphicMode {
+  constructor(
+    vram: Uint8Array
+  ) {
+    super(vram, 0x0f, 2, 1, 512, 1, 2, 15);
+  }
+
+  public getAddress(x: number, y: number): number {
+    return ((x & 2) << 15) | ((y & 511) << 7) | ((x & 511) >> 2);
+  }
+}
+
+class Graphic7Mode extends GraphicMode {
+  constructor(
+    vram: Uint8Array
+  ) {
+    super(vram, 0xff, 1, 0, 256, 0, 0, 255);
+  }
+
+  public getAddress(x: number, y: number): number {
+    return ((x & 1) << 16) | ((y & 511) << 7) | ((x & 255) >> 1);
+  }
+}
+
 const SEARCH_TIMING = [ 92, 125, 92, 92, 0, 0, 0, 0 ];
 const LINE_TIMING = [120, 147, 120, 120, 0, 0, 0, 0];
 const HMMV_TIMING = [49, 65, 49, 62, 0, 0, 0, 0];
@@ -50,55 +194,131 @@ const YMMM_TIMING = [65, 125, 65, 68, 0, 0, 0, 0];
 const HMMM_TIMING = [92, 136, 92, 97, 0, 0, 0, 0];
 const LMMM_TIMING = [129, 197, 129, 132, 0, 0, 0, 0];
 
+function clipNX_1_pixel(mode: GraphicMode, DX: number, NX: number, ARG: number): number {
+  if (DX >= mode.PIXELS_PER_LINE) {
+    return 1;
+  }
+  NX = NX ? NX : mode.PIXELS_PER_LINE;
+  return (ARG & DIX)
+    ? Math.min(NX, DX + 1)
+    : Math.min(NX, mode.PIXELS_PER_LINE - DX);
+}
+
+function clipNX_1_byte(mode: GraphicMode, DX: number, NX: number, ARG: number): number {
+  const BYTES_PER_LINE = mode.PIXELS_PER_LINE >> mode.PIXELS_PER_BYTE_SHIFT;
+
+  DX >>= mode.PIXELS_PER_BYTE_SHIFT;
+  if (BYTES_PER_LINE <= DX) {
+    return 1;
+  }
+  NX >>= mode.PIXELS_PER_BYTE_SHIFT;
+  NX = NX ? NX : BYTES_PER_LINE;
+  return (ARG & DIX)
+    ? Math.min(NX, DX + 1)
+    : Math.min(NX, BYTES_PER_LINE - DX);
+}
+
+function clipNX_2_pixel(mode: GraphicMode, SX: number, DX: number, NX: number, ARG: number) {
+  if (SX >= mode.PIXELS_PER_LINE || DX >= mode.PIXELS_PER_LINE) {
+    return 1;
+  }
+  NX = NX ? NX : mode.PIXELS_PER_LINE;
+  return (ARG & DIX)
+    ? Math.min(NX, Math.min(SX, DX) + 1)
+    : Math.min(NX, mode.PIXELS_PER_LINE - Math.max(SX, DX));
+}
+
+function clipNX_2_byte(mode: GraphicMode, SX: number, DX: number, NX: number, ARG: number): number {
+  const BYTES_PER_LINE = mode.PIXELS_PER_LINE >> mode.PIXELS_PER_BYTE_SHIFT;
+
+  SX >>= mode.PIXELS_PER_BYTE_SHIFT;
+  DX >>= mode.PIXELS_PER_BYTE_SHIFT;
+  if (BYTES_PER_LINE <= SX || BYTES_PER_LINE <= DX) {
+    return 1;
+  }
+  NX >>= mode.PIXELS_PER_BYTE_SHIFT;
+  NX = NX ? NX : BYTES_PER_LINE;
+  return (ARG & DIX)
+    ? Math.min(NX, Math.min(SX, DX) + 1)
+    : Math.min(NX, BYTES_PER_LINE - Math.max(SX, DX));
+}
+
+function clipNY_1(DY: number, NY: number, ARG: number): number {
+  NY = NY ? NY : 1024;
+  return (ARG & DIY) ? Math.min(NY, DY + 1) : NY;
+}
+
+function clipNY_2(SY: number, DY: number, NY: number, ARG: number): number {
+  NY = NY ? NY : 1024;
+  return (ARG & DIY) ? Math.min(NY, Math.min(SY, DY) + 1) : NY;
+}
+
 export class V9938Cmd {
   public constructor(
     private board: Board,
     private vram: Uint8Array
-  ){
+  ) {
+    this.graphicModes[0] = new Graphic4Mode(this.vram);
+    this.graphicModes[1] = new Graphic5Mode(this.vram);
+    this.graphicModes[2] = new Graphic6Mode(this.vram);
+    this.graphicModes[3] = new Graphic7Mode(this.vram);
   }
 
   public reset(): void {
     this.systemTime = this.board.getSystemTime();
-
-    this.offset[0] = 0;
-    this.offset[1] = this.vram.length > 0x20000 ? 0x20000 : 0;
-    this.mask[0] = this.vram.length > 0x20000 ? 0x1ffff : this.vram.length - 1;
-    this.mask[1] = this.vram.length > 0x20000 ? 0xffff : this.vram.length - 1;
-
-    this.indexRead  = this.offset[0];
-    this.indexWrite = this.offset[0];
-    this.maskRead = this.mask[0];
-    this.maskWrite = this.mask[0];
   }
 
-  public write(reg: number, value: number): void {
-    switch (reg & 0x1f) {
-      case 0x00: this.SX = (this.SX & 0xff00) | value; break;
-      case 0x01: this.SX = (this.SX & 0x00ff) | ((value & 0x01) << 8); break;
-      case 0x02: this.SY = (this.SY & 0xff00) | value; break;
-      case 0x03: this.SY = (this.SY & 0x00ff) | ((value & 0x03) << 8); break;
-      case 0x04: this.DX = (this.DX & 0xff00) | value; break;
-      case 0x05: this.DX = (this.DX & 0x00ff) | ((value & 0x01) << 8); break;
-      case 0x06: this.DY = (this.DY & 0xff00) | value; break;
-      case 0x07: this.DY = (this.DY & 0x00ff) | ((value & 0x03) << 8); break;
-      case 0x08: this.kNX = (this.kNX & 0xff00) | value; break;
-      case 0x09: this.kNX = (this.kNX & 0x00ff) | ((value & 0x03) << 8); break;
-      case 0x0a: this.NY = (this.NY & 0xff00) | value; break;
-      case 0x0b: this.NY = (this.NY & 0x00ff) | ((value & 0x03) << 8); break;
-      case 0x0c:
+  public write(index: number, value: number): void {
+    switch (index) {
+      case 0x00: // source X low
+        this.SX = (this.SX & 0x100) | value;
+        break;
+      case 0x01: // source X high
+        this.SX = (this.SX & 0x0FF) | ((value & 0x01) << 8);
+        break;
+      case 0x02: // source Y low
+        this.SY = (this.SY & 0x300) | value;
+        break;
+      case 0x03: // source Y high
+        this.SY = (this.SY & 0x0FF) | ((value & 0x03) << 8);
+        break;
+      case 0x04: // destination X low
+        this.DX = (this.DX & 0x100) | value;
+        break;
+      case 0x05: // destination X high
+        this.DX = (this.DX & 0x0FF) | ((value & 0x01) << 8);
+        break;
+      case 0x06: // destination Y low
+        this.DY = (this.DY & 0x300) | value;
+        break;
+      case 0x07: // destination Y high
+        this.DY = (this.DY & 0x0FF) | ((value & 0x03) << 8);
+        break;
+      case 0x08: // number X low
+        this.NX = (this.NX & 0x300) | value;
+        break;
+      case 0x09: // number X high
+        this.NX = (this.NX & 0x0FF) | ((value & 0x03) << 8);
+        break;
+      case 0x0A: // number Y low
+        this.NY = (this.NY & 0x300) | value;
+        break;
+      case 0x0B: // number Y high
+        this.NY = (this.NY & 0x0FF) | ((value & 0x03) << 8);
+        break;
+
+      case 0x0C: // color
         this.CL = value;
+        if (!this.CM) this.status &= 0x7F;
         this.status &= ~VDPSTATUS_TR;
         break;
-      case 0x0d:
-        if ((this.ARG ^ value) & 0x30) {
-          this.indexRead  = this.offset[(value >> 4) & 1];
-          this.indexWrite = this.offset[(value >> 5) & 1];
-          this.maskRead = this.mask[(value >> 4) & 1];
-          this.maskWrite = this.mask[(value >> 5) & 1];
-        }
+      case 0x0D: // argument
         this.ARG = value;
+        for (const mode of this.graphicModes) {
+          mode.updateOffsets(value);
+        }
         break;
-      case 0x0e:
+      case 0x0E: // command
         this.LO = value & 0x0F;
         this.CM = value >> 4;
         this.setCommand();
@@ -165,9 +385,9 @@ export class V9938Cmd {
     else {
       screenMode -= 5;
     }
-    if (this.newScreenMode != screenMode) {
-      this.newScreenMode = screenMode;
-      if (screenMode == -1) {
+    if (this.screenMode != screenMode) {
+      this.screenMode = screenMode;
+      if (this.screenMode < 0) {
         this.CM = 0;
         this.status &= ~VDPSTATUS_CE;
       }
@@ -191,152 +411,16 @@ export class V9938Cmd {
     return this.CL;
   }
 
-  private readVram(x: number, y: number): number {
-    switch (this.screenMode) {
-      case 0:
-        return this.vram[this.indexRead + (((y & 1023) << 7) + (((x & 255) >> 1)) & this.maskRead)];
-      case 1:
-        return this.vram[this.indexRead + (((y & 1023) << 7) + (((x & 511) >> 2)) & this.maskRead)];
-      case 2:
-        return this.vram[this.indexRead + (((y & 511) << 7) + ((((x & 511) >> 2) + ((x & 2) << 15))) & this.maskRead)];
-      case 3:
-        return this.vram[this.indexRead + (((y & 511) << 7) + ((((x & 255) >> 1) + ((x & 1) << 16))) & this.maskRead)];
-    }
-    return 0;
-  }
-
-  private writeVram(x: number, y: number, value: number): void {
-    let offset = 0;
-    switch (this.screenMode) {
-      case 0:
-        offset = ((y & 1023) << 7) + (((x & 255) >> 1));
-        break;
-      case 1:
-        offset = ((y & 1023) << 7) + (((x & 511) >> 2));
-        break;
-      case 2:
-        offset = ((y & 511) << 7) + ((((x & 511) >> 2) + ((x & 2) << 15)));
-        break;
-      case 3:
-        offset = ((y & 511) << 7) + ((((x & 255) >> 1) + ((x & 1) << 16)));
-        break;
-    }
-
-    if (!(offset & ~this.maskRead)) this.vram[this.indexWrite + (offset & this.maskWrite)] = value;
-  }
-
-  private getPixel(x: number, y: number): number {
-    switch (this.screenMode) {
-      case 0:
-        return (this.vram[this.indexRead + (((y & 1023) << 7) + (((x & 255) >> 1)) & this.maskRead)] >> (((~x) & 1) << 2)) & 15;
-      case 1:
-        return (this.vram[this.indexRead + (((y & 1023) << 7) + (((x & 511) >> 2)) & this.maskRead)] >> (((~x) & 3) << 1)) & 3;
-      case 2:
-        return (this.vram[this.indexRead + (((y & 511) << 7) + ((((x & 511) >> 2) + ((x & 2) << 15))) & this.maskRead)] >> (((~x) & 1) << 2)) & 15;
-      case 3:
-        return this.vram[this.indexRead + (((y & 511) << 7) + ((((x & 255) >> 1) + ((x & 1) << 16))) & this.maskRead)];
-    }
-    return 0;
-  }
-
-  private setPixel(x: number, y: number, cl: number, op: number) {
-    let offset = 0;
-    switch (this.screenMode) {
-      case 0:
-        offset = ((y & 1023) << 7) + (((x & 255) >> 1));
-        break;
-      case 1:
-        offset = ((y & 1023) << 7) + (((x & 511) >> 2));
-        break;
-      case 2:
-        offset = ((y & 511) << 7) + ((((x & 511) >> 2) + ((x & 2) << 15)));
-        break;
-      case 3:
-        offset = ((y & 511) << 7) + ((((x & 255) >> 1) + ((x & 1) << 16)));
-        break;
-    }
-
-    if (offset & ~this.maskRead) {
-      return;
-    } 
-
-    const i = this.indexWrite + (offset & this.maskWrite);
-
-    let sh = 0;
-    let m = 0xff;
-
-    switch (this.screenMode) {
-      case 0:
-        sh = (~x & 1) << 2;
-        m = ~(15 << sh);
-        break;
-      case 1:
-        sh = (~x & 3) << 1;
-        m = ~(3 << sh);
-        break;
-      case 2:
-        sh = (~x & 1) << 2;
-        m = ~(15 << sh);
-        break;
-      case 3:
-        sh = 0;
-        m = 0xff;
-        break;
-    }
-
-    cl <<= sh;
-
-    switch (op) {
-      case 0: 
-        this.vram[i] = (this.vram[i] & m) | cl;
-        break;
-      case 1: 
-        this.vram[i] = this.vram[i] & (cl | m);
-        break;
-      case 2: 
-        this.vram[i] |= cl;
-        break;
-      case 3: 
-        this.vram[i] ^= cl;
-        break;
-      case 4: 
-        this.vram[i] = (this.vram[i] & m) | ~(cl | m);
-        break;
-      case 8:
-        if (cl) this.vram[i] = (this.vram[i] & m) | cl;
-        break;
-      case 9:
-        if (cl) this.vram[i] = this.vram[i] & (cl | m);
-        break;
-      case 10:
-        if (cl) this.vram[i] |= cl;
-        break;
-      case 11:
-        if (cl) this.vram[i] ^= cl;
-        break;
-      case 12:
-        if (cl) this.vram[i] = (this.vram[i] & m) | ~(cl | m);
-        break;
-    }
-  }
-
   private setCommand() {
     this.systemTime = this.board.getSystemTime();
-    this.screenMode = this.newScreenMode;
+    this.graphicMode = this.graphicModes[this.screenMode];
 
-    if (this.screenMode < 0) {
+    if (!this.graphicMode) {
       this.CM = 0;
       this.status &= ~VDPSTATUS_CE;
       return;
     }
 
-    this.SX &= 0x1ff;
-    this.SY &= 0x3ff;
-    this.DX &= 0x1ff;
-    this.DY &= 0x3ff;
-    this.NX &= 0x3ff;
-    this.NY &= 0x3ff;
-    
     switch (this.CM) {
       case CM_ABRT:
         this.CM = 0;
@@ -352,71 +436,106 @@ export class V9938Cmd {
       case CM_POINT:
         this.CM = 0;
         this.status &= ~VDPSTATUS_CE;
-        this.CL = this.getPixel(this.SX, this.SY);
+        this.CL = this.graphicMode.getPixel(this.SX, this.SY);
         return;
 
       case CM_PSET:
         this.CM = 0;
         this.status &= ~VDPSTATUS_CE;
-        this.setPixel(this.DX, this.DY, this.CL & MASK[this.screenMode], this.LO);
+        this.graphicMode.setPixel(this.DX, this.DY, this.CL, this.LO)
         return;
+
+      case CM_SRCH:
+        this.ASX = this.SX;
+        break;
+
+      case CM_LINE:
+        this.NY &= 1023;
+        this.ASX = ((this.NX - 1) >> 1);
+        this.ADX = this.DX;
+        this.ANX = 0;
+        break;
+
+      case CM_LMMV:
+        this.NY &= 1023;
+        this.ANX = clipNX_1_pixel(this.graphicMode, this.DX, this.NX, this.ARG);
+        this.ADX = this.DX;
+        break;
+
+      case CM_LMMM:
+        this.NY &= 1023;
+        this.ANX = clipNX_2_pixel(this.graphicMode, this.SX, this.DX, this.NX, this.ARG);
+        this.ASX = this.SX;
+        this.ADX = this.DX;
+
+      case CM_LMCM:
+        this.NY &= 1023;
+        this.ANX = clipNX_1_pixel(this.graphicMode, this.SX, this.NX, this.ARG);
+        this.ASX = this.SX;
+        //this.status |= 0x80;
+        this.statusChangeTime = this.systemTime;
+        break;
+
+      case CM_LMMC:
+        this.NY &= 1023;
+        this.ANX = clipNX_1_pixel(this.graphicMode, this.DX, this.NX, this.ARG);
+        this.ADX = this.DX;
+        this.statusChangeTime = this.systemTime;
+        //this.status |= 0x80;
+        break;
+
+      case CM_HMMV:
+        this.NY &= 1023;
+        this.ANX = clipNX_1_byte(this.graphicMode, this.DX, this.NX, this.ARG);
+        this.ADX = this.DX;
+        break;
+
+      case CM_HMMM:
+        this.NY &= 1023;
+        this.ANX = clipNX_2_byte(this.graphicMode, this.SX, this.DX, this.NX, this.ARG);
+        this.ASX = this.SX;
+        this.ADX = this.DX;
+        break;
+
+      case CM_YMMM:
+        this.NY &= 1023;
+        this.ANX = clipNX_1_byte(this.graphicMode, this.DX, 512, this.ARG);
+        this.ADX = this.DX;
+        break;
+
+      case CM_HMMC:
+        this.NY &= 1023;
+        this.ANX = clipNX_1_byte(this.graphicMode, this.DX, this.NX, this.ARG);
+        this.ADX = this.DX;
+        this.statusChangeTime = this.systemTime;
+        //this.status |= 0x80;
     }
 
-    this.MX = PPL[this.screenMode];
-    this.TY = this.ARG & 0x08 ? -1 : 1;
-    
-    if ((this.CM & 0x0C) == 0x0C) {
-      this.TX = this.ARG & 0x04 ? -PPB[this.screenMode] : PPB[this.screenMode];
-      this.NX = this.kNX / PPB[this.screenMode] | 0;
-    }
-    else {
-      this.NX = this.kNX;
-      this.TX = this.ARG & 0x04 ? -1 : 1;
-    }
-
-    // X loop variables are treated specially for LINE command 
-    if (this.CM == CM_LINE) {
-      this.ASX = (this.NX - 1) >> 1;
-      this.ADX = 0;
-    }
-    else {
-      this.ASX = this.SX;
-      this.ADX = this.DX;
-    }
-
-    //console.log(this.CM);
-
-    // NX loop variable is treated specially for SRCH command 
-    if (this.CM == CM_SRCH) {
-      this.ANX = (this.ARG & 0x02) != 0 ? 1 : 0; // Do we look for "==" or "!="?
-    }
-    else {
-      this.ANX = this.NX;
-    }
+//    console.log(this.CM, " - " + this.LO);
 
     // Command execution started 
     this.status |= VDPSTATUS_CE;
   }
 
+  private statusChangeTime = 0;
 
   private srchEngine(): void {
-    let SX = this.SX;
-    const SY = this.SY;
-    const TX = this.TX;
-    const ANX = !!this.ANX;
-    let CL = this.CL & MASK[this.screenMode];
+    const mode = this.graphicMode!;
     const delta = SEARCH_TIMING[this.timingMode];
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
     let cnt = this.opsCount;
 
+    let CL = this.CL & mode.COLOR_MASK;
+    let TX = (this.ARG & DIX) ? -1 : 1;
+    let AEQ = (this.ARG & EQ) != 0; // TODO: Do we look for "==" or "!="?
+
     while (cnt > 0) {
-      if ((this.getPixel(SX, SY) == CL) != ANX) {
-        this.status |= VDPSTATUS_BO;
+      let p = mode.getPixel(this.ASX, this.SY);
+      if ((p == CL) !== AEQ) {
+        this.status |= VDPSTATUS_BO; // border detected
         break;
       }
-      if ((SX += TX) & MX) {
-        this.status |= VDPSTATUS_BO;
+      if ((this.ASX += TX) & mode.PIXELS_PER_LINE) {
+        this.status &= 0xEF; // border not detected
         break;
       }
       cnt -= delta;
@@ -424,104 +543,48 @@ export class V9938Cmd {
 
     this.opsCount = cnt;
 
-    if ((cnt) > 0) {
+    if (cnt > 0) {
       // Command execution done
       this.status &= ~VDPSTATUS_CE;
       this.CM = 0;
       // Update SX in VDP registers
-      this.borderX = 0xfe00 | SX;
-    }
-    else {
-      this.SX = SX;
+      this.borderX = 0xfe00 | this.SX;
     }
   }
 
   private lineEngine(): void {
-    let DX = this.DX;
-    let DY = this.DY;
-    let TX = this.TX;
-    let TY = this.TY;
-    let NX = this.NX;
-    let NY = this.NY;
-    let ASX = this.ASX;
-    let ADX = this.ADX;
-    let CL = this.CL & MASK[this.screenMode];
-    let LO = this.LO;
+    const mode = this.graphicMode!;
     const delta = LINE_TIMING[this.timingMode];
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
     let cnt = this.opsCount;
 
-    if ((this.ARG & 0x01) == 0) {
-      // X-Axis is major direction
-      while (cnt > 0) {
-        this.setPixel(DX, DY, CL, LO);
-        DX += TX;
-        if (ADX++ == NX || (DX & MX))
-          break;
-        if ((ASX -= NY) < 0) {
-          ASX += NX;
-          DY += TY;
-        }
-        ASX &= 1023; // Mask to 10 bits range
-        cnt -= delta;
-      }
-    }
-    else {
-      // Y-Axis is major direction
-      while (cnt > 0) {
-        this.setPixel(DX, DY, CL, LO);
-        DY += TY;
-        if ((ASX -= NY) < 0) {
-          ASX += NX;
-          DX += TX;
-        }
-        ASX &= 1023; // Mask to 10 bits range
-        if (ADX++ == NX || (DX & MX))
-          break;
-        cnt -= delta;
-      }
-    }
-
-    this.opsCount = cnt;
-
-    if (cnt > 0) {
-      // Command execution done
-      this.status &= ~VDPSTATUS_CE;
-      this.CM = 0;
-      this.DY = DY & 0x03ff;
-    }
-    else {
-      this.DX = DX;
-      this.DY = DY;
-      this.ASX = ASX;
-      this.ADX = ADX;
-    }
-  }
-
-  private lmmvEngine(): void {
-    let DX = this.DX;
-    let DY = this.DY;
-    let TX = this.TX;
-    let TY = this.TY;
-    let NX = this.NX;
-    let NY = this.NY;
-    let ADX = this.ADX;
-    let ANX = this.ANX;
-    let CL = this.CL & MASK[this.screenMode];
-    let LO = this.LO;
-    const delta = LMMV_TIMING[this.timingMode];
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
-    let cnt = this.opsCount;
+    let CL = this.CL & mode.COLOR_MASK;
+    let TX = (this.ARG & DIX) ? -1 : 1;
+    let TY = (this.ARG & DIY) ? -1 : 1;
 
     while (cnt > 0) {
-      this.setPixel(ADX, DY, CL, LO);
-      ADX += TX;
-      if (--ANX == 0 || (ADX & MX)) {
-        DY += TY;
-        ADX = DX; ANX = NX;
-        if ((--NY & 1023) == 0 || DY == -1) {
+      mode.setPixel(this.ADX, this.DY, CL, this.LO);
+
+      if ((this.ARG & MAJ) == 0) {
+        // X-Axis is major direction.
+        this.ADX += TX;
+        if (this.ANX++ == this.NX || (this.ADX & mode.PIXELS_PER_LINE)) {
+          break;
+        }
+        if (this.ASX < this.NY) {
+          this.ASX += this.NX;
+          this.DY += TY;
+        }
+        this.ASX -= this.NY;
+        this.ASX &= 1023;
+      } else {
+        this.DY += TY;
+        if (this.ASX < this.NY) {
+          this.ASX += this.NX;
+          this.ADX += TX;
+        }
+        this.ASX -= this.NY;
+        this.ASX &= 1023;
+        if (this.ANX++ == this.NX || (this.ADX & mode.PIXELS_PER_LINE)) {
           break;
         }
       }
@@ -534,45 +597,76 @@ export class V9938Cmd {
       // Command execution done
       this.status &= ~VDPSTATUS_CE;
       this.CM = 0;
-      this.DY = DY & 0x03ff;
-      this.NY = NY & 0x03ff;
+    }
+  }
+
+  private lmmvEngine(): void {
+    const mode = this.graphicMode!;
+    const delta = LMMV_TIMING[this.timingMode];
+    let cnt = this.opsCount;
+
+    this.NY &= 1023;
+    let tmpNX = clipNX_1_pixel(mode, this.DX, this.NX, this.ARG);
+    let tmpNY = clipNY_1(this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -1 : 1;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_1_pixel(mode, this.ADX, this.ANX, this.ARG);
+    let CL = this.CL & mode.COLOR_MASK;
+
+    while (cnt > 0) {
+      mode.setPixel(this.ADX, this.DY, CL, this.LO);
+
+      this.ADX += TX;
+      if (--this.ANX == 0) {
+        this.DY += TY;
+        --this.NY;
+        this.ADX = this.DX;
+        this.ANX = tmpNX;
+        if (--tmpNY == 0) {
+          break;
+        }
+      }
+
+      cnt -= delta;
+    }
+
+    this.opsCount = cnt;
+
+    if (cnt > 0) {
+      // Command execution done
+      this.status &= ~VDPSTATUS_CE;
+      this.CM = 0;
     }
     else {
-      this.DY = DY;
-      this.NY = NY;
-      this.ANX = ANX;
-      this.ADX = ADX;
     }
   }
 
   private lmmmEngine(): void {
-    let SX = this.SX;
-    let SY = this.SY;
-    let DX = this.DX;
-    let DY = this.DY;
-    let TX = this.TX;
-    let TY = this.TY;
-    let NX = this.NX;
-    let NY = this.NY;
-    let ASX = this.ASX;
-    let ADX = this.ADX;
-    let ANX = this.ANX;
-    let LO = this.LO;
-    let delta = LMMM_TIMING[this.timingMode];
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
+    const mode = this.graphicMode!;
+    const delta = LMMM_TIMING[this.timingMode];
     let cnt = this.opsCount;
+    
+    this.NY &= 1023;
+    let tmpNX = clipNX_2_pixel(mode, this.SX, this.DX, this.NX, this.ARG);
+    let tmpNY = clipNY_2(this.SY, this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -1 : 1;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_2_pixel(mode, this.ASX, this.ADX, this.ANX, this.ARG);
+    let srcExt = (this.ARG & MXS) != 0;
+    let dstExt = (this.ARG & MXD) != 0;
 
     while (cnt > 0) {
-      this.setPixel(ADX, DY, this.getPixel(ASX, SY), LO);
-      ASX += TX; ADX += TX; 
-      if (--ANX == 0 || ((ASX | ADX) & MX)) {
-        SY += TY; DY += TY; 
-        ASX = SX; ADX = DX; ANX = NX; 
-        if ((--NY & 1023) == 0 || SY == -1 || DY == -1) {
-          break; 
-        } 
-      } 
+      mode.setPixel(this.ADX, this.DY, mode.getPixel(this.ASX, this.SY), this.LO);
+
+      this.ASX += TX; this.ADX += TX;
+      if (--this.ANX == 0) {
+        this.SY += TY; this.DY += TY; --this.NY;
+        this.ASX = this.SX; this.ADX = this.DX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
+          break;
+        }
+      }
+
       cnt -= delta; 
     }
 
@@ -581,86 +675,89 @@ export class V9938Cmd {
     if (cnt > 0) {
       // Command execution done
       this.status &= ~VDPSTATUS_CE;
-      this.CM=0;
-      this.DY=DY & 0x03ff;
-      this.SY=SY & 0x03ff;
-      this.NY=NY & 0x03ff;
-    }
-    else {
-      this.SY=SY;
-      this.DY=DY;
-      this.NY=NY;
-      this.ANX=ANX;
-      this.ASX=ASX;
-      this.ADX=ADX;
+      this.CM = 0;
     }
   }
 
   private lmcmEngine(): void {
+    const mode = this.graphicMode!;
+    
+    this.NY &= 1023;
+    let tmpNX = clipNX_1_pixel(mode, this.SX, this.NX, this.ARG);
+    let tmpNY = clipNY_1(this.SY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -1 : 1;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_1_pixel(mode, this.ASX, this.ANX, this.ARG);
+
     if (!(this.status & VDPSTATUS_TR)) {
-      this.CL = this.getPixel(this.ASX, this.SY);
+      this.CL = mode.getPixel(this.ASX, this.SY);
       this.status |= VDPSTATUS_TR;
 
-      if (!--this.ANX || ((this.ASX+= this.TX) & this.MX)) {
-        this.SY+=this.TY;
-        if (!(--this.NY & 1023) || this.SY == -1) {
+      this.ASX += TX; --this.ANX;
+      if (this.ANX == 0) {
+        this.SY += TY; --this.NY;
+        this.ASX = this.SX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
           this.status &= ~VDPSTATUS_CE;
           this.CM = 0;
-        }
-        else {
-          this.ASX=this.SX;
-          this.ANX=this.NX;
         }
       }
     }
   }
 
   private lmmcEngine(): void {
-    if (!(this.status & VDPSTATUS_TR)) {
-      const CL = this.CL & MASK[this.screenMode];
+    const mode = this.graphicMode!;
 
-      this.setPixel(this.ADX, this.DY, CL, this.LO);
+    this.NY &= 1023;
+    let tmpNX = clipNX_1_pixel(mode, this.DX, this.NX, this.ARG);
+    let tmpNY = clipNY_1(this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -1 : 1;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_1_pixel(mode, this.ADX, this.ANX, this.ARG);
+
+    if (!(this.status & VDPSTATUS_TR)) {
+      const CL = this.CL & mode.COLOR_MASK;
+
+      mode.setPixel(this.ADX, this.DY, CL, this.LO);
+
       this.status |= VDPSTATUS_TR;
 
-      if (!--this.ANX || ((this.ADX+= this.TX) & this.MX)) {
-        this.DY+=this.TY;
-        if (!(--this.NY & 1023) || this.DY == -1) {
+      this.ADX += TX; --this.ANX;
+      if (this.ANX == 0) {
+        this.DY += TY; --this.NY;
+        this.ADX = this.DX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
           this.status &= ~VDPSTATUS_CE;
           this.CM = 0;
-        }
-        else {
-          this.ADX=this.DX;
-          this.ANX=this.NX;
         }
       }
     }
   }
 
   private hmmvEngine(): void {
-    let DX = this.DX;
-    let DY = this.DY;
-    let TX = this.TX;
-    let TY = this.TY;
-    let NX = this.NX;
-    let NY = this.NY;
-    let ADX = this.ADX;
-    let ANX = this.ANX;
-    let CL = this.CL;
+    const mode = this.graphicMode!;
     const delta = HMMV_TIMING[this.timingMode];
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
     let cnt = this.opsCount;
 
+    this.NY &= 1023;
+    let tmpNX = clipNX_1_byte(mode, this.DX, this.NX, this.ARG);
+    let tmpNY = clipNY_1(this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -mode.PIXELS_PER_BYTE: mode.PIXELS_PER_BYTE;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_1_byte(mode, this.ADX, this.ANX << mode.PIXELS_PER_BYTE_SHIFT, this.ARG);
+
     while (cnt > 0) {
-      this.writeVram(ADX, DY, CL);
-      ADX += TX;
-      if (--ANX == 0 || (ADX & MX)) {
-        DY += TY;
-        ADX = DX; ANX = NX;
-        if ((--NY & 1023) == 0 || DY == -1) {
+      mode.writeVram(this.ADX, this.DY, this.CL);
+      
+      this.ADX += TX;
+      if (--this.ANX == 0) {
+        this.DY += TY; --this.NY;
+        this.ADX = this.DX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
           break;
         }
       }
+
       cnt -= delta;
     }
 
@@ -670,42 +767,29 @@ export class V9938Cmd {
       // Command execution done
       this.status &= ~VDPSTATUS_CE;
       this.CM = 0;
-      this.DY=DY & 0x03ff;
-      this.NY=NY & 0x03ff;
-    }
-    else {
-      this.DY=DY;
-      this.NY=NY;
-      this.ANX=ANX;
-      this.ADX=ADX;
     }
   }
 
   private hmmmEngine(): void {
-    let SX = this.SX;
-    let SY = this.SY;
-    let DX = this.DX;
-    let DY = this.DY;
-    let TX = this.TX;
-    let TY = this.TY;
-    let NX = this.NX;
-    let NY = this.NY;
-    let ASX = this.ASX;
-    let ADX = this.ADX;
-    let ANX = this.ANX;
-    let LO = this.LO;
-    let delta = HMMM_TIMING[this.timingMode];
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
+    const mode = this.graphicMode!;
+    const delta = HMMM_TIMING[this.timingMode];
     let cnt = this.opsCount;
 
+    this.NY &= 1023;
+    let tmpNX = clipNX_2_byte(mode, this.SX, this.DX, this.NX, this.ARG);
+    let tmpNY = clipNY_2(this.SY, this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -mode.PIXELS_PER_BYTE: mode.PIXELS_PER_BYTE;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_2_byte(mode, this.ASX, this.ADX, this.ANX << mode.PIXELS_PER_BYTE_SHIFT, this.ARG);
+
     while (cnt > 0) {
-      this.writeVram(ADX, DY, this.readVram(ASX, SY));
-      ASX += TX; ADX += TX;
-      if (--ANX == 0 || ((ASX | ADX) & MX)) {
-        SY += TY; DY += TY;
-        ASX = SX; ADX = DX; ANX = NX;
-        if ((--NY & 1023) == 0 || SY == -1 || DY == -1) {
+      mode.writeVram(this.ADX, this.DY, mode.readVram(this.ASX, this.SY));
+
+      this.ASX += TX; this.ADX += TX;
+      if (--this.ANX == 0) {
+        this.SY += TY; this.DY += TY; --this.NY;
+        this.ASX = this.SX; this.ADX = this.DX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
           break;
         }
       }
@@ -718,44 +802,34 @@ export class V9938Cmd {
       // Command execution done
       this.status &= ~VDPSTATUS_CE;
       this.CM = 0;
-      this.DY = DY & 0x03ff;
-      this.SY = SY & 0x03ff;
-      this.NY = NY & 0x03ff;
-    }
-    else {
-      this.SY = SY;
-      this.DY = DY;
-      this.NY = NY;
-      this.ANX = ANX;
-      this.ASX = ASX;
-      this.ADX = ADX;
     }
   }
 
   private ymmmEngine(): void {
-    let SY = this.SY;
-    let DX = this.DX;
-    let DY = this.DY;
-    let TX = this.TX;
-    let TY = this.TY;
-    let NY = this.NY;
-    let ADX = this.ADX;
+    const mode = this.graphicMode!;
     const delta = YMMM_TIMING[this.timingMode];
-
-    const MX = this.screenMode == 0 || this.screenMode == 3 ? 256 : 512;
-
     let cnt = this.opsCount;
 
+    this.NY &= 1023;
+    let tmpNX = clipNX_1_byte(mode, this.DX, 512, this.ARG);
+    let tmpNY = clipNY_2(this.SY, this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -mode.PIXELS_PER_BYTE: mode.PIXELS_PER_BYTE;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_1_byte(mode, this.ADX, 512, this.ARG);
+
     while (cnt > 0) {
-      this.writeVram(ADX, DY, this.readVram(ADX, SY));
-      ADX += TX; 
-      if (ADX & MX) {
-        SY += TY; DY += TY; 
-        ADX = DX; 
-        if ((--NY & 1023) == 0 || SY == -1 || DY == -1) {
-          break; 
-        } 
-      } 
+      mode.writeVram(this.ADX, this.DY, mode.readVram(this.ADX, this.SY));
+      
+      this.ADX += TX;
+      if (--this.ANX == 0) {
+        // note: going to the next line does not take extra time
+        this.SY += TY; this.DY += TY; --this.NY;
+        this.ADX = this.DX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
+          break;
+        }
+      }
+
       cnt -= delta; 
     }
 
@@ -765,50 +839,42 @@ export class V9938Cmd {
       // Command execution done
       this.status &=~VDPSTATUS_CE;
       this.CM = 0;
-      this.DY=DY & 0x03ff;
-      this.SY=SY & 0x03ff;
-      this.NY=NY & 0x03ff;
-    }
-    else {
-      this.SY=SY;
-      this.DY=DY;
-      this.NY=NY;
-      this.ADX=ADX;
     }
   }
 
   private hmmcEngine(): void {
+    const mode = this.graphicMode!;
+    
+    this.NY &= 1023;
+    let tmpNX = clipNX_1_byte(mode, this.DX, this.NX, this.ARG);
+    let tmpNY = clipNY_1(this.DY, this.NY, this.ARG);
+    let TX = (this.ARG & DIX) ? -mode.PIXELS_PER_BYTE: mode.PIXELS_PER_BYTE;
+    let TY = (this.ARG & DIY) ? -1 : 1;
+    this.ANX = clipNX_1_byte(mode, this.ADX, this.ANX << mode.PIXELS_PER_BYTE_SHIFT, this.ARG);
+
     if (!(this.status & VDPSTATUS_TR)) {
-      this.writeVram(this.ADX, this.DY, this.CL);
+      mode.writeVram(this.ADX, this.DY, this.CL);
       this.opsCount -= HMMV_TIMING[this.timingMode];
+
       this.status |= VDPSTATUS_TR;
 
-      if (!--this.ANX || ((this.ADX += this.TX) & this.MX)) {
-        this.DY += this.TY;
-        if (!(--this.NY & 1023) || this.DY == -1) {
+      this.ADX += TX; --this.ANX;
+      if (this.ANX == 0) {
+        this.DY += TY; --this.NY;
+        this.ADX = this.DX; this.ANX = tmpNX;
+        if (--tmpNY == 0) {
           this.status &= ~VDPSTATUS_CE;
           this.CM = 0;
-        }
-        else {
-          this.ADX = this.DX;
-          this.ANX = this.NX;
         }
       }
     }
   }
-
-  private indexRead = 0;
-  private indexWrite = 0;
-  private maskRead = 0;
-  private maskWrite = 0;
-  private offset = [0, 0];
-  private mask = [0, 0];
+  
   private SX = 0;
   private SY = 0;
   private DX = 0;
   private DY = 0;
   private NX = 0;
-  private kNX = 0;
   private NY = 0;
   private ASX = 0;
   private ADX = 0;
@@ -819,12 +885,10 @@ export class V9938Cmd {
   private CM = 0;
   private status = 0;
   private borderX = 0;
-  private TX = 0;
-  private TY = 0;
-  private MX = 0;
   private opsCount = 0;
   private systemTime = 0;
-  private screenMode = 0;
-  private newScreenMode = 0;
   private timingMode = 0;
+  private screenMode = -1;
+  private graphicMode?: GraphicMode;
+  private graphicModes = new Array<GraphicMode>(4);
 };
