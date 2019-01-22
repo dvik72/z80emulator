@@ -184,6 +184,46 @@ class Slot {
     this.active = false;
   }
 
+  public log() {
+    console.log(
+      ' W:' + this.wave +
+      ' F:' + this.FN +
+      ' O:' + this.OCT +
+      ' P:' + this.PRVB +
+      ' L:' + this.LD +
+      ' T:' + this.TL +
+      ' p:' + this.pan +
+      ' l:' + this.lfo +
+      ' v:' + this.vib +
+      ' A:' + this.AM +
+      ' A:' + this.AR +
+      ' D:' + this.D1R +
+      ' D:' + this.DL +
+      ' D:' + this.D2R +
+      ' R:' + this.RC +
+      ' R:' + this.RR +
+      ' s:' + this.step +
+      ' s:' + this.stepptr +
+      ' b:' + this.bits +
+      ' s:' + this.startaddr +
+      ' l:' + this.loopaddr +
+      ' e:' + this.endaddr +
+      ' e:' + this.env_vol +
+      ' l:' + this.lfo_active +
+      ' l:' + this.lfo_cnt +
+      ' l:' + this.lfo_step +
+      ' p:' + this.pos +
+      ' s:' + this.sample1 +
+      ' s:' + this.sample2 +
+      ' a:' + this.active +
+      ' b:' + this.bits +
+      ' s:' + this.state +
+      ' e:' + this.env_vol_step +
+      ' e:' + this.env_vol_lim +
+      ' l:' + this.lfo_max
+    )
+  }
+  
   public compute_rate(val: number): number {
     if (val == 0) {
       return 0;
@@ -327,6 +367,7 @@ export class Ymf278 {
     if (reg >= 0x08 && reg <= 0xF7) {
       const snum = (reg - 8) % 24;
       const slot = this.slots[snum];
+
       switch ((reg - 8) / 24 | 0) {
         case 0: {
           this.LD_Time = time;
@@ -570,12 +611,13 @@ export class Ymf278 {
       let cnt = this.oplOversampling;
       while (cnt--) {
         for (let i = 0; i < 24; i++) {
+          if (i != 3) continue;
           const sl = this.slots[i];
           if (!sl.active) {
             continue;
           }
 
-          let sample = (sl.sample1 * (0x10000 - sl.stepptr) + sl.sample2 * sl.stepptr) >> 16;
+          let sample = (sl.sample1 * (0x1000 - (sl.stepptr >> 4)) + sl.sample2 * (sl.stepptr >> 4)) / (1 << 12);
           const vol = sl.TL + (sl.env_vol >> 2) + sl.compute_am();
 
           let volLeft = vol + pan_left[sl.pan | 0] + vl;
@@ -589,8 +631,8 @@ export class Ymf278 {
             volRight = 0;
           }
 
-          left += (sample * this.volume[volLeft]) >> 10;
-          right += (sample * this.volume[volRight]) >> 10;
+          left += (sample * this.volume[volLeft]) / (1 << 10);
+          right += (sample * this.volume[volRight]) / (1 << 10);
 
           if (sl.lfo_active && sl.vib) {
             let oct = sl.OCT;
@@ -783,7 +825,7 @@ export class Ymf278 {
               const select = eg_rate_select[rate];
               op.env_vol += eg_inc[select + ((this.eg_cnt >> shift) & 7)];
 
-              if ((op.env_vol > dl_tab[6]) && op.PRVB !+ 0) {
+              if ((op.env_vol > dl_tab[6]) && op.PRVB != 0) {
                 op.state = EG_REV;
               } else {
                 if (op.env_vol >= MAX_ATT_INDEX) {
