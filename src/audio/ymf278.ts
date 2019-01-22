@@ -611,7 +611,6 @@ export class Ymf278 {
       let cnt = this.oplOversampling;
       while (cnt--) {
         for (let i = 0; i < 24; i++) {
-          if (i != 3) continue;
           const sl = this.slots[i];
           if (!sl.active) {
             continue;
