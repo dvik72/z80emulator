@@ -25,31 +25,35 @@ import { Y8950 } from '../audio/y8950';
 export class MapperRomMsxAudio extends Mapper {
   static NAME = 'MSX Audio';
 
-  constructor(board: Board, slot: number, sslot: number,
-    private romData: Uint8Array) {
+  constructor(board: Board, slot: number, sslot: number, private romData: Uint8Array) {
     super(MapperRomMsxAudio.NAME);
 
-    const ioBase = 0xc0; // Add 2 for second msxaudio if installed
+    if (this.romData.length > 0) {
+      this.sizeMask = this.romData.length - 1;
+      this.bankSelect = 0;
+
+      for (let i = 0; i < this.ram.length; i++) {
+        this.ram[i] = 0xff;
+      }
+
+      // FS-CA1 BIOS hack ret z -> nop
+      this.romData[0x408e] = 0;
+
+      for (let page = 0; page < 8; page++) {
+        this.slotInfo[page] = new Slot(this.getName(), this.readCb.bind(this), this.writeCb.bind(this));
+        this.slotInfo[page].fullAddress = true;
+        this.slotInfo[page].map(false, false);
+        board.getSlotManager().registerSlot(slot, sslot, page, this.slotInfo[page]);
+      }
+    }
+    
+    let ioBase = 0xc0; // Add 2 for second msxaudio if installed
+    if (board.getIoManager().isPortRegistered(ioBase)) {
+      ioBase = 0xc2;
+    }
 
     this.y8950 = new Y8950(board);
 
-    this.sizeMask = this.romData.length - 1;
-    this.bankSelect = 0;
-
-    for (let i = 0; i < this.ram.length; i++) {
-      this.ram[i] = 0xff;
-    }
-
-    // FS-CA1 BIOS hack ret z -> nop
-    this.romData[0x408e] = 0;
-
-    for (let page = 0; page < 8; page++) {
-      this.slotInfo[page] = new Slot(this.getName(), this.readCb.bind(this), this.writeCb.bind(this));
-      this.slotInfo[page].fullAddress = true;
-      this.slotInfo[page].map(false, false);
-      board.getSlotManager().registerSlot(slot, sslot, page, this.slotInfo[page]);
-    }
-    
     board.getIoManager().registerPort(ioBase + 0, new Port(this.readIo.bind(this), this.writeIo.bind(this)));
     board.getIoManager().registerPort(ioBase + 1, new Port(this.readIo.bind(this), this.writeIo.bind(this)));
 
@@ -77,7 +81,7 @@ export class MapperRomMsxAudio extends Mapper {
       return this.ram[(address & 0x3fff) - 0x3000];
     }
 
-    return this.romData[(0x8000 * this.bankSelect + (address & 0x7fff)) & this.sizeMask];
+    return this.romData![(0x8000 * this.bankSelect + (address & 0x7fff)) & this.sizeMask];
   }
 
   private writeCb(address: number, value: number): void {

@@ -39,6 +39,11 @@ export class IoManager {
     }
   }
 
+  isPortRegistered(port: number): boolean {
+    const portInfo = this.ioTable[port];
+    return portInfo.readCb == undefined && portInfo.writeCb == undefined;
+  }
+
   registerPort(port: number, portInfo: Port): void {
     this.ioTable[port] = portInfo;
   }
