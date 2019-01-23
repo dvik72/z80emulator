@@ -26,6 +26,8 @@ import { getSupportedCartridgeTypes, getSupportedCartridgeTypeNames } from '../m
 
 import { DiskManager } from '../disk/diskmanager';
 
+import { UserPrefs } from './userprefs';
+
 class SpecialRom {
   constructor(
     public mediaInfo: MediaInfo,
@@ -63,12 +65,14 @@ export class MsxEmu {
     document.addEventListener('dragenter', (event) => { event.preventDefault(); });
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
 
+    this.userPrefs.load();
+
     this.createMachineMenu();
     this.createCartSpecialMenu();
     this.createCartTypeMenu();
 
-    this.setMachine(this.machineManager.getDefaultMachineName());
-    
+    this.setMachine(this.userPrefs.get().machineName);
+
     requestAnimationFrame(this.refreshScreen);
   }
 
@@ -113,6 +117,16 @@ export class MsxEmu {
       oldMachineDiv!.classList.remove('active');
     }
     this.machine = this.machineManager.createMachine(machineName);
+    if (!this.machine) {
+      machineName = this.machineManager.getDefaultMachineName();
+      this.machine = this.machineManager.createMachine(machineName);
+    }
+
+    if (this.userPrefs.get().machineName != machineName) {
+      this.userPrefs.get().machineName = machineName;
+      this.userPrefs.save();
+    }
+
     const newMachineDiv = document.getElementById('machine-' + this.machine!.getName());
     newMachineDiv!.classList.add('active');
 
@@ -177,8 +191,10 @@ export class MsxEmu {
     let ejectMenuId = '';
     let romTypeMenuId = '';
     if (type == MediaType.FLOPPY) {
-      this.diskMedia = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
-      this.diskManager.insertFloppyImage(slot, this.diskMedia.data);
+      if (!mediaInfo) {
+        mediaInfo = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
+      }
+      this.diskManager.insertFloppyImage(slot, mediaInfo.data);
       ejectMenuId = 'eject-disk' + slot;
     }
     if (type == MediaType.ROM) {
@@ -315,10 +331,12 @@ export class MsxEmu {
 
     switch (event.detail) {
       case 'eject-disk0': {
+        this.diskMedia[1] = undefined;
         this.diskManager.ejectFloppyImage(0);
         break;
       }
       case 'eject-disk1': {
+        this.diskMedia[1] = undefined;
         this.diskManager.ejectFloppyImage(1);
         break;
       }
@@ -510,7 +528,9 @@ export class MsxEmu {
   private ledManager = new LedManager();
   private machineManager = new MachineManager(this.webAudio, this.diskManager, this.ledManager);
 
-  private diskMedia?: MediaInfo;
+  private diskMedia = new Array<MediaInfo | undefined>(2);
   private romMedia = new Array<MediaInfo | undefined>(2);
   private mediaInfoFactory = new MediaInfoFactory();
+
+  private userPrefs = new UserPrefs();
 }

@@ -142,6 +142,7 @@
     <TypeScriptCompile Include="src\mappers\turbortimer.ts" />
     <TypeScriptCompile Include="src\memory\amdflash.ts" />
     <TypeScriptCompile Include="src\nano\gamerom.ts" />
+    <TypeScriptCompile Include="src\nano\userprefs.ts" />
     <TypeScriptCompile Include="src\util\mediainfo.ts" />
     <TypeScriptCompile Include="src\util\romdatabase.ts" />
     <TypeScriptCompile Include="src\util\sha1.ts" />
