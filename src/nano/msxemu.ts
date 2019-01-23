@@ -331,12 +331,10 @@ export class MsxEmu {
 
     switch (event.detail) {
       case 'eject-disk0': {
-        this.diskMedia[1] = undefined;
         this.diskManager.ejectFloppyImage(0);
         break;
       }
       case 'eject-disk1': {
-        this.diskMedia[1] = undefined;
         this.diskManager.ejectFloppyImage(1);
         break;
       }
@@ -528,7 +526,6 @@ export class MsxEmu {
   private ledManager = new LedManager();
   private machineManager = new MachineManager(this.webAudio, this.diskManager, this.ledManager);
 
-  private diskMedia = new Array<MediaInfo | undefined>(2);
   private romMedia = new Array<MediaInfo | undefined>(2);
   private mediaInfoFactory = new MediaInfoFactory();
 

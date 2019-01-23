@@ -51,7 +51,7 @@ export class UserPrefs {
   public save() {
     try {
       localStorage.bluemsxprefs = JSON.stringify(this.prefs);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   private prefs = new Prefs();
