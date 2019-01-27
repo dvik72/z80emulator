@@ -24,7 +24,16 @@ class Prefs {
 
   public version = PREFS_VERSION;
   public machineName = '';
+  public windowSize = 0;
 }
+
+function addPrefsDetaults(prefs: Prefs): void {
+  const defaults = new Prefs();
+
+  if (!prefs.machineName) prefs.machineName = defaults.machineName;
+  if (!prefs.windowSize) prefs.windowSize = defaults.windowSize;
+}
+
 
 export class UserPrefs {
   constructor() {
@@ -35,6 +44,8 @@ export class UserPrefs {
   }
 
   public load(): void {
+    this.prefs = new Prefs();
+
     try {
       let json = JSON.parse(localStorage.bluemsxprefs || "{}");
 
@@ -44,8 +55,9 @@ export class UserPrefs {
       }
     }
     catch (e) {
-      this.prefs = new Prefs();
     }
+
+    addPrefsDetaults(this.prefs);
   }
 
   public save() {

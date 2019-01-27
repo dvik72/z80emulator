@@ -37,6 +37,14 @@ class SpecialRom {
 
 let SPECIAL_ROMS: { [romType: string]: SpecialRom ; } = { };
 
+const WINDOW_SIZES = [
+  [0, 'Auto'],
+  [0.75, '0.75x'],
+  [1, '1x'],
+  [1.5, '1.5x'],
+  [2, '2x']
+]
+
 function initSpecialRoms() {
   SPECIAL_ROMS[MediaType.MSXAUDIO] = new SpecialRom(new MediaInfo('Msx Audio', 'Yamaha', 1988, 'JP', MediaType.MSXAUDIO, new Uint8Array(0)));
   SPECIAL_ROMS[MediaType.MOONSOUND] = new SpecialRom(new MediaInfo('MoonSound', 'Yamaha - Sunrise', 1995, 'NL', MediaType.MOONSOUND, new Uint8Array(0)), 'moonsound');
@@ -52,6 +60,7 @@ export class MsxEmu {
 
   public run(): void {
     document.addEventListener('setmachine', this.changeMachine.bind(this));
+    document.addEventListener('setwindowsize', this.setWindowSize.bind(this));
     document.addEventListener('reset', this.resetEmulation.bind(this));
     document.addEventListener('file', this.fileEvent.bind(this));
     document.addEventListener('eject', this.ejectEvent.bind(this));
@@ -64,12 +73,17 @@ export class MsxEmu {
     document.addEventListener('dragover', (event) => { event.preventDefault(); });
     document.addEventListener('dragenter', (event) => { event.preventDefault(); });
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
+    window.addEventListener('resize', this.resize.bind(this));
+    document.addEventListener('fullscreen', this.toggleFullscreen.bind(this));
 
     this.userPrefs.load();
 
     this.createMachineMenu();
     this.createCartSpecialMenu();
     this.createCartTypeMenu();
+    this.createWindowSizeMenu();
+
+    this.updateWindowSize(this.userPrefs.get().windowSize);
 
     this.setMachine(this.userPrefs.get().machineName);
 
@@ -106,10 +120,75 @@ export class MsxEmu {
     }
   }
 
+  private createWindowSizeMenu(): void {
+    const windowSizeDiv = document.getElementById('windowsize-menu');
+
+    for (let i in WINDOW_SIZES) {
+      const machineItem = '<button class="dropdown-item btn-sm" type="button" id="windowsize-' + i + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setwindowsize\', {detail: \'' + i + '\'}));">' + WINDOW_SIZES[i][1] + '</button>';
+      windowSizeDiv!.innerHTML += machineItem;
+    }
+  }
+
   private changeMachine(event: CustomEvent): void {
     this.setMachine(event.detail);
   }
 
+  private resize(event?: Event): void {
+    event && event.preventDefault(); 
+
+    this.updateWindowSize(this.windowSize);
+  }
+  
+  private setWindowSize(event: CustomEvent): void {
+    this.updateWindowSize(event.detail);
+    this.userPrefs.save();
+  }
+
+  private updateWindowSize(windowSize: number): void {
+    let height = document.fullscreen ? 0 : +WINDOW_SIZES[windowSize][0] * 480;
+
+    const leftBarDiv = document.getElementById('emuLeftBar');
+    const leftBarWidth = leftBarDiv!.clientWidth;
+    const rightBarDiv = document.getElementById('emuRightBar');
+    const rightBarWidth = rightBarDiv!.clientWidth;
+
+    if (height == 0) {
+      let width = window.innerWidth || document.documentElement!.clientWidth;
+      height = window.innerHeight || document.documentElement!.clientHeight;
+
+      height = Math.max(240, Math.min(height, (width - leftBarWidth - rightBarWidth) * 3 / 4) - 20);
+    }
+
+    let width = (height + 30) * 4 / 3 + leftBarWidth + rightBarWidth - 30;
+
+    const emulatorDiv = document.getElementById('emuContainer');
+    emulatorDiv!.style.width = width + 'px';
+    emulatorDiv!.style.height = height + 'px';
+
+    if (windowSize != this.windowSize) {
+      let sizeMenuId = 'windowsize-' + this.windowSize;
+      let sizeItemDiv = document.getElementById(sizeMenuId);
+      sizeItemDiv && (<HTMLButtonElement>sizeItemDiv!).classList.remove('active');
+
+      this.windowSize = windowSize;
+      this.userPrefs.get().windowSize = windowSize;
+
+      sizeMenuId = 'windowsize-' + this.windowSize;
+      sizeItemDiv = document.getElementById(sizeMenuId);
+      sizeItemDiv && (<HTMLButtonElement>sizeItemDiv!).classList.add('active');
+    }
+  }
+
+  private toggleFullscreen(event?: Event): void {
+    const emuDiv = document.getElementById('windowContainer');
+    if (!document.fullscreen) {
+      emuDiv!.requestFullscreen();
+    }
+    else {
+      document.exitFullscreen();
+    }
+  }
+  
   private setMachine(machineName: string): void {
     console.log("Set Machine " + machineName);
     if (this.machine) {
@@ -530,4 +609,6 @@ export class MsxEmu {
   private mediaInfoFactory = new MediaInfoFactory();
 
   private userPrefs = new UserPrefs();
+
+  private windowSize = -1;
 }

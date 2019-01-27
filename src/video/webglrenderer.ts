@@ -77,25 +77,33 @@ export class WebGlRenderer {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
   }
+
+  private resize(): void {
+    // Lookup the size the browser is displaying the canvas.
+    var displayWidth = this.gl.canvas.clientWidth;
+    var displayHeight = this.gl.canvas.clientHeight;
+
+    // Check if the canvas is not the same size.
+    if (this.gl.canvas.width != displayWidth ||
+      this.gl.canvas.height != displayHeight) {
+
+      // Make the canvas the same size
+      this.gl.canvas.width = displayWidth;
+      this.gl.canvas.height = displayHeight;
+      this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    }
+  }
   
   public render(width: number, height: number, frameBuffer: Uint16Array): void {
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGB, width, height, 0, this.gl.RGB, this.gl.UNSIGNED_SHORT_5_6_5, frameBuffer);
+    this.resize();
 
-    const dstX = 0;
-    const dstY = 0;
-    const dstWidth = 640;
-    const dstHeight = 480;
-  
-    const clipX = dstX / this.gl.canvas.width * 2 - 1;
-    const clipY = dstY / this.gl.canvas.height * -2 + 1;
-    const clipWidth = dstWidth / this.gl.canvas.width * 2;
-    const clipHeight = dstHeight / this.gl.canvas.height * -2;
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGB, width, height, 0, this.gl.RGB, this.gl.UNSIGNED_SHORT_5_6_5, frameBuffer);
 
     const matrixLocation = this.shader.getUniformLocation("u_matrix");
     this.gl.uniformMatrix3fv(matrixLocation, false, [
-      clipWidth, 0, 0,
-      0, clipHeight, 0,
-      clipX, clipY, 1,
+      2, 0, 0,
+      0, -2, 0,
+      -1, 1, 1,
     ]);
 
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);

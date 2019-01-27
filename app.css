@@ -1,4 +1,5 @@
-﻿body {
+﻿
+body {
     font-family: 'Verdana', 'Arial', sans-serif;
 }
 
@@ -8,41 +9,35 @@ span {
     color: #808080;
 }
 
-.emu-topmargin {
-    margin-top: 10px;
+.emu-container {
+    padding: 10px;
+    width: 100%;
+    height: 100%;
 }
 
-.cartmargin {
-    margin-top: 10px;
-}
-
-.diskmargin {
-    margin-top: 10px;
-}
-
-.settingsmargin {
-    margin-top: 10px;
-}
-
-.emu-row {
+.emu-window {
     display: -webkit-flex; /* Safari */
-    -webkit-justify-content: center; /* Safari 6.1+ */
     display: flex;
-    justify-content: center;
-    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 0;
+    height: 0;
 }
 
 .emu-col {
-    float: left;
-    min-height: 482px;
 }
 
 .emu-left, .emu-right {
     width: 60px;
     background: #3b3b3b;
+    display: -webkit-flex; /* Safari */
+    display: flex;
+    flex-direction: column;
 }
 
 .emu-middle {
+    background: #3b3b3b;
+    flex-grow: 1;
 }
 
 .emu-center {
@@ -109,7 +104,7 @@ span {
 
 .emu-logo {
     margin-left: 14px;
-    margin-top: 253px;
+    margin-bottom: 5px;
 }
 
 .emu-version {
@@ -119,7 +114,7 @@ span {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     font-size: xx-small;
     min-width: 60px;
-    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 .emu-cpu-usage {
@@ -127,6 +122,38 @@ span {
     color: #808080;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     font-size: xx-small;
-    margin-top: 250px;
+    margin-bottom: 10px;
     margin-left: 10px;
+}
+
+.emu-topmargin {
+    margin-top: 10px;
+}
+
+.buttongroupmargin {
+    margin-top: 10px;
+}
+
+.emu-menu-middle {
+    flex-grow: 1;
+}
+
+/* Chrome, Safari and Opera syntax */
+:-webkit-full-screen {
+    background-color: #000000;
+}
+
+/* Firefox syntax */
+:-moz-full-screen {
+    background-color: #000000;
+}
+
+/* IE/Edge syntax */
+:-ms-fullscreen {
+    background-color: #000000;
+}
+
+/* Standard syntax */
+:fullscreen {
+    background-color: #000000;
 }

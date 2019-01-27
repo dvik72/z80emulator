@@ -2,7 +2,7 @@
 <head>
     <meta charset="utf-8" />
     <title>blueMSX Live</title>
-    <link rel="stylesheet" href="app.css?201901132133" type="text/css" />
+    <link rel="stylesheet" href="app.css?201901272233" type="text/css" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="css/bootstrap-submenu.css">
 
@@ -15,108 +15,127 @@
 </head>
 
 <body style="background-color:#f8f8f8">
-    <div class="emu-row">
-        <div class="emu-col emu-left">
-            <img class="emu-center emu-topmargin" src="img/power.png" type="button" onclick="javascript: document.dispatchEvent(new Event('reset'));">
+    <div id="windowContainer" class=" emu-container">
+        <div id="emuContainer" class="emu-window">
+            <div id="emuLeftBar" class="emu-col emu-left">
+                <img class="emu-center emu-topmargin" src="img/power.png" type="button" onclick="javascript: document.dispatchEvent(new Event('reset'));">
 
-            <div class="dropright cartmargin">
-                <img src="img/cart1.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                <div class="dropdown-menu">
-                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart0' }));">Insert</button>
-                    <div class="dropdown dropright dropdown-submenu">
-                        <button class="dropdown-item dropdown-toggle btn-sm" id="romspecial-cart0" type="button">Insert Special</button>
-                        <div class="dropdown-menu" id="type-special0">
+                <div class="dropright buttongroupmargin">
+                    <img src="img/cart1.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart0' }));">Insert</button>
+                        <div class="dropdown dropright dropdown-submenu">
+                            <button class="dropdown-item dropdown-toggle btn-sm" id="romspecial-cart0" type="button">Insert Special</button>
+                            <div class="dropdown-menu" id="type-special0">
+                            </div>
                         </div>
-                    </div>
-                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-cart0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart0' }));">Eject</button>
-                    <div class="dropdown-divider"></div>
-                    <div class="dropdown dropright dropdown-submenu">
-                        <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart0" type="button">Rom Type</button>
-                        <div class="dropdown-menu" id="type-cart0">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dropright">
-                <img src="img/cart2.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                <div class="dropdown-menu">
-                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart1' }));">Insert</button>
-                    <div class="dropdown dropright dropdown-submenu">
-                        <button class="dropdown-item dropdown-toggle btn-sm" id="romspecial-cart1" type="button">Insert Special</button>
-                        <div class="dropdown-menu" id="type-special1">
-                        </div>
-                    </div>
-                    <button class="dropdown-item btn-sm" type="button" id="eject-cart1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart1' }));">Eject</button>
-                    <div class="dropdown-divider"></div>
-                    <div class="dropdown dropright dropdown-submenu">
-                        <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart1" type="button">Rom Type</button>
-                        <div class="dropdown-menu" id="type-cart1">
+                        <button class="dropdown-item btn-sm" type="button" disabled id="eject-cart0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart0' }));">Eject</button>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown dropright dropdown-submenu">
+                            <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart0" type="button">Rom Type</button>
+                            <div class="dropdown-menu" id="type-cart0">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="dropright diskmargin">
-                <img src="img/diska.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                <div class="dropdown-menu">
-                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk0' }));">Insert</button>
-                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-disk0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));">Eject</button>
+                <div class="dropright">
+                    <img src="img/cart2.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-cart1' }));">Insert</button>
+                        <div class="dropdown dropright dropdown-submenu">
+                            <button class="dropdown-item dropdown-toggle btn-sm" id="romspecial-cart1" type="button">Insert Special</button>
+                            <div class="dropdown-menu" id="type-special1">
+                            </div>
+                        </div>
+                        <button class="dropdown-item btn-sm" type="button" id="eject-cart1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-cart1' }));">Eject</button>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown dropright dropdown-submenu">
+                            <button class="dropdown-item dropdown-toggle btn-sm" disabled id="romtype-cart1" type="button">Rom Type</button>
+                            <div class="dropdown-menu" id="type-cart1">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="dropright">
-                <img src="img/diskb.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                <div class="dropdown-menu">
-                    <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk1' }));">Insert</button>
-                    <button class="dropdown-item btn-sm" type="button" disabled id="eject-disk1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));">Eject</button>
+                <div class="dropright buttongroupmargin">
+                    <img src="img/diska.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk0' }));">Insert</button>
+                        <button class="dropdown-item btn-sm" type="button" disabled id="eject-disk0" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk0' }));">Eject</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="dropright settingsmargin">
-                <img src="img/settings.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                <div class="dropdown-menu" id="machines-menu">
+                <div class="dropright">
+                    <img src="img/diskb.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'insert-disk1' }));">Insert</button>
+                        <button class="dropdown-item btn-sm" type="button" disabled id="eject-disk1" onclick="javascript: document.dispatchEvent(new CustomEvent('eject', { detail: 'eject-disk1' }));">Eject</button>
+                    </div>
                 </div>
+
+                <div class="dropright buttongroupmargin">
+                    <img src="img/settings.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu" id="machines-menu">
+                    </div>
+                </div>
+
+                <div class="dropright buttongroupmargin">
+                    <img src="img/windowsize.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu" id="windowsize-menu">
+                    </div>
+                </div>
+
+                <img class="emu-center" src="img/fullscreen.png" type="button" onclick="javascript: document.dispatchEvent(new Event('fullscreen'));">
+
+                <div class="emu-menu-middle"></div>
+
+                <div class="emu-cpu-usage" id="emu-cpu-usage"></div>
             </div>
 
-            <div class="emu-cpu-usage" id="emu-cpu-usage"></div>
-        </div>
-        <div class="emu-col emu-middle">
-            <canvas id="emuCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
-        </div>
-        <div class="emu-col emu-right">
-            <div class="emu-led-box emu-led-group-separator">
-                <div class="emu-led" id="emu-led-fdd1"></div>
-                <div class="emu-led-description">FDD1</div>
+
+            <div id="emuCanvasContainer" class="emu-middle">
+                <canvas id="emuCanvas" style="border:1px solid #000000; width:100%; height: 100%;"></canvas>
             </div>
-            <div class="emu-led-box">
-                <div class="emu-led" id="emu-led-fdd2"></div>
-                <div class="emu-led-description">FDD2</div>
+
+
+            <div id="emuRightBar" class="emu-col emu-right">
+                <div class="emu-led-box emu-led-group-separator">
+                    <div class="emu-led" id="emu-led-fdd1"></div>
+                    <div class="emu-led-description">FDD1</div>
+                </div>
+                <div class="emu-led-box">
+                    <div class="emu-led" id="emu-led-fdd2"></div>
+                    <div class="emu-led-description">FDD2</div>
+                </div>
+                <div class="emu-led-box">
+                    <div class="emu-led" id="emu-led-cas"></div>
+                    <div class="emu-led-description">CAS</div>
+                </div>
+                <div class="emu-led-box">
+                    <div class="emu-led" id="emu-led-hdd"></div>
+                    <div class="emu-led-description">HDD</div>
+                </div>
+                <div class="emu-led-box emu-led-group-separator">
+                    <div class="emu-led" id="emu-led-caps"></div>
+                    <div class="emu-led-description">CAPS</div>
+                </div>
+                <div class="emu-led-box">
+                    <div class="emu-led" id="emu-led-kana"></div>
+                    <div class="emu-led-description">KANA</div>
+                </div>
+                <div class="emu-led-box emu-led-group-separator">
+                    <div class="emu-led" id="emu-led-r800"></div>
+                    <div class="emu-led-description">R800</div>
+                </div>
+
+                <div class="emu-menu-middle"></div>
+
+                <div class="emu-logo">
+                    <img src="img/bluemsx.png" width="32" height="32" />
+                </div>
+                <div class="emu-version">v 0.1.0</div>
             </div>
-            <div class="emu-led-box">
-                <div class="emu-led" id="emu-led-cas"></div>
-                <div class="emu-led-description">CAS</div>
-            </div>
-            <div class="emu-led-box">
-                <div class="emu-led" id="emu-led-hdd"></div>
-                <div class="emu-led-description">HDD</div>
-            </div>
-            <div class="emu-led-box emu-led-group-separator">
-                <div class="emu-led" id="emu-led-caps"></div>
-                <div class="emu-led-description">CAPS</div>
-            </div>
-            <div class="emu-led-box">
-                <div class="emu-led" id="emu-led-kana"></div>
-                <div class="emu-led-description">KANA</div>
-            </div>
-            <div class="emu-led-box emu-led-group-separator">
-                <div class="emu-led" id="emu-led-r800"></div>
-                <div class="emu-led-description">R800</div>
-            </div>
-            <div class="emu-logo">
-                <img src="img/bluemsx.png" width="32" height="32" />
-            </div>
-            <div class="emu-version">v 0.1.0</div>
         </div>
     </div>
     <input type="file" id="fileLoader" name="files" title="Load File" style="display: none;" />
