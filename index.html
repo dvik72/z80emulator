@@ -2,7 +2,7 @@
 <head>
     <meta charset="utf-8" />
     <title>blueMSX Live</title>
-    <link rel="stylesheet" href="app.css?201901272233" type="text/css" />
+    <link rel="stylesheet" href="app.css?201901271430" type="text/css" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="css/bootstrap-submenu.css">
 
@@ -75,18 +75,29 @@
                 </div>
 
                 <div class="dropright buttongroupmargin">
-                    <img src="img/settings.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <img src="img/machine.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
                     <div class="dropdown-menu" id="machines-menu">
                     </div>
                 </div>
 
+
                 <div class="dropright buttongroupmargin">
-                    <img src="img/windowsize.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
-                    <div class="dropdown-menu" id="windowsize-menu">
+                    <img src="img/settings.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu">
+                        <div class="dropdown dropright dropdown-submenu">
+                            <button class="dropdown-item dropdown-toggle btn-sm" type="button">Window Size</button>
+                            <div class="dropdown-menu" id="windowsize-menu">
+                            </div>
+                        </div>
+                        <div class="dropdown dropright dropdown-submenu">
+                            <button class="dropdown-item dropdown-toggle btn-sm" type="button">Audio Buffer Size</button>
+                            <div class="dropdown-menu" id="audiobuffersize-menu">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <img class="emu-center" src="img/fullscreen.png" type="button" onclick="javascript: document.dispatchEvent(new Event('fullscreen'));">
+                <img class="emu-center buttongroupmargin" src="img/fullscreen.png" type="button" onclick="javascript: document.dispatchEvent(new Event('fullscreen'));">
 
                 <div class="emu-menu-middle"></div>
 
@@ -134,7 +145,7 @@
                 <div class="emu-logo">
                     <img src="img/bluemsx.png" width="32" height="32" />
                 </div>
-                <div class="emu-version">v 0.1.1</div>
+                <div class="emu-version">v 0.2.0</div>
             </div>
         </div>
     </div>

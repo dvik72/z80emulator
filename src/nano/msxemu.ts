@@ -45,6 +45,17 @@ const WINDOW_SIZES = [
   [2, '2x']
 ]
 
+const AUDIO_BUFFER_SIZES = [
+  [0, 'Auto'],
+  [0.01, '10ms'],
+  [0.02, '20ms'],
+  [0.035, '35ms'],
+  [0.05, '50ms'],
+  [0.075, '75ms'],
+  [0.1, '100ms'],
+  [0.2, '200ms'],
+]
+
 function initSpecialRoms() {
   SPECIAL_ROMS[MediaType.MSXAUDIO] = new SpecialRom(new MediaInfo('Msx Audio', 'Yamaha', 1988, 'JP', MediaType.MSXAUDIO, new Uint8Array(0)));
   SPECIAL_ROMS[MediaType.MOONSOUND] = new SpecialRom(new MediaInfo('MoonSound', 'Yamaha - Sunrise', 1995, 'NL', MediaType.MOONSOUND, new Uint8Array(0)), 'moonsound');
@@ -61,6 +72,7 @@ export class MsxEmu {
   public run(): void {
     document.addEventListener('setmachine', this.changeMachine.bind(this));
     document.addEventListener('setwindowsize', this.setWindowSize.bind(this));
+    document.addEventListener('setaudiobuffersize', this.setAudioBufferSize.bind(this));
     document.addEventListener('reset', this.resetEmulation.bind(this));
     document.addEventListener('file', this.fileEvent.bind(this));
     document.addEventListener('eject', this.ejectEvent.bind(this));
@@ -82,8 +94,10 @@ export class MsxEmu {
     this.createCartSpecialMenu();
     this.createCartTypeMenu();
     this.createWindowSizeMenu();
+    this.createAudioBufferSizeMenu();
 
     this.updateWindowSize(this.userPrefs.get().windowSize);
+    this.updateAudioBufferSize(this.userPrefs.get().audioBufferSize);
 
     this.setMachine(this.userPrefs.get().machineName);
 
@@ -124,8 +138,17 @@ export class MsxEmu {
     const windowSizeDiv = document.getElementById('windowsize-menu');
 
     for (let i in WINDOW_SIZES) {
-      const machineItem = '<button class="dropdown-item btn-sm" type="button" id="windowsize-' + i + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setwindowsize\', {detail: \'' + i + '\'}));">' + WINDOW_SIZES[i][1] + '</button>';
-      windowSizeDiv!.innerHTML += machineItem;
+      const menuItem = '<button class="dropdown-item btn-sm" type="button" id="windowsize-' + i + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setwindowsize\', {detail: \'' + i + '\'}));">' + WINDOW_SIZES[i][1] + '</button>';
+      windowSizeDiv!.innerHTML += menuItem;
+    }
+  }
+
+  private createAudioBufferSizeMenu(): void {
+    const audioBufferSizeDiv = document.getElementById('audiobuffersize-menu');
+
+    for (let i in AUDIO_BUFFER_SIZES) {
+      const menuItem = '<button class="dropdown-item btn-sm" type="button" id="audiobuffersize-' + i + '" onclick="javascript: document.dispatchEvent(new CustomEvent(\'setaudiobuffersize\', {detail: \'' + i + '\'}));">' + AUDIO_BUFFER_SIZES[i][1] + '</button>';
+      audioBufferSizeDiv!.innerHTML += menuItem;
     }
   }
 
@@ -186,6 +209,27 @@ export class MsxEmu {
     }
     else {
       document.exitFullscreen();
+    }
+  }
+
+  private setAudioBufferSize(event: CustomEvent): void {
+    this.updateAudioBufferSize(event.detail);
+    this.userPrefs.save();
+  }
+
+  private updateAudioBufferSize(audioBufferSize: number): void {
+    this.webAudio.setBufferSize(+AUDIO_BUFFER_SIZES[audioBufferSize][0]);
+    if (audioBufferSize != this.audioBufferSize) {
+      let sizeMenuId = 'audiobuffersize-' + this.audioBufferSize;
+      let sizeItemDiv = document.getElementById(sizeMenuId);
+      sizeItemDiv && (<HTMLButtonElement>sizeItemDiv!).classList.remove('active');
+
+      this.audioBufferSize = audioBufferSize;
+      this.userPrefs.get().audioBufferSize = audioBufferSize;
+
+      sizeMenuId = 'audiobuffersize-' + this.audioBufferSize;
+      sizeItemDiv = document.getElementById(sizeMenuId);
+      sizeItemDiv && (<HTMLButtonElement>sizeItemDiv!).classList.add('active');
     }
   }
   
@@ -611,4 +655,5 @@ export class MsxEmu {
   private userPrefs = new UserPrefs();
 
   private windowSize = -1;
+  private audioBufferSize = -1;
 }

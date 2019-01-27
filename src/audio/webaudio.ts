@@ -16,6 +16,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+
+const AUTO_COUNT_DECREASE_STEP = 10;
+const AUTO_COUNT_MIN_SIZE = 120;
+const AUTO_INITIAL_FRAME_LENGTH_MS = 35;
+
+
+
 export class WebAudio {
   private ctx: AudioContext;
   private gainNode: GainNode;
@@ -25,7 +32,9 @@ export class WebAudio {
   private bufferSize = 6;
  
   private sampleRate: number;
-  private fragmentSize: number;
+  private fragmentSize = 0;
+  private autoAdjust = false;
+  private autoCount = 0;
   private index = 0;
 
   private audioDataLeft: Float32Array;
@@ -34,13 +43,21 @@ export class WebAudio {
   constructor() {
     this.ctx = new AudioContext();
     this.sampleRate = this.ctx.sampleRate;
-    this.fragmentSize = this.sampleRate / 100 | 0;
+    this.setBufferSize(0);
 
     this.gainNode = this.ctx.createGain();
     this.gainNode.connect(this.ctx.destination);
 
     this.audioDataLeft = new Float32Array(this.fragmentSize);
     this.audioDataRight = new Float32Array(this.fragmentSize);
+  }
+
+  public setBufferSize(lengthMs: number) {
+    this.autoAdjust = lengthMs == 0;
+    this.autoCount = 0;
+    lengthMs = lengthMs || AUTO_INITIAL_FRAME_LENGTH_MS / 1000;
+    this.fragmentSize = this.sampleRate * lengthMs / (this.bufferSize * 2 / 3) | 0;
+    console.log('WEBAUDIO set fragment size to ' + this.fragmentSize);
   }
 
   public resume(): void {
@@ -59,7 +76,7 @@ export class WebAudio {
     this.audioDataLeft[this.index] = left;
     this.audioDataRight[this.index++] = right;
 
-    if (this.index == this.fragmentSize) {
+    if (this.index >= this.audioDataLeft.length) {
       this.index = 0;
 
       this.addChunk(this.audioDataLeft, this.audioDataRight);
@@ -77,7 +94,18 @@ export class WebAudio {
     source.connect(this.ctx.destination);
     source.onended = (e: Event) => {
       this.chunks.splice(this.chunks.indexOf(source), 1);
+      this.autoCount += this.autoAdjust ? this.fragmentSize / this.sampleRate : 0;
+      if (this.autoCount > AUTO_COUNT_DECREASE_STEP) {
+        this.fragmentSize = Math.max(AUTO_COUNT_MIN_SIZE, this.fragmentSize * 0.99 | 0);
+        this.autoCount = 0;
+      }
       if (this.chunks.length == 0) {
+        if (this.autoAdjust) {
+          this.fragmentSize = this.fragmentSize * 1.05 | 0;
+          console.log('WEBAUDIO increasing fragment size to ' + this.fragmentSize);
+        }
+        this.autoCount = 0;
+//        console.log('WEBAUDIO buffer underrun');
         this.isPlaying = false;
       }
     };
@@ -91,12 +119,12 @@ export class WebAudio {
 
   private addChunk(dataLeft: Float32Array, dataRight: Float32Array) {
     if (this.isPlaying && this.draining) {
-      this.draining = this.chunks.length > this.bufferSize / 4;
+      this.draining = this.chunks.length > this.bufferSize / 2;
       return;
     }
 
     if (this.isPlaying && (this.chunks.length > this.bufferSize)) {
-      console.log('WEBAUDIO: Buffer full (' + ++this.fullCount + ')');
+//      console.log('WEBAUDIO: Buffer full (' + ++this.fullCount + ')');
       this.draining = true;
       return;
     }

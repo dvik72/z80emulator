@@ -64,6 +64,7 @@
     <Content Include="img\diska.png" />
     <Content Include="img\diskb.png" />
     <Content Include="img\fullscreen.png" />
+    <Content Include="img\machine.png" />
     <Content Include="img\power.png" />
     <Content Include="img\settings.png" />
     <Content Include="img\windowsize.png" />
