@@ -29,6 +29,5 @@ export class Mapper {
     return {};
   }
 
-  public setState(state: any): void {
-  }
+  public setState(state: any): void {}
 }

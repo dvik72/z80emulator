@@ -230,6 +230,18 @@ export class TimeoutManager {
     this.z80.setTimeoutAt(this.timerHead.next.timeout);
   }
 
+  public getState(): any {
+    let state: any = {}
+
+    state.timeAnchor = this.timeAnchor;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timeAnchor = state.timeAnchor;
+  }
+
   private z80?: Z80;
   private timerHead: Timer;
   private timeAnchor = 0;

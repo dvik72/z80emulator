@@ -114,6 +114,46 @@ export abstract class MsxBase extends Machine {
     this.cartrdigeSlots.push([slot, subslot]);
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.board = this.board.getState();
+    state.vdp = this.vdp!.getState();
+    state.msxpsg = this.msxpsg!.getState();
+    state.msxPpi = this.msxPpi!.getState();
+
+    state.subState = this.getSubState();
+    
+    state.cart = []
+    for (let i = 0; i < this.cartridgeRoms.length; i++) {
+      const cartridgeRom = this.cartridgeRoms[i];
+      state.cart[i] = cartridgeRom ? cartridgeRom.getState() : undefined;
+    }
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.board.setState(state.board);
+    this.vdp!.setState(state.vdp);
+    this.msxpsg!.setState(state.msxpsg);
+    this.msxPpi!.setState(state.msxPpi);
+
+    this.setSubState(state.subState);
+
+    for (let i = 0; i < this.cartridgeRoms.length; i++) {
+      const cartridgeRom = this.cartridgeRoms[i];
+      cartridgeRom && state.cart[i] && cartridgeRom.setState(state.cart[i]);
+    }
+  }
+
+  protected getSubState(): any {
+    let state: any = {};
+    return state;
+  }
+
+  public setSubState(state: any): void { }
+
   // Board components
   private board: Board;
   private vdp?: Vdp;

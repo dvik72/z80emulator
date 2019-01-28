@@ -237,7 +237,6 @@ export class Ay8910 extends AudioDevice {
 
   public getState(): any {
     const state: any = {};
-
     state.regs = SaveState.getArrayState(this.regs);
     state.address = this.address;
     state.tonePhase = SaveState.getArrayState(this.tonePhase);
@@ -259,7 +258,7 @@ export class Ay8910 extends AudioDevice {
   public setState(state: any): void {
     SaveState.setArrayState(this.regs, state.regs);
     this.address = state.address;
-    SaveState.setArrayState(this.tonePhase, state.tonehase);
+    SaveState.setArrayState(this.tonePhase, state.tonePhase);
     SaveState.setArrayState(this.toneStep, state.toneStep);
     this.noisePhase = state.noisePhase;
     this.noiseStep = state.noiseStep;

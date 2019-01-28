@@ -178,6 +178,23 @@ export class Board {
     this.z80.dumpAsm();
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.interruptMask = this.interruptMask;
+
+    state.z80 = this.z80.getState();
+    state.timeoutManager = this.timeoutManager.getState();
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.interruptMask = state.interruptMask;
+
+    this.z80.setState(state.z80);
+    this.timeoutManager.setState(state.timeoutManager);
+  }
+  
   private ioManager: IoManager;
   private slotManager: SlotManager;
   private timeoutManager: TimeoutManager;

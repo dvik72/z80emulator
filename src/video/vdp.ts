@@ -2195,13 +2195,13 @@ export class Vdp {
     state.vram = SaveState.getArrayState(this.vram);
 
     // Timers
-    state.frameTimer = state.frameTimer.getState();
-    state.vIntTimer = state.vIntTimer.getState();
-    state.hIntTimer = state.hIntTimer.getState();
-    state.vStartTimer = state.vStartTimer.getState();
-    state.screenModeChangeTimer = state.screenModeChangeTimer.getState();
-    state.drawAreaStartTimer = state.drawAreaStartTimer.getState();
-    state.drawAreaEndTimer = state.drawAreaEndTimer.getState();
+    state.frameTimer = this.frameTimer.getState();
+    state.vIntTimer = this.vIntTimer.getState();
+    state.hIntTimer = this.hIntTimer.getState();
+    state.vStartTimer = this.vStartTimer.getState();
+    state.screenModeChangeTimer = this.screenModeChangeTimer.getState();
+    state.drawAreaStartTimer = this.drawAreaStartTimer.getState();
+    state.drawAreaEndTimer = this.drawAreaEndTimer.getState();
 
     state.v9938Cmd = this.v9938Cmd.getState();
 
@@ -2264,13 +2264,13 @@ export class Vdp {
     SaveState.setArrayState(this.vram, state.vram);
 
     // Timers
-    state.frameTimer.setState(state.frameTimer);
-    state.vIntTimer.setState(state.vIntTimer);
-    state.hIntTimer.setState(state.hIntTimer);
-    state.vStartTimer.setState(state.vStartTimer);
-    state.screenModeChangeTimer.setState(state.screenModeChangeTimer);
-    state.drawAreaStartTimer.setState(state.drawAreaStartTimer);
-    state.drawAreaEndTimer.setState(state.drawAreaEndTimer);
+    this.frameTimer.setState(state.frameTimer);
+    this.vIntTimer.setState(state.vIntTimer);
+    this.hIntTimer.setState(state.hIntTimer);
+    this.vStartTimer.setState(state.vStartTimer);
+    this.screenModeChangeTimer.setState(state.screenModeChangeTimer);
+    this.drawAreaStartTimer.setState(state.drawAreaStartTimer);
+    this.drawAreaEndTimer.setState(state.drawAreaEndTimer);
 
     this.v9938Cmd.setState(state.v9938Cmd);
 

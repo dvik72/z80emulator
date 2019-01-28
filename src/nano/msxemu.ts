@@ -629,6 +629,17 @@ export class MsxEmu {
     //  console.log('Trigger ASM dump');
     //  this.machine!.dumpAsm();
     //}
+
+    if (event.code == 'KeyQ') {
+      this.saveState = this.machine!.getState();
+      console.log("Saved State!");
+    }
+    if (event.code == 'KeyW') {
+      if (this.saveState) {
+        console.log("Loading State!");
+        this.machine!.setState(this.saveState);
+      }
+    }
   }
 
   private keyUp(event: KeyboardEvent): void {
@@ -656,4 +667,6 @@ export class MsxEmu {
 
   private windowSize = -1;
   private audioBufferSize = -1;
+
+  private saveState: any;
 }

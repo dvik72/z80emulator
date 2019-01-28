@@ -445,9 +445,9 @@ export class Z80 {
     this.terminateFlag = state.terminateFlag;
     this.timeout = state.timeout;
 
-    state.regBankZ80.setState(this.regBankZ80);
-    state.regBankR800.setState(this.regBankR800);
-    state.delay.setState(this.delay);
+    this.regBankZ80.setState(state.regBankZ80);
+    this.regBankR800.setState(state.regBankR800);
+    this.delay.setState(state.delay);
 
     switch (this.cpuMode) {
       case Z80Mode.Z80:
