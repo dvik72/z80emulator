@@ -64,6 +64,25 @@ export class Timer {
     this.prev = this;
   }
   
+  public getState(): any {
+    const state: any = {};
+
+    state.timeout = this.timeout;
+    state.running = this.isRunning();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timeout = state.timeout;
+    if (state.running) {
+      this.setTimeoutCb(this);
+
+    } else {
+      this.unlink();
+    }
+  }
+
   timeout = 0;
   next: Timer;
   prev: Timer;
@@ -110,6 +129,28 @@ export class Counter {
     return elapsed;
   }
 
+  public getState(): any {
+    const state: any = {};
+
+    state.refTime = this.refTime;
+    state.refFrag = this.refFrag;
+    state.time = this.time;
+    state.oldTime = this.oldTime;
+
+    state.timer = this.timer.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.refTime = state.refTime;
+    this.refFrag = state.refFrag;
+    this.time = state.time;
+    this.oldTime = state.oldTime;
+
+    this.timer.setState(state.timer);
+  }
+  
   private refTime = 0;
   private refFrag = 0;
   private time = 0;

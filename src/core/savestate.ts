@@ -16,12 +16,29 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-export class Mapper {
-  public constructor(
-    private name: string) {
+export class SaveState {
+  public constructor() { }
+
+  public getState(): any {
+    return '';
   }
 
-  public getName(): string {
-    return this.name;
+  public setState(state: any): void {
+  }
+
+  protected getArrayState(array: Uint8Array | Uint16Array): any {
+    let state = [];
+
+    for (let i = 0; i < array.length; i++) {
+      state[i] = array[i];
+    }
+
+    return state;
+  }
+
+  protected setArrayState(array: Uint8Array | Uint16Array, state: any): void {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = state[i];
+    }
   }
 }

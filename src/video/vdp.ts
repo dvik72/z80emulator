@@ -20,6 +20,7 @@ import { Board, InterruptVector } from '../core/board';
 import { Timer } from '../core/timeoutmanager';
 import { Port } from '../core/iomanager';
 import { V9938Cmd } from './v9938cmd';
+import { SaveState } from '../core/savestate';
 
 
 export enum VdpVersion { V9938, V9958, TMS9929A, TMS99x8A };
@@ -111,7 +112,7 @@ class SpriteAttribute {
 };
 
 
-export class Vdp {
+export class Vdp extends SaveState {
   constructor(
     private board: Board,
     private version: VdpVersion,
@@ -119,6 +120,8 @@ export class Vdp {
     private connectorType: VdpConnectorType,
     private vramPages: number
   ) {
+    super();
+
     this.frameBuffer = this.frameBuffers[this.frameBufferWriteIndex ^= 1];
 
     this.refreshLineCb = this.refreshLineBlank.bind(this);
@@ -796,41 +799,36 @@ export class Vdp {
   private vScroll(): number {
     return this.regs[23];
   }
-
-  private onScreenModeChange(): void {
-    const time = this.screenModeChangeTimer.getTimeout();
-    const scanLine = this.board.getTimeDelta(this.frameStartTime, time) / HPERIOD | 0;
-
-    this.sync(time);
-
-    const oldScreenMode = this.screenMode;
+  
+  private updateScreenMode(): number {
+    let screenMode = 0;
 
     switch (((this.regs[0] & 0x0e) >> 1) | (this.regs[1] & 0x18)) {
-      case 0x10: this.screenMode = 0; break;
-      case 0x00: this.screenMode = 1; break;
-      case 0x01: this.screenMode = 2; break;
-      case 0x08: this.screenMode = 3; break;
-      case 0x02: this.screenMode = 4; break;
-      case 0x03: this.screenMode = 5; break;
-      case 0x04: this.screenMode = 6; break;
-      case 0x05: this.screenMode = 7; break;
-      case 0x07: this.screenMode = 8; break;
-      case 0x12: this.screenMode = 13; break;
+      case 0x10: screenMode = 0; break;
+      case 0x00: screenMode = 1; break;
+      case 0x01: screenMode = 2; break;
+      case 0x08: screenMode = 3; break;
+      case 0x02: screenMode = 4; break;
+      case 0x03: screenMode = 5; break;
+      case 0x04: screenMode = 6; break;
+      case 0x05: screenMode = 7; break;
+      case 0x07: screenMode = 8; break;
+      case 0x12: screenMode = 13; break;
       case 0x11:  // Screen 0 + 2
-        this.screenMode = 16;
+        screenMode = 16;
         break;
       case 0x18: // Screen 0 + 3
       case 0x19: // Screen 0 + 2 + 3
-        this.screenMode = 32;
+        screenMode = 32;
         break;
       default: // Unknown screen mode
-        this.screenMode = 64;
+        screenMode = 64;
         break;
     }
 
-    //console.log("Screen Mode: " + this.screenMode);
+    //console.log("Screen Mode: " + screenMode);
 
-    switch (this.screenMode) {
+    switch (screenMode) {
       case 0: this.refreshLineCb = this.refreshLine0.bind(this); break;
       case 1: this.refreshLineCb = this.refreshLine1.bind(this); break;
       case 2: this.refreshLineCb = this.refreshLine2.bind(this); break;
@@ -846,11 +844,11 @@ export class Vdp {
       case 8:
         this.refreshLineCb = this.refreshLine8.bind(this);
         if (this.isModeYjk()) {
-          this.screenMode = this.isModeYae() ? 10 : 12;
+          screenMode = this.isModeYae() ? 10 : 12;
         }
         break;
       case 16:
-        this.screenMode = 0;
+        screenMode = 0;
         if (this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A) {
           this.refreshLineCb = this.refreshLine0plus.bind(this);
         }
@@ -859,7 +857,7 @@ export class Vdp {
         }
         break;
       case 32:
-        this.screenMode = 0;
+        screenMode = 0;
         if (this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A) {
           this.refreshLineCb = this.refreshLine0mix.bind(this);
         }
@@ -869,13 +867,26 @@ export class Vdp {
         break;
       case 13:
         this.refreshLineCb = this.refreshLineTx80.bind(this);
-        this.screenMode = 13;
+        screenMode = 13;
         break;
       default:
-        this.screenMode = 1;
+        screenMode = 1;
         this.refreshLineCb = this.refreshLineBlank.bind(this);
         break;
     }
+
+    return screenMode;
+  }
+
+  private onScreenModeChange(): void {
+    const time = this.screenModeChangeTimer.getTimeout();
+    const scanLine = this.board.getTimeDelta(this.frameStartTime, time) / HPERIOD | 0;
+
+    this.sync(time);
+
+    const oldScreenMode = this.screenMode;
+
+    this.screenMode = this.updateScreenMode();
 
     this.screenOn = (this.regs[1] & 0x40) != 0;
 
@@ -884,7 +895,6 @@ export class Vdp {
     if (oldScreenMode != this.screenMode) {
       this.scr0splitLine = (scanLine - this.firstLine) & ~7;
     }
-
 
     if (this.screenMode == 0 || this.screenMode == 13) {
       this.displayArea = 960;
@@ -2129,24 +2139,172 @@ export class Vdp {
     return SCREEN_HEIGHT;
   }
 
-  private refreshLineCb: (y: number, x: number, x2: number) => void;
+  public getState(): any {
+    const state: any = {};
+
+    state.vramOffset = this.vramOffset;
+    state.vramMask = this.vramMask;
+    state.palMask = this.palMask;
+    state.palValue = this.palValue;
+
+    state.vdpKey = this.vdpKey;
+    state.vdpData = this.vdpData
+    state.vdpDataLatch = this.vdpDataLatch;
+    state.vramAddress = this.vramAddress;
+    state.screenMode = this.screenMode;
+    state.regs = this.getArrayState(this.regs);
+    state.status = this.getArrayState(this.status);
+    state.paletteReg = this.getArrayState(this.paletteReg);
+
+    state.scanLineCount = this.scanLineCount;
+    state.frameStartTime = this.frameStartTime;
+    state.hIntTime = this.hIntTime;
+    state.isDrawArea = this.isDrawArea;
+    state.firstLine = this.firstLine;
+    state.curLine = this.curLine;
+    state.scr0splitLine = this.scr0splitLine;
+    state.lineOffset = this.lineOffset;
+    state.displayOffest = this.displayOffest;
+    state.vAdjust = this.vAdjust;
+    state.hAdjust = this.hAdjust;
+    state.leftBorder = this.leftBorder;
+    state.displayArea = this.displayArea;
+    state.screenOn = this.screenOn;
+
+    state.fgColor = this.fgColor;
+    state.bgColor = this.bgColor;
+    state.xfgColor = this.xfgColor;
+    state.xbgColor = this.xbgColor;
+    state.blinkFlag = this.blinkFlag;
+    state.blinkCnt = this.blinkCnt;
+    state.vramEnable = this.vramEnable;
+    state.palKey = this.palKey;
+    state.vramPage = this.vramPage;
+    state.vramAccMask = this.vramAccMask;
+
+    // Vram table offsets
+    state.chrTabBase = this.chrTabBase;
+    state.chrGenBase = this.chrGenBase;
+    state.colTabBase = this.colTabBase;
+    state.sprTabBase = this.sprTabBase;
+    state.sprGenBase = this.sprGenBase;
+
+    // Palettes
+    state.palette0 = this.palette0;
+    state.palette = this.getArrayState(this.palette);
+
+    // Video RAM
+    state.vram = this.getArrayState(this.vram);
+
+    // Timers
+    state.frameTimer = state.frameTimer.getState();
+    state.vIntTimer = state.vIntTimer.getState();
+    state.hIntTimer = state.hIntTimer.getState();
+    state.vStartTimer = state.vStartTimer.getState();
+    state.screenModeChangeTimer = state.screenModeChangeTimer.getState();
+    state.drawAreaStartTimer = state.drawAreaStartTimer.getState();
+    state.drawAreaEndTimer = state.drawAreaEndTimer.getState();
+
+    state.v9938Cmd = this.v9938Cmd.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.vramOffset = state.vramOffset;
+    this.vramMask = state.vramMask;
+    this.palMask = state.palMask;
+    this.palValue = state.palValue;
+
+    this.vdpKey = state.vdpKey;
+    this.vdpData = state.vdpData
+    this.vdpDataLatch = state.vdpDataLatch;
+    this.vramAddress = state.vramAddress;
+    this.screenMode = state.screenMode;
+    this.setArrayState(this.regs, state.regs);
+    this.setArrayState(this.status, state.status);
+    this.setArrayState(this.paletteReg, state.paletteReg);
+
+    this.scanLineCount = state.scanLineCount;
+    this.frameStartTime = state.frameStartTime;
+    this.hIntTime = state.hIntTime;
+    this.isDrawArea = state.isDrawArea;
+    this.firstLine = state.firstLine;
+    this.curLine = state.curLine;
+    this.scr0splitLine = state.scr0splitLine;
+    this.lineOffset = state.lineOffset;
+    this.displayOffest = state.displayOffest;
+    this.vAdjust = state.vAdjust;
+    this.hAdjust = state.hAdjust;
+    this.leftBorder = state.leftBorder;
+    this.displayArea = state.displayArea;
+    this.screenOn = state.screenOn;
+
+    this.fgColor = state.fgColor;
+    this.bgColor = state.bgColor;
+    this.xfgColor = state.xfgColor;
+    this.xbgColor = state.xbgColor;
+    this.blinkFlag = state.blinkFlag;
+    this.blinkCnt = state.blinkCnt;
+    this.vramEnable = state.vramEnable;
+    this.palKey = state.palKey;
+    this.vramPage = state.vramPage;
+    this.vramAccMask = state.vramAccMask;
+
+    // Vram table offsets
+    this.chrTabBase = state.chrTabBase;
+    this.chrGenBase = state.chrGenBase;
+    this.colTabBase = state.colTabBase;
+    this.sprTabBase = state.sprTabBase;
+    this.sprGenBase = state.sprGenBase;
+
+    // Palettes
+    state.palette0 = state.palette0;
+    this.setArrayState(this.palette, state.palette);
+
+    // Video RAM
+    this.setArrayState(this.vram, state.vram);
+
+    // Timers
+    state.frameTimer.setState(state.frameTimer);
+    state.vIntTimer.setState(state.vIntTimer);
+    state.hIntTimer.setState(state.hIntTimer);
+    state.vStartTimer.setState(state.vStartTimer);
+    state.screenModeChangeTimer.setState(state.screenModeChangeTimer);
+    state.drawAreaStartTimer.setState(state.drawAreaStartTimer);
+    state.drawAreaEndTimer.setState(state.drawAreaEndTimer);
+
+    this.v9938Cmd.setState(state.v9938Cmd);
+
+    this.updateScreenMode();
+  }
+
 
   private v9938Cmd: V9938Cmd;
 
+  // Configuration
+  private enable = true;
+  private offsets = new Array<number>(2);
+  private vramMasks = new Array<number>(4);
+  private registerValueMask = [0];
+  private registerMask = 0;
+  private hAdjustSc0 = 0;
   private vramSize = 0;
   private vram192 = false;
   private vram16 = false;
   private vram128 = 0;
-  private enable = true;
+
+  // Static tables
+  private paletteFixed = new Uint16Array(256);
+  private paletteSprite8 = new Uint16Array(16);
+  private yjkColor = new Array<Array<Uint16Array>>(32);
+
+  // State variables
   private vramOffset = 0;
-  private offsets = new Array<number>(2);
-  private vramMasks = new Array<number>(4);
   private vramMask = 0;
   private palMask = 0;
   private palValue = 0;
-  private registerValueMask = [0];
-  private registerMask = 0;
-  private hAdjustSc0 = 0;
+
   private vdpKey = 0;
   private vdpData = 0
   private vdpDataLatch = 0;
@@ -2189,6 +2347,13 @@ export class Vdp {
   private sprTabBase = 0;
   private sprGenBase = 0;
 
+  // Palettes
+  private palette0 = 0;
+  private palette = new Uint16Array(16);
+
+  // Video RAM
+  private vram: Uint8Array;
+
   // Timers
   private frameTimer: Timer;
   private vIntTimer: Timer;
@@ -2198,14 +2363,7 @@ export class Vdp {
   private drawAreaStartTimer: Timer;
   private drawAreaEndTimer: Timer;
 
-  // Palettes
-  private paletteFixed = new Uint16Array(256);
-  private paletteSprite8 = new Uint16Array(16);
-  private palette0 = 0;
-  private palette = new Uint16Array(16);
-  private yjkColor = new Array<Array<Uint16Array>>(32);
-
-  // Sprites
+  // Sprites temp variables (probably should be saved in save state)
   private spriteLineIndex = 0;
   private spriteLines = [new Uint8Array(384), new Uint8Array(384)];
   private spriteLine = this.spriteLines[0];
@@ -2215,7 +2373,7 @@ export class Vdp {
   private spriteAttributes = new Array<SpriteAttribute>(33);
   private spriteLineOffset = 0;
 
-  // Rendering state variables
+  // Rendering temp variables
   private renderShift = 0;
   private renderPattern = 0;
   private renderCharOffset = 0;
@@ -2224,8 +2382,7 @@ export class Vdp {
   private lineVScroll = 0;
   private scrollIndex = 0;
 
-  // Video RAM
-  private vram: Uint8Array;
+  private refreshLineCb: (y: number, x: number, x2: number) => void;
 
   // Frame buffers
   private frameOffset = 0;

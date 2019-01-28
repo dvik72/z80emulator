@@ -44,6 +44,7 @@
 
 
 import { Z80Dasm } from "./z80dasm";
+import { SaveState } from '../core/savestate';
 
 // CPU modes
 export enum Z80Mode { UNKNOWN, Z80, R800 }
@@ -74,6 +75,17 @@ const S_FLAG = 0x80;
 export const MASTER_FREQUENCY = 21477270;
 
 class Register {
+  public getState(): any {
+    const state: any = {};
+
+    state.v = this.v;
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.v = state.v;
+  }
+
   get(): number { return this.v; }
   set(v: number): void { this.v = v & 0xff; }
   inc(): number { ++this.v; return this.v &= 0xff; }
@@ -85,6 +97,20 @@ class Register {
 }
 
 class RegisterPair {
+  public getState(): any {
+    const state: any = {};
+
+    state.regH = this.regH.getState();
+    state.regL = this.regL.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.regH.setState(state.regH);
+    this.regL.setState(state.regL);
+  }
+
   get(): number { return this.regH.get() << 8 | this.regL.get(); }
   set(v: number): void { this.regH.set(v >> 8); this.regL.set(v); }
   setLH(l: number, h: number): void { this.regL.set(l); this.regH.set(h); }
@@ -104,6 +130,48 @@ class RegisterPair {
 class RegisterBank {
   constructor() {
     this.reset();
+  }
+
+  public getState(): any {
+    const state: any = {};
+
+    state.af = this.af.getState();
+    state.bc = this.bc.getState();
+    state.de = this.de.getState();
+    state.hl = this.hl.getState();
+    state.ix = this.ix.getState();
+    state.iy = this.iy.getState();
+    state.af1 = this.af1.getState();
+    state.bc1 = this.bc1.getState();
+    state.de1 = this.de1.getState();
+    state.hl1 = this.hl1.getState();
+    state.sh = this.sh.getState();
+    state.sp = this.sp.getState();
+    state.pc = this.pc.getState();
+    state.i = this.i.getState();
+    state.r = this.r.getState();
+    state.r2 = this.r2.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.af.setState(state.af);
+    this.bc.setState(state.bc);
+    this.de.setState(state.de);
+    this.hl.setState(state.hl);
+    this.ix.setState(state.ix);
+    this.iy.setState(state.iy);
+    this.af1.setState(state.af1);
+    this.bc1.setState(state.bc1);
+    this.de1.setState(state.de1);
+    this.hl1.setState(state.hl1);
+    this.sh.setState(state.sh);
+    this.sp.setState(state.sp);
+    this.pc.setState(state.pc);
+    this.i.setState(state.i);
+    this.r.setState(state.r);
+    this.r2.setState(state.r2);
   }
 
   reset(): void {
@@ -201,7 +269,34 @@ class Z80Delay {
   LDSPHL: number = 0;
   BITIX: number = 0;
 
+  
+  private cpuMode = Z80Mode.Z80;
+  private cpuFrequency = 0;
+  private cpuFlags = 0;
+
+  public getState(): any {
+    const state: any = {};
+
+    state.cpuMode = this.cpuMode;
+    state.cpuFrequency = this.cpuFrequency;
+    state.cpuFlags = this.cpuFlags;
+
+    return state;
+  }
+  
+  public setState(state: any): void {
+    this.cpuMode = state.cpuMode;
+    this.cpuFrequency = state.cpuFrequency;
+    this.cpuFlags = state.cpuFlags;
+
+    this.reset(this.cpuMode, this.cpuFrequency, this.cpuFlags);
+  }
+  
   reset(cpuMode: Z80Mode, cpuFrequency: number, cpuFlags: number): void {
+    this.cpuMode = cpuMode;
+    this.cpuFrequency = cpuFrequency;
+    this.cpuFlags = cpuFlags;
+
     switch (cpuMode) {
       case Z80Mode.Z80:
       default: {
@@ -282,7 +377,7 @@ class Z80Delay {
   }
 }
 
-export class Z80 {
+export class Z80 extends SaveState {
   public constructor(
     cpuFlags: number,
     readMemCb: (a: number) => number,
@@ -291,6 +386,8 @@ export class Z80 {
     writeIoCb: (a: number, v: number) => void,
     timeoutCb: () => void
   ) {
+    super();
+
     this.cpuFlags = cpuFlags;
 
     this.readMemCb = readMemCb;
@@ -301,6 +398,67 @@ export class Z80 {
 
     this.initTables();
     this.reset();
+  }
+
+  public getState(): any {
+    const state: any = {};
+
+    state.cpuFlags = this.cpuFlags;
+    
+    state.systemTime = this.systemTime;
+    state.lastRefreshTime = this.lastRefreshTime;
+    state.lastVdpAccessTime = this.lastVdpAccessTime;
+    state.cachePage = this.cachePage;
+    state.dataBus = this.dataBus;
+    state.defaultDataBus = this.defaultDataBus;
+    state.cpuFlags = this.cpuFlags;
+    state.intState = this.intState;
+    state.nmiState = this.nmiState;
+    state.nmiEdge = this.nmiEdge;
+    state.interruptsEnabled = this.interruptsEnabled;
+    state.frequencyZ80 = this.frequencyZ80;
+    state.cpuMode = this.cpuMode;
+    state.oldCpuMode = this.oldCpuMode;
+    state.terminateFlag = this.terminateFlag;
+    state.timeout = this.timeout;
+
+    state.regBankZ80 = this.regBankZ80.getState();
+    state.regBankR800 = this.regBankR800.getState();
+    state.delay = this.delay.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.systemTime = state.systemTime;
+    this.lastRefreshTime = state.lastRefreshTime;
+    this.lastVdpAccessTime = state.lastVdpAccessTime;
+    this.cachePage = state.cachePage;
+    this.dataBus = state.dataBus;
+    this.defaultDataBus = state.defaultDataBus;
+    this.cpuFlags = state.cpuFlags;
+    this.intState = state.intState;
+    this.nmiState = state.nmiState;
+    this.nmiEdge = state.nmiEdge;
+    this.interruptsEnabled = state.interruptsEnabled;
+    this.frequencyZ80 = state.frequencyZ80;
+    this.cpuMode = state.cpuMode;
+    this.oldCpuMode = state.oldCpuMode;
+    this.terminateFlag = state.terminateFlag;
+    this.timeout = state.timeout;
+
+    state.regBankZ80.setState(this.regBankZ80);
+    state.regBankR800.setState(this.regBankR800);
+    state.delay.setState(this.delay);
+
+    switch (this.cpuMode) {
+      case Z80Mode.Z80:
+        this.regs = this.regBankZ80;
+        break;
+      case Z80Mode.R800:
+        this.regs = this.regBankR800;
+        break;
+    }
   }
 
   // Returns the current system time.
@@ -524,9 +682,9 @@ export class Z80 {
     this.terminateFlag = true;
   }
 
-  private regs = new RegisterBank();
   private regBankZ80 = new RegisterBank();
   private regBankR800 = new RegisterBank();
+  private regs = this.regBankZ80;
   private systemTime = 0;
   private lastRefreshTime = 0;
   private lastVdpAccessTime = 0;

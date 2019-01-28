@@ -869,6 +869,56 @@ export class V9938Cmd {
       }
     }
   }
+
+  public getState(): any {
+    const state: any = {};
+
+    state.SX = this.SX;
+    state.SY = this.SY;
+    state.DX = this.DX;
+    state.DY = this.DY;
+    state.NX = this.NX;
+    state.NY = this.NY;
+    state.ASX = this.ASX;
+    state.ADX = this.ADX;
+    state.ANX = this.ANX;
+    state.ARG = this.ARG;
+    state.CL = this.CL;
+    state.LO = this.LO;
+    state.CM = this.CM;
+    state.status = this.status;
+    state.borderX = this.borderX;
+    state.opsCount = this.opsCount;
+    state.systemTime = this.systemTime;
+    state.timingMode = this.timingMode;
+    state.screenMode = this.screenMode;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.SX = state.SX;
+    this.SY = state.SY;
+    this.DX = state.DX;
+    this.DY = state.DY;
+    this.NX = state.NX;
+    this.NY = state.NY;
+    this.ASX = state.ASX;
+    this.ADX = state.ADX;
+    this.ANX = state.ANX;
+    this.ARG = state.ARG;
+    this.CL = state.CL;
+    this.LO = state.LO;
+    this.CM = state.CM;
+    this.status = state.status;
+    this.borderX = state.borderX;
+    this.opsCount = state.opsCount;
+    this.systemTime = state.systemTime;
+    this.timingMode = state.timingMode;
+    this.screenMode = state.screenMode;
+
+    this.graphicMode = this.graphicModes[this.screenMode];
+  }
   
   private SX = 0;
   private SY = 0;
