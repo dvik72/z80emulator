@@ -20,13 +20,15 @@ export class SaveState {
   public constructor() { }
 
   public getState(): any {
-    return '';
+    let state: any = {};
+
+    return state;
   }
 
   public setState(state: any): void {
   }
-
-  protected getArrayState(array: Uint8Array | Uint16Array): any {
+  
+  public static getArrayState(array: Uint8Array | Uint16Array | Array<number>): any {
     let state = [];
 
     for (let i = 0; i < array.length; i++) {
@@ -36,9 +38,25 @@ export class SaveState {
     return state;
   }
 
-  protected setArrayState(array: Uint8Array | Uint16Array, state: any): void {
+  public static setArrayState(array: Uint8Array | Uint16Array | Array<number>, state: any): void {
     for (let i = 0; i < array.length; i++) {
       array[i] = state[i];
+    }
+  }
+
+  public static getArrayOfArrayState(array: Array<Uint8Array | Uint16Array | Array<number>>): any {
+    let state = [];
+
+    for (let i = 0; i < array.length; i++) {
+      state[i] = SaveState.getArrayState(array[i]);
+    }
+
+    return state;
+  }
+
+  public static setArrayOfArrayState(array: Array<Uint8Array | Uint16Array | Array<number>>, state: any): void {
+    for (let i = 0; i < array.length; i++) {
+      SaveState.setArrayState(array[i], state[i])
     }
   }
 }

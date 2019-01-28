@@ -264,6 +264,26 @@ export class MsxPpi {
     this.keyClickAudio = new KeyClick(board);
   }
 
+  public getState(): any {
+    const state: any = {};
+
+    state.row = this.row;
+    state.regA = this.regA;
+    state.regCHi = this.regCHi;
+
+    state.i8255 = this.i8255.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.row = state.row;
+    this.row = state.row;
+    this.row = state.row;
+
+    this.i8255.setState(state.i8255);
+  }
+
   private row = 0;
   private regA = 0;
   private regCHi = 0;

@@ -18,6 +18,7 @@
 
 import { Board } from '../core/board';
 import { LedType } from '../core/ledmanager';
+import { SaveState } from '../core/savestate';
 import { Ay8910, Ay8910ConnectorType, PsgType } from '../audio/ay8910';
 
 export class MsxPsg {
@@ -70,6 +71,24 @@ export class MsxPsg {
       this.board.getLedManager().getLed(LedType.KANA).set((value & 0x80) == 0);
     }
     this.regs[address & 1] = value;
+  }
+
+  public getState(): any {
+    const state: any = {};
+
+    state.joystickPort = this.joystickPort;
+    state.regs = SaveState.getArrayState(this.regs);
+
+    state.ay8910 = this.ay8910.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.joystickPort = state.joystickPort;
+    SaveState.setArrayState(this.regs, state.regs);
+
+    this.ay8910.setState(state.ay8910);
   }
 
   private ay8910: Ay8910;

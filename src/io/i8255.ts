@@ -16,6 +16,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { SaveState } from '../core/savestate';
+
 export class I8255 {
   constructor(
     private readA: () => number,
@@ -29,8 +31,6 @@ export class I8255 {
     this.read = this.read.bind(this);
     this.write = this.write.bind(this);
   }
-
-  private regs = [0, 0, 0, 0];
 
   reset(): void {
     this.regs[3] = 0x9b;
@@ -157,4 +157,19 @@ export class I8255 {
         return;
     }
   }
+
+  public getState(): any {
+    const state: any = {};
+
+    state.regs = SaveState.getArrayState(this.regs);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.regs, state.regs);
+  }
+
+  private regs = [0, 0, 0, 0];
+
 }

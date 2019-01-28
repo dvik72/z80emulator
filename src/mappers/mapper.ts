@@ -24,4 +24,11 @@ export class Mapper {
   public getName(): string {
     return this.name;
   }
+
+  public getState(): any {
+    return {};
+  }
+
+  public setState(state: any): void {
+  }
 }

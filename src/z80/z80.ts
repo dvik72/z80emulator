@@ -377,7 +377,7 @@ class Z80Delay {
   }
 }
 
-export class Z80 extends SaveState {
+export class Z80 {
   public constructor(
     cpuFlags: number,
     readMemCb: (a: number) => number,
@@ -386,8 +386,6 @@ export class Z80 extends SaveState {
     writeIoCb: (a: number, v: number) => void,
     timeoutCb: () => void
   ) {
-    super();
-
     this.cpuFlags = cpuFlags;
 
     this.readMemCb = readMemCb;

@@ -18,6 +18,7 @@
 
 import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
+import { SaveState } from '../core/savestate';
 import { Port } from '../core/iomanager';
 
 export enum Ay8910ConnectorType { MSX, SCCPLUS, SVI };
@@ -234,6 +235,44 @@ export class Ay8910 extends AudioDevice {
     }
   }
 
+  public getState(): any {
+    const state: any = {};
+
+    state.regs = SaveState.getArrayState(this.regs);
+    state.address = this.address;
+    state.tonePhase = SaveState.getArrayState(this.tonePhase);
+    state.toneStep = SaveState.getArrayState(this.toneStep);
+    state.noisePhase = this.noisePhase;
+    state.noiseStep = this.noiseStep;
+    state.noiseRand = this.noiseRand;
+    state.noiseVolume = this.noiseVolume;
+    state.envShape = this.envShape;
+    state.envStep = this.envStep;
+    state.envPhase = this.envPhase;
+    state.basePhaseStep = this.basePhaseStep;
+    state.enable = this.enable;
+    state.ampVolume = SaveState.getArrayState(this.ampVolume);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.regs, state.regs);
+    this.address = state.address;
+    SaveState.setArrayState(this.tonePhase, state.tonehase);
+    SaveState.setArrayState(this.toneStep, state.toneStep);
+    this.noisePhase = state.noisePhase;
+    this.noiseStep = state.noiseStep;
+    this.noiseRand = state.noiseRand;
+    this.noiseVolume = state.noiseVolume;
+    this.envShape = state.envShape;
+    this.envStep = state.envStep;
+    this.envPhase = state.envPhase;
+    this.basePhaseStep = state.basePhaseStep;
+    this.enable = state.enable;
+    SaveState.setArrayState(this.ampVolume, state.ampVolume);
+  }
+  
   private regs = new Uint8Array(16);
   private address = 0;
 
@@ -242,7 +281,7 @@ export class Ay8910 extends AudioDevice {
   private noisePhase = 0;
   private noiseStep = 0;
   private noiseRand = 0;
-  private  noiseVolume = 0;
+  private noiseVolume = 0;
 
   private envShape = 0;
   private envStep = 0;
@@ -253,6 +292,7 @@ export class Ay8910 extends AudioDevice {
   private enable = 0;
   private ampVolume = [0, 0, 0];
 
+  // TODO: Shouldn't be class members
   private voltTable = new Array<number>(16);
   private voltEnvTable = new Array<number>(32);
 }

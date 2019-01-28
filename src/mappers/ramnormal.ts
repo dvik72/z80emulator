@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 
 export class MapperRamNormal extends Mapper {
@@ -31,11 +32,26 @@ export class MapperRamNormal extends Mapper {
       for (let i = 0; i < 0x2000; i++) {
         pageData[i] = 0xff;
       }
+      this.pages.push(pageData);
+
       let slotInfo = new Slot(this.getName());
       slotInfo.map(true, true, pageData);
       board.getSlotManager().registerSlot(slot, sslot, startPage, slotInfo);
       startPage++;
     }
   }
-}
 
+  public getState(): any {
+    let state: any = {};
+
+    state.pages = SaveState.getArrayOfArrayState(this.pages);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayOfArrayState(this.pages, state.pages);
+  }
+
+  private pages: Array<Uint8Array> = [];
+}

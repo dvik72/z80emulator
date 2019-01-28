@@ -112,7 +112,7 @@ class SpriteAttribute {
 };
 
 
-export class Vdp extends SaveState {
+export class Vdp {
   constructor(
     private board: Board,
     private version: VdpVersion,
@@ -120,8 +120,6 @@ export class Vdp extends SaveState {
     private connectorType: VdpConnectorType,
     private vramPages: number
   ) {
-    super();
-
     this.frameBuffer = this.frameBuffers[this.frameBufferWriteIndex ^= 1];
 
     this.refreshLineCb = this.refreshLineBlank.bind(this);
@@ -2152,9 +2150,9 @@ export class Vdp extends SaveState {
     state.vdpDataLatch = this.vdpDataLatch;
     state.vramAddress = this.vramAddress;
     state.screenMode = this.screenMode;
-    state.regs = this.getArrayState(this.regs);
-    state.status = this.getArrayState(this.status);
-    state.paletteReg = this.getArrayState(this.paletteReg);
+    state.regs = SaveState.getArrayState(this.regs);
+    state.status = SaveState.getArrayState(this.status);
+    state.paletteReg = SaveState.getArrayState(this.paletteReg);
 
     state.scanLineCount = this.scanLineCount;
     state.frameStartTime = this.frameStartTime;
@@ -2191,10 +2189,10 @@ export class Vdp extends SaveState {
 
     // Palettes
     state.palette0 = this.palette0;
-    state.palette = this.getArrayState(this.palette);
+    state.palette = SaveState.getArrayState(this.palette);
 
     // Video RAM
-    state.vram = this.getArrayState(this.vram);
+    state.vram = SaveState.getArrayState(this.vram);
 
     // Timers
     state.frameTimer = state.frameTimer.getState();
@@ -2221,9 +2219,9 @@ export class Vdp extends SaveState {
     this.vdpDataLatch = state.vdpDataLatch;
     this.vramAddress = state.vramAddress;
     this.screenMode = state.screenMode;
-    this.setArrayState(this.regs, state.regs);
-    this.setArrayState(this.status, state.status);
-    this.setArrayState(this.paletteReg, state.paletteReg);
+    SaveState.setArrayState(this.regs, state.regs);
+    SaveState.setArrayState(this.status, state.status);
+    SaveState.setArrayState(this.paletteReg, state.paletteReg);
 
     this.scanLineCount = state.scanLineCount;
     this.frameStartTime = state.frameStartTime;
@@ -2260,10 +2258,10 @@ export class Vdp extends SaveState {
 
     // Palettes
     state.palette0 = state.palette0;
-    this.setArrayState(this.palette, state.palette);
+    SaveState.setArrayState(this.palette, state.palette);
 
     // Video RAM
-    this.setArrayState(this.vram, state.vram);
+    SaveState.setArrayState(this.vram, state.vram);
 
     // Timers
     state.frameTimer.setState(state.frameTimer);
