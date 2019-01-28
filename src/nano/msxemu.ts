@@ -630,14 +630,16 @@ export class MsxEmu {
     //  this.machine!.dumpAsm();
     //}
 
-    if (event.code == 'KeyQ') {
-      this.saveState = this.machine!.getState();
-      console.log("Saved State!");
-    }
-    if (event.code == 'KeyW') {
-      if (this.saveState) {
-        console.log("Loading State!");
-        this.machine!.setState(this.saveState);
+    if (0) {
+      if (event.code == 'KeyQ') {
+        this.saveState = this.machine!.getState();
+        console.log("Saved State!");
+      }
+      if (event.code == 'KeyW') {
+        if (this.saveState) {
+          console.log("Loading State!");
+          this.machine!.setState(this.saveState);
+        }
       }
     }
   }

@@ -152,6 +152,26 @@ export class AudioManager {
     }
   }
 
+  public getState(): any {
+    let state: any = {}
+
+    state.timeRef = this.timeRef;
+    state.timeFrag = this.timeFrag;
+    state.enable = this.enable;
+
+    state.syncTimer = this.syncTimer.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timeRef = state.timeRef;
+    this.timeFrag = state.timeFrag;
+    this.enable = state.enable;
+
+    this.syncTimer.setState(state.syncTimer);
+  }
+
   private volumeLeft = 0;
   private oldVolumeLeft = 0;
   private outVolumeLeft = 0;
@@ -160,12 +180,12 @@ export class AudioManager {
   private outVolumeRight = 0;
 
   private audioDevices: AudioDevice[];
+  
+  private syncPeriod = 0;
+  private sampleRate: number;
+
   private timeRef = 0;
   private timeFrag = 0;
   private enable = true;
-  
-  private sampleRate: number;
-
   private syncTimer: Timer;
-  private syncPeriod = 0;
 };

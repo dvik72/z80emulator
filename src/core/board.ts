@@ -185,6 +185,8 @@ export class Board {
 
     state.z80 = this.z80.getState();
     state.timeoutManager = this.timeoutManager.getState();
+    state.audioManager = this.audioManager.getState();
+
     return state;
   }
 
@@ -193,6 +195,7 @@ export class Board {
 
     this.z80.setState(state.z80);
     this.timeoutManager.setState(state.timeoutManager);
+    this.audioManager.setState(state.audioManager);
   }
   
   private ioManager: IoManager;
