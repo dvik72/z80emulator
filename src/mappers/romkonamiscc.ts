@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { Scc, SccMode } from '../audio/scc';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomKonamiScc extends Mapper {
   static NAME = 'Konami SCC';
@@ -85,6 +86,30 @@ export class MapperRomKonamiScc extends Mapper {
     if (this.romMapper[bank] != value || change) {
       this.romMapper[bank] = value;      
       this.slotInfo[bank].map(true, false, this.pages[value]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.enable = this.enable;
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    state.scc = this.scc.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.enable = state.enable;
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    this.scc.setState(state.scc);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const page = this.pages[this.romMapper[bank]];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

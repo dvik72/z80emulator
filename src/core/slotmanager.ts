@@ -16,6 +16,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { SaveState } from './savestate';
+
 const EMPTY_RAM = new Uint8Array(0x4000);
 
 export class Slot {
@@ -55,20 +57,31 @@ class RamSlot {
 
 class SlotState {
   constructor(
-    subslotted: boolean,
-    state: number,
-    substate: number,
-    sslReg: number) {
-    this.subslotted = subslotted;
-    this.state = state;
-    this.substate = substate;
-    this.sslReg = sslReg;
+    public subslotted: boolean,
+    public state: number,
+    public substate: number,
+    public sslReg: number
+  ) {
   }
-  
-  subslotted = false;
-  state = 0;
-  substate = 0;
-  sslReg = 0;
+
+
+  public getState(): any {
+    let state: any = {};
+
+    state.subslotted = this.subslotted;
+    state.state = this.state;
+    state.substate = this.substate;
+    state.sslReg = this.sslReg;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.subslotted = state.subslotted;
+    this.state = state.state;
+    this.substate = state.substate;
+    this.sslReg = state.sslReg;
+  }
 }
 
 export class SlotManager {
@@ -94,13 +107,7 @@ export class SlotManager {
     }
   }
 
-  private pslot: SlotState[] = new Array<SlotState>(4);
-  private ramslot: RamSlot[] = new Array<RamSlot>(8);
-  private slotTable: Slot[][][] = new Array<Slot[][]>(4);
-
-  private write0Cb?: (a: number, v: number) => void = undefined;
-
-  registerSlot(slot: number, sslot: number, page: number, slotInfo: Slot) {
+  public registerSlot(slot: number, sslot: number, page: number, slotInfo: Slot) {
     this.slotTable[slot][sslot][page] = slotInfo;
 
     // Update ram mapping if slot is currently mapped to main memory.
@@ -111,7 +118,7 @@ export class SlotManager {
     }
   }
 
-  remove(slot: number, sslot: number): void {
+  public remove(slot: number, sslot: number): void {
     for (let page = 0; page < 8; page++) {
       let slotInfo = this.slotTable[slot][sslot][page];
       if (slotInfo.ejectCb) {
@@ -120,15 +127,15 @@ export class SlotManager {
     }
   }
 
-  registerWrite0Callback(writeCb: (a: number, v: number) => void): void {
+  public registerWrite0Callback(writeCb: (a: number, v: number) => void): void {
     this.write0Cb = writeCb;
   }
 
-  unregisterWrite0Callback(): void {
+  public unregisterWrite0Callback(): void {
     this.write0Cb = undefined;
   }
 
-  read(address: number): number {
+  public read(address: number): number {
     if (address == 0xffff) {
       const sslReg = this.pslot[3].state;
       if (this.pslot[sslReg].subslotted) {
@@ -154,7 +161,7 @@ export class SlotManager {
     return 0xff;
   }
 
-  write(address: number, value: number): void {
+  public write(address: number, value: number): void {
     if (address == 0xffff) {
       const pslReg = this.pslot[3].state;
 
@@ -197,13 +204,13 @@ export class SlotManager {
     }
   }
 
-  mapRamPage(slot: number, sslot: number, page: number): void {
+  public mapRamPage(slot: number, sslot: number, page: number): void {
     this.ramslot[page].slot = slot;
     this.ramslot[page].sslot = sslot;
     this.ramslot[page].slotInfo = this.slotTable[slot][sslot][page];
   }
 
-  setRamSlot(slot: number, psl: number): void {
+  public setRamSlot(slot: number, psl: number): void {
     this.pslot[slot].state = psl;
     this.pslot[slot].substate = (this.pslot[psl].sslReg >> (slot * 2)) & 3;
 
@@ -213,7 +220,7 @@ export class SlotManager {
     this.mapRamPage(psl, ssl, 2 * slot + 1);
   }
 
-  getRamSlot(page: number): number {
+  public getRamSlot(page: number): number {
     for (let i = 0; i < 4; i++) {
       if (this.pslot[i].state == page) {
         return i;
@@ -222,7 +229,38 @@ export class SlotManager {
     return 0;
   }
 
-  setSubslotted(slot: number, subslotted: boolean): void {
+  public setSubslotted(slot: number, subslotted: boolean): void {
     this.pslot[slot].subslotted = subslotted;
   }
+  
+  public getState(): any {
+    let state: any = {};
+
+    state.pslot = [];
+    for (let i = 0; i < this.pslot.length; i++) {
+      state.pslot[i] = this.pslot[i].getState();
+    }
+
+   return state;
+  }
+
+  public setState(state: any): void {
+    for (let i = 0; i < this.pslot.length; i++) {
+      this.pslot[i].setState(state.pslot[i]);
+    }
+
+    for (let page = 0; page < 4; page++) {
+      const psl = this.pslot[page].state;
+      const ssl = this.pslot[psl].subslotted ? this.pslot[page].substate : 0;
+
+      this.mapRamPage(psl, ssl, 2 * page);
+      this.mapRamPage(psl, ssl, 2 * page + 1);
+    }
+  }
+
+  private pslot: SlotState[] = new Array<SlotState>(4);
+  private ramslot: RamSlot[] = new Array<RamSlot>(8);
+  private slotTable: Slot[][][] = new Array<Slot[][]>(4);
+
+  private write0Cb?: (a: number, v: number) => void = undefined;
 }

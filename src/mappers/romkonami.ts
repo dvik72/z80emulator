@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomKonami extends Mapper {
   static NAME = 'Konami';
@@ -56,6 +57,23 @@ export class MapperRomKonami extends Mapper {
     if (this.romMapper[bank] != value) {
       this.romMapper[bank] = value;
       this.slotInfo[bank].map(true, false, this.pages[value]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const page = this.pages[this.romMapper[bank]];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

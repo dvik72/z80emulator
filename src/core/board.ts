@@ -184,6 +184,7 @@ export class Board {
     state.interruptMask = this.interruptMask;
 
     state.z80 = this.z80.getState();
+    state.slotManager = this.slotManager.getState();
     state.timeoutManager = this.timeoutManager.getState();
     state.audioManager = this.audioManager.getState();
 
@@ -194,6 +195,7 @@ export class Board {
     this.interruptMask = state.interruptMask;
 
     this.z80.setState(state.z80);
+    this.slotManager.setState(state.slotManager);
     this.timeoutManager.setState(state.timeoutManager);
     this.audioManager.setState(state.audioManager);
   }

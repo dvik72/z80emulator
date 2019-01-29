@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomLodeRunner extends Mapper {
   static NAME = 'Lode Runner';
@@ -54,6 +55,23 @@ export class MapperRomLodeRunner extends Mapper {
 
       this.slotInfo[0].map(true, false, this.pages[value * 2]);
       this.slotInfo[1].map(true, false, this.pages[value * 2 + 1]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = this.romMapper;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.romMapper = state.romMapper;
+
+    for (let bank = 0; bank < 2; bank++) {
+      const page = this.pages[2 * this.romMapper + (bank & 1)];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

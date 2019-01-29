@@ -22,6 +22,7 @@ import { Slot } from '../core/slotmanager';
 import { Scc, SccMode } from '../audio/scc';
 import { Ay8910, Ay8910ConnectorType, PsgType } from '../audio/ay8910';
 import { AmdFlash, AmdType } from '../memory/amdflash';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomMegaFlashRomScc extends Mapper {
   static NAME = 'MegaFlashRom SCC';
@@ -105,6 +106,38 @@ export class MapperRomMegaFlashRomScc extends Mapper {
     const readEnable = (bank == 2 && this.sccEnable);
 
     this.slotInfo[bank].map(readEnable, false, bankData);
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.sccEnable = this.sccEnable;
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    state.scc = this.scc.getState();
+    state.amdFlash = this.amdFlash.getState();
+    if (this.ay8910) {
+      state.ay8910 = this.ay8910.getState();
+    }
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.sccEnable = state.sccEnable;
+
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    this.scc.setState(state.scc);
+    this.amdFlash.setState(state.amdFlash);
+    if (this.ay8910) {
+      this.ay8910.setState(state.ay8910);
+    }
+
+    for (let bank = 0; bank < 4; bank++) {
+      this.mapPage(bank, this.romMapper[bank]);
+    }
   }
 
   private amdFlash: AmdFlash;

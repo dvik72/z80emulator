@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomRtype extends Mapper {
   static NAME = 'R-Type';
@@ -50,6 +51,23 @@ export class MapperRomRtype extends Mapper {
       this.romMapper = value;
       this.slotInfo[2].map(true, false, this.pages[2 * value]);
       this.slotInfo[3].map(true, false, this.pages[2 * value + 1]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = this.romMapper;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.romMapper = state.romMapper;
+
+    for (let bank = 2; bank < 4; bank++) {
+      const page = this.pages[2 * this.romMapper + (bank & 1)];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

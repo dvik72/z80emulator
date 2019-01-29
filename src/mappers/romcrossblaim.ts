@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomCrossBlaim extends Mapper {
   static NAME = 'Cross Blaim';
@@ -67,6 +68,19 @@ export class MapperRomCrossBlaim extends Mapper {
         this.slotInfo[7].map(true, false, this.pages[3]);
       }
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = this.romMapper;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.romMapper = -1;
+    this.writeCb(0, state.romMapper);
   }
 
   private pages: Array<Uint8Array>;

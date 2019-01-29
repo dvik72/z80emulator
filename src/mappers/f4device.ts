@@ -43,5 +43,17 @@ export class MapperF4Device extends Mapper {
     }
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.status = this.status;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.status = state.status;
+  }
+
   private status = 0;
 }

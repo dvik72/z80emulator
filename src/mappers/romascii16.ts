@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomAscii16 extends Mapper {
   static NAME = 'ASCII-16';
@@ -59,6 +60,23 @@ export class MapperRomAscii16 extends Mapper {
       this.romMapper[bank] = value;
       this.slotInfo[2 * bank].map(true, false, this.pages[2 * value]);
       this.slotInfo[2 * bank + 1].map(true, false, this.pages[2 * value + 1]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const page = this.pages[2 * this.romMapper[bank >> 1] + (bank & 1)];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

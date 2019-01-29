@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomAscii16sram extends Mapper {
   static NAME = 'ASCII-16 SRAM';
@@ -86,6 +87,30 @@ export class MapperRomAscii16sram extends Mapper {
       for (address &= 0x7ff; address < 0x2000; address += 0x800) {
           this.sram[address] = value;
       }
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.sramEnabled = this.sramEnabled;
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+    state.sram = SaveState.getArrayState(this.sram);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.sramEnabled = state.sramEnabled;
+
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+    SaveState.setArrayState(this.sram, state.sram);
+    
+    for (let bank = 0; bank < 4; bank++) {
+      const value = this.romMapper[bank >> 1];
+      const page = (value & ~this.romMask) ? this.sram : this.pages[2 * value + (bank & 1)]
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomHarryFox extends Mapper {
   static NAME = 'Harry Fox';
@@ -55,6 +56,23 @@ export class MapperRomHarryFox extends Mapper {
       this.romMapper[bank] = value;
       this.slotInfo[bank * 2].map(true, false, this.pages[value * 2]);
       this.slotInfo[bank * 2 + 1].map(true, false, this.pages[value * 2 + 1]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const page = this.pages[2 * this.romMapper[bank >> 1] + (bank & 1)];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

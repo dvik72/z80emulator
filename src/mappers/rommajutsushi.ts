@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { Dac } from '../audio/dac';
+import { SaveState } from '../core/savestate';
  
 export class MapperRomMajutsushi extends Mapper {
   static NAME = 'Majutsushi';
@@ -66,6 +67,27 @@ export class MapperRomMajutsushi extends Mapper {
     if (this.romMapper[bank] != value) {
       this.romMapper[bank] = value;
       this.slotInfo[bank].map(true, false, this.pages[value]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    state.dac = this.dac.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    this.dac.setState(state.dac);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const page = this.pages[this.romMapper[bank]];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

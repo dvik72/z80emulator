@@ -16,6 +16,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { SaveState } from '../core/savestate';
+
 const ST_IDLE = 0;
 const ST_IDENT = 1;
 
@@ -181,6 +183,38 @@ export class AmdFlash {
     if (this.cmdIdx < 4) return true;
 
     return false;
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.cmdAddr1 = this.cmdAddr1;
+    state.cmdAddr2 = this.cmdAddr2;
+    state.state = this.state;
+    state.cmdIdx = this.cmdIdx;
+
+    state.cmd = [];
+    for (let i = 0; i < this.cmd.length; i++) {
+      state.cmd[i] = [ this.cmd[i].address, this.cmd[i].value ];
+    }
+
+    state.pages = SaveState.getArrayOfArrayState(this.pages);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.cmdAddr1 = state.cmdAddr1;
+    this.cmdAddr2 = state.cmdAddr2;
+    this.state = state.state;
+    this.cmdIdx = state.cmdIdx;
+
+    for (let i = 0; i < this.cmd.length; i++) {
+      this.cmd[i].address = state.cmd[i][0];
+      this.cmd[i].value = state.cmd[i][1];
+    }
+
+    SaveState.setArrayOfArrayState(this.pages, state.pages);
   }
 
   private cmdAddr1 = 0;

@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { Port } from '../core/iomanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomKorean90 extends Mapper {
   static NAME = 'Korean 90';
@@ -72,6 +73,23 @@ export class MapperRomKorean90 extends Mapper {
 
     for (let page = 0; page < 4; page++) {
       this.slotInfo[page].map(true, false, this.pages[this.romMapper[page]]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const page = this.pages[this.romMapper[bank]];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

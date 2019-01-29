@@ -18,6 +18,7 @@
 
 import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
+import { SaveState } from '../core/savestate';
 
 const ROTATE_OFF = 32;
 const ROTATE_ON = 28;
@@ -433,7 +434,42 @@ export class Scc extends AudioDevice {
 
     return res;
   }
+  
+  public getState(): any {
+    let state: any = {};
 
+    state.deformReg = this.deformReg;
+    state.enable = this.enable;
+
+    state.curWave = SaveState.getArrayState(this.curWave);
+    state.period = SaveState.getArrayState(this.period);
+    state.phase = SaveState.getArrayState(this.phase);
+    state.phaseStep = SaveState.getArrayState(this.phaseStep);
+    state.volume = SaveState.getArrayState(this.volume);
+    state.nextVolume = SaveState.getArrayState(this.nextVolume);
+    state.readOnly = SaveState.getArrayState(this.readOnly);
+    state.oldSample = SaveState.getArrayState(this.oldSample);
+    state.deformSample = SaveState.getArrayState(this.deformSample);
+    state.wave = SaveState.getArrayOfArrayState(this.wave);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.deformReg = state.deformReg;
+    this.enable = state.enable;
+
+    SaveState.setArrayState(this.curWave, state.curWave);
+    SaveState.setArrayState(this.period, state.period);
+    SaveState.setArrayState(this.phase, state.phase);
+    SaveState.setArrayState(this.phaseStep, state.phaseStep);
+    SaveState.setArrayState(this.volume, state.volume);
+    SaveState.setArrayState(this.nextVolume, state.nextVolume);
+    SaveState.setArrayState(this.readOnly, state.readOnly);
+    SaveState.setArrayState(this.oldSample, state.oldSample);
+    SaveState.setArrayState(this.deformSample, state.deformSample);
+    SaveState.setArrayOfArrayState(this.wave, state.wave);
+  }
 
   private basePhaseStep = 0;
   private deformReg = 0;
@@ -457,6 +493,4 @@ export class Scc extends AudioDevice {
   ];
 
   private in = new Array<number>(95);
-  private inHp = [ 0, 0, 0 ];
-  private outHp = [0, 0, 0];
 }

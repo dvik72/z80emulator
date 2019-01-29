@@ -28,7 +28,7 @@ export class SaveState {
   public setState(state: any): void {
   }
   
-  public static getArrayState(array: Uint8Array | Uint16Array | Array<number>): any {
+  public static getArrayState(array: Uint8Array | Uint16Array | Array<number> | Array<boolean>): any {
     let state = [];
 
     for (let i = 0; i < array.length; i++) {
@@ -38,7 +38,7 @@ export class SaveState {
     return state;
   }
 
-  public static setArrayState(array: Uint8Array | Uint16Array | Array<number>, state: any): void {
+  public static setArrayState(array: Uint8Array | Uint16Array | Array<number> | Array<boolean>, state: any): void {
     for (let i = 0; i < array.length; i++) {
       array[i] = state[i];
     }

@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomGameMaster2 extends Mapper {
   static NAME = 'Game Master 2';
@@ -77,6 +78,30 @@ export class MapperRomGameMaster2 extends Mapper {
       value &= 0x0f;
       this.romMapper[bank] = value;
       this.slotInfo[bank].map(true, false, this.pages[value]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.sramEnabled = this.sramEnabled;
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+    state.sram = SaveState.getArrayOfArrayState(this.sram);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.sramEnabled = state.sramEnabled;
+
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+    SaveState.setArrayOfArrayState(this.sram, state.sram);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const value = this.romMapper[bank];
+      const page = (value & 0x10) ? this.sram[(value >> 5) & 1] : this.pages[value & 0x0f];
+      this.slotInfo[bank].map(true, false, page);
     }
   }
 

@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 export enum Ascii8SramType{
   ASCII8,
@@ -84,6 +85,30 @@ export class MapperRomAscii8sram extends Mapper {
         this.slotInfo[bank].map(true, false, this.pages[value & this.romMask]);
       }
       this.romMapper[bank] = value;
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+    state.sram = SaveState.getArrayOfArrayState(this.sram);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+    SaveState.setArrayOfArrayState(this.sram, state.sram);
+
+    for (let bank = 0; bank < 4; bank++) {
+      const value = this.romMapper[bank];
+      if (value & this.sramEnableBit) {
+        this.slotInfo[bank].map(true, bank > 1, this.sram[value & (this.sram.length - 1)]);
+      }
+      else {
+        this.slotInfo[bank].map(true, false, this.pages[value & this.romMask]);
+      }
     }
   }
 

@@ -19,6 +19,7 @@
 import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
+import { SaveState } from '../core/savestate';
 
 class DacChannel {
   public write(volume?: number): void {
@@ -36,6 +37,22 @@ class DacChannel {
     for (let i = 1; i < count; i++) {
       buffer[i] = this.volume;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.fracVolume = this.fracVolume;
+    state.volume = this.volume;
+    state.count = this.count;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.fracVolume = state.fracVolume;
+    this.volume = state.volume;
+    this.count = state.count;
   }
 
   private fracVolume = 0;
@@ -71,6 +88,20 @@ export class Dac extends AudioDevice {
     else {
       this.leftChannel.sync(this.getAudioBufferMono(), count);
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.leftChannel = this.leftChannel.getState();
+    state.rightChannel = this.rightChannel.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.leftChannel.setState(state.leftChannel);
+    this.rightChannel.setState(state.rightChannel);
   }
 
   private leftChannel = new DacChannel();
