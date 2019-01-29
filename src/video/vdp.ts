@@ -112,6 +112,52 @@ class SpriteAttribute {
 };
 
 
+const TMS9XXXA_ANALOG_OUTPUT = [
+  [0.00, 0.47, 0.47],
+  [0.00, 0.47, 0.47],
+  [0.53, 0.07, 0.20],
+  [0.67, 0.17, 0.27],
+  [0.40, 0.40, 1.00],
+  [0.53, 0.43, 0.93],
+  [0.47, 0.83, 0.30],
+  [0.73, 0.00, 0.70],
+  [0.53, 0.93, 0.27],
+  [0.67, 0.93, 0.27],
+  [0.73, 0.57, 0.07],
+  [0.80, 0.57, 0.17],
+  [0.47, 0.13, 0.23],
+  [0.53, 0.73, 0.67],
+  [0.80, 0.47, 0.47],
+  [1.00, 0.47, 0.47],
+];
+
+function makeTmsPalette(saturationPr: number, saturationPb: number): Array<Uint8Array> {
+  let palette = Array<Uint8Array>(16);
+  for (let color = 0; color < 16; color++) {
+    // convert from analog output to YPbPr
+    let Y = TMS9XXXA_ANALOG_OUTPUT[color][0];
+    let Pr = TMS9XXXA_ANALOG_OUTPUT[color][1] - 0.5;
+    let Pb = TMS9XXXA_ANALOG_OUTPUT[color][2] - 0.5;
+    // apply the saturation
+    Pr *= saturationPr;
+    Pb *= saturationPb;
+    let R = Y + 0 + 1.402 * Pr;
+    let G = Y - 0.344 * Pb - 0.714 * Pr;
+    let B = Y + 1.722 * Pb + 0;
+    R *= 255;
+    G *= 255;
+    B *= 255;
+    palette[color] = new Uint8Array(3);
+    palette[color][0] = Math.min(255, Math.max(0, R + 0.5 | 0));
+    palette[color][1] = Math.min(255, Math.max(0, G + 0.5 | 0));
+    palette[color][2] = Math.min(255, Math.max(0, B + 0.5 | 0));
+  }
+
+  return palette;
+}
+
+const TMS_PALETTE = makeTmsPalette(0.75, 0.5);
+
 export class Vdp {
   constructor(
     private board: Board,
@@ -280,7 +326,7 @@ export class Vdp {
 
     this.isDrawArea = false;
 
-    const palette = this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A ? MSX1_PALETTE : MSX2_PALETTE;
+    const palette = this.version == VdpVersion.TMS9929A || this.version == VdpVersion.TMS99x8A ? TMS_PALETTE : MSX2_PALETTE;
     for (let i = 0; i < 16; i++) {
       this.updatePalette(i, palette[i][0], palette[i][1], palette[i][2]);
     }
