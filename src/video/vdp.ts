@@ -2366,8 +2366,8 @@ export class Vdp {
   private spriteLines = [new Uint8Array(384), new Uint8Array(384)];
   private spriteLine = this.spriteLines[0];
   private spriteCollision = new Uint8Array(384);
-  private spriteCurrentLine = new Uint8Array(33);
-  private spriteAttribOffsets = new Uint8Array(33);
+  private spriteCurrentLine = new Array<number>(33);
+  private spriteAttribOffsets = new Array<number>(33);
   private spriteAttributes = new Array<SpriteAttribute>(33);
   private spriteLineOffset = 0;
 
