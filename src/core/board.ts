@@ -186,6 +186,9 @@ export class Board {
     state.z80 = this.z80.getState();
     state.slotManager = this.slotManager.getState();
     state.timeoutManager = this.timeoutManager.getState();
+    if (this.ramManager) {
+      state.ramManager = this.ramManager.getState();
+    }
     state.audioManager = this.audioManager.getState();
 
     return state;
@@ -197,6 +200,9 @@ export class Board {
     this.z80.setState(state.z80);
     this.slotManager.setState(state.slotManager);
     this.timeoutManager.setState(state.timeoutManager);
+    if (this.ramManager) {
+      this.ramManager.setState(state.ramManager);
+    }
     this.audioManager.setState(state.audioManager);
   }
   

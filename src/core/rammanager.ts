@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { IoManager, Port } from './iomanager';
+import { SaveState } from '../core/savestate';
 
 export class RamMapper {
   constructor(
@@ -78,6 +79,18 @@ export class RamManager {
     }
 
     this.mask = (size >> 14) - 1;
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.port = SaveState.getArrayState(this.port);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.port, state.port);
   }
 
   private mask = 0;
