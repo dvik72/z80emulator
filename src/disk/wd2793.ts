@@ -20,6 +20,7 @@ import { DiskManager } from '../disk/diskmanager'
 import { Disk, DiskError } from './disk';
 import { Board } from '../core/board';
 import { LedType } from '../core/ledmanager';
+import { SaveState } from '../core/savestate';
 
 
 const CMD_RESTORE = 0x00;
@@ -71,7 +72,7 @@ export class Wd2793 {
     private board: Board,
     private type: Wd2793Type
   ) {
-    this.disk = this.diskManager.getFloppyDisk(0);
+    this.disk = this.diskManager.getFloppyDisk(this.diskNo = 0);
 
     this.reset();
   }
@@ -105,7 +106,7 @@ export class Wd2793 {
     if (drive != -1) {
       this.track = this.tracks[drive];
     }
-    this.disk = this.diskManager.getFloppyDisk(drive);
+    this.disk = this.diskManager.getFloppyDisk(this.diskNo = drive);
   }
 
   public setMotor(motorOn: boolean) {
@@ -532,7 +533,68 @@ export class Wd2793 {
     this.regStatus  &= ~ST_BUSY;
   }
   
+  public getState(): any {
+    let state: any = {};
+
+    state.regStatus = this.regStatus;
+    state.regCommand = this.regCommand;
+    state.regSector = this.regSector;
+    state.regTrack = this.regTrack;
+    state.regData = this.regData;
+    state.immediateInt = this.immediateInt;
+    state.intRequest = this.intRequest;
+    state.dataRequest = this.dataRequest;
+    state.dataReady = this.dataReady;
+    state.stepDirection = this.stepDirection;
+    state.step = this.step;
+    state.curStep = this.curStep;
+    state.headLoaded = this.headLoaded;
+    state.dataRequsetTime = this.dataRequsetTime;
+    state.stepTime = this.stepTime;
+    state.sectorOffset = this.sectorOffset;
+    state.dataAvailable = this.dataAvailable;
+    state.drive = this.drive;
+    state.track = this.track;
+    state.side = this.side;
+    state.density = this.density;
+
+    state.tracks = SaveState.getArrayState(this.tracks);
+    state.sectorBuf = SaveState.getArrayState(this.sectorBuf);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.regStatus = state.regStatus;
+    this.regCommand = state.regCommand;
+    this.regSector = state.regSector;
+    this.regTrack = state.regTrack;
+    this.regData = state.regData;
+    this.immediateInt = state.immediateInt;
+    this.intRequest = state.intRequest;
+    this.dataRequest = state.dataRequest;
+    this.dataReady = state.dataReady;
+    this.stepDirection = state.stepDirection;
+    this.step = state.step;
+    this.curStep = state.curStep;
+    this.headLoaded = state.headLoaded;
+    this.dataRequsetTime = state.dataRequsetTime;
+    this.stepTime = state.stepTime;
+    this.sectorOffset = state.sectorOffset;
+    this.dataAvailable = state.dataAvailable;
+    this.drive = state.drive;
+    this.track = state.track;
+    this.side = state.side;
+    this.density = state.density;
+
+    SaveState.setArrayState(this.tracks, state.tracks);
+    SaveState.setArrayState(this.sectorBuf, state.sectorBuf);
+
+    this.disk = this.diskManager.getFloppyDisk(this.diskNo);
+  }
+
   private disk: Disk;
+  private diskNo = 0;
 
   private regStatus = 0;
   private regCommand = 0;

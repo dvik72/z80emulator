@@ -19,6 +19,7 @@
 import { AudioDevice } from '../core/audiomanager';
 import { Board, InterruptVector } from '../core/board';
 import { Timer } from '../core/timeoutmanager';
+import { SaveState } from '../core/savestate';
 
 // Note to reader:
 // This file is inappropriate to use for educational purposes with
@@ -260,6 +261,76 @@ class YM_DELTAT {
     }
     this.adpcml += this.sample_step;
     this.connectors[this.pan] += this.adpcml;
+  }
+
+  public getState(): any {
+    let state: any = {};
+    
+    state.memory = SaveState.getArrayState(this.memory);
+    state.reg = SaveState.getArrayState(this.reg);
+
+    state.portstate = this.portstate;
+    state.portshift = this.portshift;
+    state.memread = this.memread;
+
+    state.flag = this.flag;
+    state.eos = this.eos;
+    state.flagMask = this.flagMask;
+    state.now_data = this.now_data;
+    state.now_addr = this.now_addr;
+    state.now_step = this.now_step;
+    state.step = this.step;
+    state.start = this.start;
+    state.end = this.end;
+    state.read_pointer = this.read_pointer;
+    state.write_pointer = this.write_pointer;
+    state.delta = this.delta;
+    state.volume = this.volume;
+    state.pan = this.pan;
+    state.adpcmx = this.adpcmx;
+    state.adpcmd = this.adpcmd;
+    state.adpcml = this.adpcml;
+
+    state.volume_w_step = this.volume_w_step;
+    state.next_leveling = this.next_leveling;
+    state.sample_step = this.sample_step;
+
+    state.arrivedFlag = this.arrivedFlag;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.memory, state.memory);
+    SaveState.setArrayState(this.reg, state.reg);
+
+    this.portstate = state.portstate;
+    this.portshift = state.portshift;
+    this.memread = state.memread;
+
+    this.flag = state.flag;
+    this.eos = state.eos;
+    this.flagMask = state.flagMask;
+    this.now_data = state.now_data;
+    this.now_addr = state.now_addr;
+    this.now_step = state.now_step;
+    this.step = state.step;
+    this.start = state.start;
+    this.end = state.end;
+    this.read_pointer = state.read_pointer;
+    this.write_pointer = state.write_pointer;
+    this.delta = state.delta;
+    this.volume = state.volume;
+    this.pan = state.pan;
+    this.adpcmx = state.adpcmx;
+    this.adpcmd = state.adpcmd;
+    this.adpcml = state.adpcml;
+
+    this.volume_w_step = state.volume_w_step;
+    this.next_leveling = state.next_leveling;
+    this.sample_step = state.sample_step;
+
+    this.arrivedFlag = state.arrivedFlag;
   }
 
   private memory = new Uint8Array(0);
@@ -548,6 +619,61 @@ class OPL_SLOT {
     return this.TLL + ENV_CURVE[this.evc >> ENV_BITS] + (this.ams ? this.connectors[Connector.AMS] : 0);
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.TL = this.TL;
+    state.TLL = this.TLL;
+    state.KSR = this.KSR;
+    state.AR = this.AR;
+    state.DR = this.DR;
+    state.SL = this.SL;
+    state.RR = this.RR;
+    state.ksl = this.ksl;
+    state.ksr = this.ksr;
+    state.mul = this.mul;
+    state.Cnt = this.Cnt;
+    state.Incr = this.Incr;
+    state.eg_typ = this.eg_typ;
+    state.evm = this.evm;
+    state.evc = this.evc;
+    state.eve = this.eve;
+    state.evs = this.evs;
+    state.evsa = this.evsa;
+    state.evsd = this.evsd;
+    state.evsr = this.evsr;
+    state.ams = this.ams;
+    state.vib = this.vib;
+    state.wavetableidx = this.wavetableidx;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.TL = state.TL;
+    this.TLL = state.TLL;
+    this.KSR = state.KSR;
+    this.AR = state.AR;
+    this.DR = state.DR;
+    this.SL = state.SL;
+    this.RR = state.RR;
+    this.ksl = state.ksl;
+    this.ksr = state.ksr;
+    this.mul = state.mul;
+    this.Cnt = state.Cnt;
+    this.Incr = state.Incr;
+    this.eg_typ = state.eg_typ;
+    this.evm = state.evm;
+    this.evc = state.evc;
+    this.eve = state.eve;
+    this.evs = state.evs;
+    this.evsa = state.evsa;
+    this.evsd = state.evsd;
+    this.evsr = state.evsr;
+    this.ams = state.ams;
+    this.vib = state.vib;
+    this.wavetableidx = state.wavetableidx;
+  }
 
   public TL = 0;		/* total level     :TL << 8            */
   public TLL = 0;		/* adjusted now TL                     */
@@ -582,17 +708,6 @@ class OPL_CH {
     private connectors: Int32Array
   ) {
   }
-
-  public SLOT = [new OPL_SLOT(this.connectors), new OPL_SLOT(this.connectors)];
-  public CON = 0;			/* connection type                     */
-  public FB = 0;			/* feed back       :(shift down bit)   */
-  public op1_out = [0, 0];	/* slot1 output for selfeedback        */
-  /* phase generator state */
-  public block_fnum = 0;	/* block+fnum      :                   */
-  public kcode = 0;		/* key code        : KeyScaleCode      */
-  public fc = 0;			/* Freq. Increment base                */
-  public ksl_base = 0;	/* KeyScaleLevel Base step             */
-  public keyon = 0;		/* key on/off flag                     */
 
   public OPL_CALC_CH(): void {
     let env_out = 0;
@@ -643,6 +758,53 @@ class OPL_CH {
     slot1.OPL_KEYON();
     slot2.OPL_KEYON();
   }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.SLOT = []
+    for (let i = 0; i < this.SLOT.length; i++) {
+      state.SLOT[i] = this.SLOT[i].getState();
+    }
+
+    state.CON = this.CON;
+    state.FB = this.FB;
+    state.op1_out = SaveState.getArrayState(this.op1_out);
+    state.block_fnum = this.block_fnum;
+    state.kcode = this.kcode;
+    state.fc = this.fc;
+    state.ksl_base = this.ksl_base;
+    state.keyon = this.keyon;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    for (let i = 0; i < this.SLOT.length; i++) {
+      this.SLOT[i].setState(this.SLOT[i]);
+    }
+
+    this.CON = state.CON;
+    this.FB = state.FB;
+    SaveState.setArrayState(this.op1_out, state.op1_out);
+    this.block_fnum = state.block_fnum;
+    this.kcode = state.kcode;
+    this.fc = state.fc;
+    this.ksl_base = state.ksl_base;
+    this.keyon = state.keyon;
+  }
+
+  public SLOT = [new OPL_SLOT(this.connectors), new OPL_SLOT(this.connectors)];
+  public CON = 0;			/* connection type                     */
+  public FB = 0;			/* feed back       :(shift down bit)   */
+  public op1_out = [0, 0];	/* slot1 output for selfeedback        */
+  /* phase generator state */
+  public block_fnum = 0;	/* block+fnum      :                   */
+  public kcode = 0;		/* key code        : KeyScaleCode      */
+  public fc = 0;			/* Freq. Increment base                */
+  public ksl_base = 0;	/* KeyScaleLevel Base step             */
+  public keyon = 0;		/* key on/off flag                     */
+
 };
 
 class FM_OPL {
@@ -1038,10 +1200,6 @@ class FM_OPL {
     }
 
     this.dacSampleVolume = 0;
-    this.dacOldSampleVolume = 0;
-    this.dacSampleVolumeSum = 0;
-    this.dacCtrlVolume = 0;
-    this.dacDaVolume = 0;
 
     this.reg6 = 0;
     this.reg15 = 0;
@@ -1233,6 +1391,83 @@ class FM_OPL {
     }
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.connectors = SaveState.getArrayState(this.connectors);
+    state.deltat = this.deltat.getState();
+    state.P_CH = [];
+    for (let i = 0; i < this.P_CH.length; i++) {
+      state.P_CH[i] = this.P_CH[i].getState();
+    }
+    state.clock = this.clock;
+    state.rate = this.rate;
+    state.baseRate = this.baseRate;
+    state.freqbase = this.freqbase;
+    state.TimerBase = this.TimerBase;
+
+    state.address = this.address;
+    state.status = this.status;
+    state.statusmask = this.statusmask;
+    state.mode = this.mode;
+    state.rythm = this.rythm;
+    state.portDirection = this.portDirection;
+    state.portLatch = this.portLatch;
+    state.ams_table_idx = this.ams_table_idx;
+    state.vib_table_idx = this.vib_table_idx;
+    state.amsCnt = this.amsCnt;
+    state.amsIncr = this.amsIncr;
+    state.vibCnt = this.vibCnt;
+    state.vibIncr = this.vibIncr;
+    state.wavesel = this.wavesel;
+
+    state.dacSampleVolume = this.dacSampleVolume;
+
+    state.regs = SaveState.getArrayState(this.regs);
+    state.reg6 = this.reg6;
+    state.reg15 = this.reg15;
+    state.reg16 = this.reg16;
+    state.reg17 = this.reg17;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    SaveState.setArrayState(this.connectors, state.connectors);
+    this.deltat.setState(state.deltat);
+    for (let i = 0; i < this.P_CH.length; i++) {
+      this.P_CH[i].setState(state.P_CH[i]);
+    }
+    this.clock = state.clock;
+    this.rate = state.rate;
+    this.baseRate = state.baseRate;
+    this.freqbase = state.freqbase;
+    this.TimerBase = state.TimerBase;
+
+    this.address = state.address;
+    this.status = state.status;
+    this.statusmask = state.statusmask;
+    this.mode = state.mode;
+    this.rythm = state.rythm;
+    this.portDirection = state.portDirection;
+    this.portLatch = state.portLatch;
+    this.ams_table_idx = state.ams_table_idx;
+    this.vib_table_idx = state.vib_table_idx;
+    this.amsCnt = state.amsCnt;
+    this.amsIncr = state.amsIncr;
+    this.vibCnt = state.vibCnt;
+    this.vibIncr = state.vibIncr;
+    this.wavesel = state.wavesel;
+
+    state.dacSampleVolume = this.dacSampleVolume;
+
+    SaveState.setArrayState(this.regs, state.regs);
+    this.reg6 = state.reg6;
+    this.reg15 = state.reg15;
+    this.reg16 = state.reg16;
+    this.reg17 = state.reg17;
+  }
+
   private SLOT7_1?: OPL_SLOT;
   private SLOT7_2?: OPL_SLOT;
   private SLOT8_1?: OPL_SLOT;
@@ -1267,11 +1502,6 @@ class FM_OPL {
   private wavesel = 0;
 
   private dacSampleVolume = 0;
-  private dacOldSampleVolume = 0;
-  private dacSampleVolumeSum = 0;
-  private dacCtrlVolume = 0;
-  private dacDaVolume = 0;
-  private dacEnabled = 0;
 
   private regs = new Uint8Array(256);
   private reg6 = 0;
@@ -1301,7 +1531,6 @@ export class Y8950 extends AudioDevice {
     super('Y-8950', false);
 
     this.board.getAudioManager().registerAudioDevice(this);
-    this.timerFrequency = 4 * board.getSystemFrequency() / SAMPLERATE | 0;
 
     this.opl = new FM_OPL(
       this.board, FREQUENCY, SAMPLERATE, 256,
@@ -1455,19 +1684,53 @@ export class Y8950 extends AudioDevice {
     }
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.timerValue1 = this.timerValue1;
+    state.timerValue2 = this.timerValue2;
+    state.timeout1 = this.timeout1;
+    state.timeout2 = this.timeout2;
+    state.timerRunning1 = this.timerRunning1;
+    state.timerRunning2 = this.timerRunning2;
+    state.off = this.off;
+    state.s1 = this.s1;
+    state.s2 = this.s2;
+
+    state.opl = this.opl.getState();
+    state.timer1 = this.timer1.getState();
+    state.timer2 = this.timer2.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timerValue1 = state.timerValue1;
+    this.timerValue2 = state.timerValue2;
+    this.timeout1 = state.timeout1;
+    this.timeout2 = state.timeout2;
+    this.timerRunning1 = state.timerRunning1;
+    this.timerRunning2 = state.timerRunning2;
+    this.off = state.off;
+    this.s1 = state.s1;
+    this.s2 = state.s2;
+
+    this.opl.setState(state.opl);
+    this.timer1.setState(state.timer1);
+    this.timer2.setState(state.timer2);
+  }
+
   private opl: FM_OPL;
 
   private timer1: Timer;
   private timer2: Timer;
 
-  private timerFrequency = 0;
   private timerValue1 = 0;
   private timerValue2 = 0;
   private timeout1 = 0;
   private timeout2 = 0;
   private timerRunning1 = false;
   private timerRunning2 = false;
-  private address = 0;
   private off = 0;
   private s1 = 0;
   private s2 = 0;

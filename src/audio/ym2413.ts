@@ -18,7 +18,7 @@
 
 import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
-import { Port } from '../core/iomanager';
+import { SaveState } from '../core/savestate';
 
 const CLOCK_FREQ = 3579545;
 const PI = 3.14159265358979323846;
@@ -189,6 +189,44 @@ class Patch {
         this.RR = (data[7] >> 0) & 15;
       }
     }
+  }
+  
+  public getState(): any {
+    let state: any = {};
+
+    state.AM = this.AM;
+    state.PM = this.PM;
+    state.EG = this.EG;
+
+    state.KR = this.KR;
+    state.ML = this.ML;
+    state.KL = this.KL;
+    state.TL = this.TL;
+    state.FB = this.FB;
+    state.WF = this.WF;
+    state.AR = this.AR;
+    state.DR = this.DR;
+    state.SL = this.SL;
+    state.RR = this.RR;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.AM = this.AM;
+    this.PM = this.PM;
+    this.EG = this.EG;
+
+    this.KR = state.KR;
+    this.ML = state.ML;
+    this.KL = state.KL;
+    this.TL = state.TL;
+    this.FB = state.FB;
+    this.WF = state.WF;
+    this.AR = state.AR;
+    this.DR = state.DR;
+    this.SL = state.SL;
+    this.RR = state.RR;
   }
 
   public AM = 0;
@@ -512,6 +550,60 @@ class Slot {
     this.S2E(24.0), this.S2E(27.0), this.S2E(30.0), this.S2E(33.0),
     this.S2E(36.0), this.S2E(39.0), this.S2E(42.0), this.S2E(48.0)
   ];
+  
+  public getState(): any {
+    let state: any = {};
+
+    state.type = this.type;
+    state.patchIdx = this.patchIdx;
+    state.slotOnFlag = this.slotOnFlag;
+
+    state.feedback = this.feedback;
+    state.output = SaveState.getArrayState(this.output);
+    state.sintblIdx = this.sintblIdx;
+    state.phase = this.phase;
+    state.dphase = this.dphase;
+    state.pgout = this.pgout;
+
+    state.fnum = this.fnum;
+    state.block = this.block;
+    state.volume = this.volume;
+    state.sustine = this.sustine;
+    state.tll = this.tll;
+    state.rks = this.rks;
+    state.egMode = this.egMode;
+    state.egPhase = this.egPhase;
+    state.egDphase = this.egDphase;
+    state.egout = this.egout;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.type = state.type;
+    this.patchIdx = state.patchIdx;
+    this.slotOnFlag = state.slotOnFlag;
+
+    this.feedback = state.feedback;
+    SaveState.setArrayState(this.output, state.output);
+    this.sintblIdx = state.sintblIdx;
+    this.phase = state.phase;
+    this.dphase = state.dphase;
+    this.pgout = state.pgout;
+
+    this.fnum = state.fnum;
+    this.block = state.block;
+    this.volume = state.volume;
+    this.sustine = state.sustine;
+    this.tll = state.tll;
+    this.rks = state.rks;
+    this.egMode = state.egMode;
+    this.egPhase = state.egPhase;
+    this.egDphase = state.egDphase;
+    this.egout = state.egout;
+
+    this.sintbl = waveform[this.sintblIdx];
+  }
 
   public type = false;
   public patches = new Array<Patch>(0);
@@ -581,6 +673,24 @@ class Channel {
 
   public keyOff(): void {
     if (this.car.slotOnFlag) this.car.slotOff();
+  }
+  
+  public getState(): any {
+    let state: any = {};
+
+    state.patchNumber = this.patchNumber;
+
+    state.mod = this.mod.getState();
+    state.car = this.car.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.patchNumber = state.patchNumber;
+
+    this.mod.setState(state.mod);
+    this.car.setState(state.car);
   }
 
   public patches = new Array<Patch>(1);
@@ -1165,6 +1275,54 @@ export class Ym2413 extends AudioDevice {
     }
   }
   
+  public getState(): any {
+    let state: any = {};
+
+    state.maxVolume = this.maxVolume;
+    state.internalMuted = this.internalMuted;
+    state.reg = SaveState.getArrayState(this.reg);
+
+    state.pmPhase = this.pmPhase;
+    state.lfoPm = this.lfoPm;
+    state.amPhase = this.amPhase;
+    state.lfoAm = this.lfoAm;
+    state.noiseSeed = this.noiseSeed;
+
+    state.in = SaveState.getArrayState(this.in);
+
+    state.ch = []
+    for (let i = 0; i < this.ch.length; i++) {
+      state.ch[i] = this.ch[i].getState();
+    }
+    state.patches = []
+    for (let i = 0; i < this.patches.length; i++) {
+      state.patches[i] = this.patches[i].getState();
+    }
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.maxVolume = this.maxVolume;
+    this.internalMuted = this.internalMuted;
+    this.reg = SaveState.getArrayState(this.reg);
+
+    this.pmPhase = state.pmPhase;
+    this.lfoPm = state.lfoPm;
+    this.amPhase = state.amPhase;
+    this.lfoAm = state.lfoAm;
+    this.noiseSeed = state.noiseSeed;
+
+    SaveState.setArrayState(this.in, state.in);
+
+    for (let i = 0; i < this.ch.length; i++) {
+      this.ch[i].setState(state.ch[i]);
+    }
+    for (let i = 0; i < this.patches.length; i++) {
+      this.patches[i].setState(state.patches[i]);
+    }
+  }
+
   private maxVolume = 0;
   private internalMuted = false;
   private reg = new Uint8Array(0x40);

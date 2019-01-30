@@ -21,6 +21,8 @@ import { Disk, DiskError } from './disk';
 import { Board } from '../core/board';
 import { LedType } from '../core/ledmanager';
 import { Timer } from '../core/timeoutmanager';
+import { SaveState } from '../core/savestate';
+
 
 enum Command {
   UNKNOWN,
@@ -95,13 +97,13 @@ export class Tc8566af {
     private diskManager: DiskManager,
     private board: Board
   ) {
-    this.disk = this.diskManager.getFloppyDisk(0);
+    this.disk = this.diskManager.getFloppyDisk(this.diskNo = 0);
 
     this.timer = this.board.getTimeoutManager().createTimer('TC8566AF RQM timer', this.onTimer.bind(this));
   }
 
   public reset() {
-    this.disk = this.diskManager.getFloppyDisk(0);
+    this.disk = this.diskManager.getFloppyDisk(this.diskNo = 0);
 
     this.mainStatus = STM_NDM | STM_RQM;
 
@@ -167,7 +169,7 @@ export class Tc8566af {
   public writeRegister(reg: number, value: number): void {
     switch (reg) {
       case 2:
-        this.disk = this.diskManager.getFloppyDisk(value & 0x03);
+        this.disk = this.diskManager.getFloppyDisk(this.diskNo = value & 0x03);
 
         this.board.getLedManager().getLed(LedType.FDD1).set((value & 0x10) != 0 && this.diskManager.getFloppyDisk(0).isEnabled());
         this.board.getLedManager().getLed(LedType.FDD2).set((value & 0x20) != 0 && this.diskManager.getFloppyDisk(1).isEnabled());
@@ -520,7 +522,72 @@ export class Tc8566af {
     }
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.mainStatus = this.mainStatus;
+    state.status0 = this.status0;
+    state.status1 = this.status1;
+    state.status2 = this.status2;
+    state.status3 = this.status3;
+    state.commandCode = this.commandCode;
+
+    state.command = this.command;
+    state.phase = this.phase;
+    state.phaseStep = this.phaseStep;
+
+    state.fillerByte = this.fillerByte;
+
+    state.cylinderNumber = this.cylinderNumber;
+    state.side = this.side;
+    state.sectorNumber = this.sectorNumber;
+    state.number = this.number;
+    state.currentTrack = this.currentTrack;
+    state.sectorsPerCylinder = this.sectorsPerCylinder;
+
+    state.sectorOffset = this.sectorOffset;
+    state.dataTransferTime = this.dataTransferTime;
+
+    state.sectorBuf = SaveState.getArrayState(this.sectorBuf);
+
+    state.timer = this.timer.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.mainStatus = state.mainStatus;
+    this.status0 = state.status0;
+    this.status1 = state.status1;
+    this.status2 = state.status2;
+    this.status3 = state.status3;
+    this.commandCode = state.commandCode;
+
+    this.command = state.command;
+    this.phase = state.phase;
+    this.phaseStep = state.phaseStep;
+
+    this.fillerByte = state.fillerByte;
+
+    this.cylinderNumber = state.cylinderNumber;
+    this.side = state.side;
+    this.sectorNumber = state.sectorNumber;
+    this.number = state.number;
+    this.currentTrack = state.currentTrack;
+    this.sectorsPerCylinder = state.sectorsPerCylinder;
+
+    this.sectorOffset = state.sectorOffset;
+    this.dataTransferTime = state.dataTransferTime;
+
+    SaveState.setArrayState(this.sectorBuf, state.sectorBuf);
+
+    this.timer.setState(state.timer);
+
+    this.disk = this.diskManager.getFloppyDisk(this.diskNo);
+  }
+
   private disk: Disk;
+  private diskNo = 0;
 
   private timer: Timer;
 

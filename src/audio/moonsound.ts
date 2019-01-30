@@ -20,6 +20,7 @@ import { Board } from '../core/board';
 import { AudioDevice } from '../core/audiomanager';
 import { Ymf278 } from '../audio/ymf278';
 import { Ymf262 } from '../audio/ymf262';
+import { SaveState } from '../core/savestate';
 
 export class Moonsound extends AudioDevice {
   constructor(
@@ -112,6 +113,26 @@ export class Moonsound extends AudioDevice {
       audioBufferLeft[i] = (ymf262Buffers[0][i] + ymf278Buffers[0][i]) / 180000;
       audioBufferRight[i] = (ymf262Buffers[1][i] + ymf278Buffers[1][i]) / 180000;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.ymf278 = this.ymf278.getState();
+    state.ymf262 = this.ymf262.getState();
+
+    state.opl3latch = this.opl3latch;
+    state.opl4latch = this.opl4latch;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.ymf278.setState(state.ymf278);
+    this.ymf262.setState(state.ymf262);
+
+    this.opl3latch = state.opl3latch;
+    this.opl4latch = state.opl4latch;
   }
 
   private ymf278: Ymf278;

@@ -18,7 +18,7 @@
 
 import { AudioDevice } from '../core/audiomanager';
 import { Board } from '../core/board';
-import { Port } from '../core/iomanager';
+import { SaveState } from '../core/savestate';
 
 export class KeyClick extends AudioDevice {
   constructor(
@@ -49,6 +49,22 @@ export class KeyClick extends AudioDevice {
     for (let index = 0; index < count; index++) {
       audioBuffer[index++] = this.sampleVolume;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.sampleVolume = this.sampleVolume;
+    state.sampleVolumeSum = this.sampleVolumeSum;
+    state.count = this.count;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.sampleVolume = state.sampleVolume;
+    this.sampleVolumeSum = state.sampleVolumeSum;
+    this.count = state.count;
   }
 
   private sampleVolume = 0;

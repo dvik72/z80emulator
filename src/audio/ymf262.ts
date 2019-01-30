@@ -18,7 +18,7 @@
 
 import { Board, InterruptVector } from '../core/board';
 import { Timer } from '../core/timeoutmanager';
-import { LedType } from '../core/ledmanager';
+import { SaveState } from '../core/savestate';
 
 const R04_ST1 = 0x01;	// Timer1 Start
 const R04_ST2 = 0x02;	// Timer2 Start
@@ -518,6 +518,90 @@ class Slot {
     }
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.ar = this.ar;
+    state.dr = this.dr;
+    state.rr = this.rr;
+    state.KSR = this.KSR;
+    state.ksl = this.ksl;
+    state.ksr = this.ksr;
+    state.mul = this.mul;
+
+    state.Cnt = this.Cnt;
+    state.Incr = this.Incr;
+    state.FB = this.FB;
+    state.op1_out = SaveState.getArrayState(this.op1_out);
+    state.CON = this.CON;
+    
+    state.eg_type = this.eg_type;
+    state.state = this.state;
+    state.TL = this.TL;
+    state.TLL = this.TLL;
+    state.volume = this.volume;
+    state.sl = this.sl;
+
+    state.eg_m_ar = this.eg_m_ar;
+    state.eg_sh_ar = this.eg_sh_ar;
+    state.eg_sel_ar = this.eg_sel_ar;
+    state.eg_m_dr = this.eg_m_dr;
+    state.eg_sh_dr = this.eg_sh_dr;
+    state.eg_sel_dr = this.eg_sel_dr;
+    state.eg_m_rr = this.eg_m_rr;
+    state.eg_sh_rr = this.eg_sh_rr;
+    state.eg_sel_rr = this.eg_sel_rr;
+
+    state.key = this.key;
+
+    state.waveform_number = this.waveform_number;
+    state.wavetable = this.wavetable;
+
+    state.connect = this.connect;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.ar = state.ar;
+    this.dr = state.dr;
+    this.rr = state.rr;
+    this.KSR = state.KSR;
+    this.ksl = state.ksl;
+    this.ksr = state.ksr;
+    this.mul = state.mul;
+
+    this.Cnt = state.Cnt;
+    this.Incr = state.Incr;
+    this.FB = state.FB;
+    SaveState.setArrayState(this.op1_out, state.op1_out);
+    this.CON = state.CON;
+
+    this.eg_type = state.eg_type;
+    this.state = state.state;
+    this.TL = state.TL;
+    this.TLL = state.TLL;
+    this.volume = state.volume;
+    this.sl = state.sl;
+
+    this.eg_m_ar = state.eg_m_ar;
+    this.eg_sh_ar = state.eg_sh_ar;
+    this.eg_sel_ar = state.eg_sel_ar;
+    this.eg_m_dr = state.eg_m_dr;
+    this.eg_sh_dr = state.eg_sh_dr;
+    this.eg_sel_dr = state.eg_sel_dr;
+    this.eg_m_rr = state.eg_m_rr;
+    this.eg_sh_rr = state.eg_sh_rr;
+    this.eg_sel_rr = state.eg_sel_rr;
+
+    this.key = state.key;
+
+    this.waveform_number = state.waveform_number;
+    this.wavetable = state.wavetable;
+
+    this.connect = state.connect;
+  }
+
   public ar = 0;	// attack rate: AR<<2
   public dr = 0;	// decay rate:  DR<<2
   public rr = 0;	// release rate:RR<<2
@@ -635,6 +719,37 @@ class Channel {
       slot.eg_m_rr = (1 << slot.eg_sh_rr) - 1;
       slot.eg_sel_rr = eg_rate_select[slot.rr + slot.ksr];
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.slots = [];
+    for (let i = 0; i < this.slots.length; i++) {
+      state.slots[i] = this.slots[i].getState();
+    }
+
+    state.block_fnum = this.block_fnum;
+    state.fc = this.fc;
+    state.ksl_base = this.ksl_base;
+    state.kcode = this.kcode;
+
+    state.extended = this.extended;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    for (let i = 0; i < this.slots.length; i++) {
+      this.slots[i].setState(state.slots[i]);
+    }
+
+    this.block_fnum = state.block_fnum;
+    this.fc = state.fc;
+    this.ksl_base = state.ksl_base;
+    this.kcode = state.kcode;
+
+    this.extended = state.extended;
   }
 
   public slots = [new Slot(), new Slot()];
@@ -1961,6 +2076,101 @@ export class Ymf262 {
   private onTimer2(): void {
     this.setStatus(STATUS_T2);
     this.timer2.addTimeout(this.board.getSystemFrequency() / 12380 * this.timer2Period);
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.timer1 = this.timer1.getState();
+    state.timer2 = this.timer2.getState();
+
+    state.timer1Period = this.timer1Period;
+    state.timer2Period = this.timer2Period;
+
+    state.channels = []
+    for (let i = 0; i < this.channels.length; i++) {
+      state.channels[i] = this.channels[i].getState();
+    }
+
+    state.reg = SaveState.getArrayState(this.reg);
+    state.pan = SaveState.getArrayState(this.pan);
+
+    state.eg_cnt = this.eg_cnt;
+    state.eg_timer = this.eg_timer;
+    state.eg_timer_add = this.eg_timer_add;
+
+    state.fn_tab = SaveState.getArrayState(this.fn_tab);
+
+    state.LFO_AM = this.LFO_AM;
+    state.LFO_PM = this.LFO_PM;
+
+    state.lfo_am_depth = this.lfo_am_depth;
+    state.lfo_pm_depth_range = this.lfo_pm_depth_range;
+    state.lfo_am_cnt = this.lfo_am_cnt;
+    state.lfo_am_inc = this.lfo_am_inc;
+    state.lfo_pm_cnt = this.lfo_pm_cnt;
+    state.lfo_pm_inc = this.lfo_pm_inc;
+
+    state.noise_rng = this.noise_rng;
+    state.noise_p = this.noise_p;
+    state.noise_f = this.noise_f;
+
+    state.OPL3_mode = this.OPL3_mode;
+    state.rhythm = this.rhythm;
+    state.nts = this.nts;
+
+    state.status = this.status;
+    state.status2 = this.status2;
+    state.statusMask = this.statusMask;
+
+    state.internalMute = this.internalMute;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timer1.setState(state.timer1);
+    this.timer2.setState(state.timer2);
+
+    state.timer1Period = state.timer1Period;
+    state.timer2Period = state.timer2Period;
+    
+    for (let i = 0; i < this.channels.length; i++) {
+      this.channels[i].setState(state.channels[i]);
+    }
+
+    SaveState.setArrayState(this.reg, state.reg);
+    SaveState.setArrayState(this.pan, state.pan);
+
+    this.eg_cnt = state.eg_cnt;
+    this.eg_timer = state.eg_timer;
+    this.eg_timer_add = state.eg_timer_add;
+
+    SaveState.setArrayState(this.fn_tab, state.fn_tab);
+
+    this.LFO_AM = state.LFO_AM;
+    this.LFO_PM = state.LFO_PM;
+
+    this.lfo_am_depth = state.lfo_am_depth;
+    this.lfo_pm_depth_range = state.lfo_pm_depth_range;
+    this.lfo_am_cnt = state.lfo_am_cnt;
+    this.lfo_am_inc = state.lfo_am_inc;
+    this.lfo_pm_cnt = state.lfo_pm_cnt;
+    this.lfo_pm_inc = state.lfo_pm_inc;
+
+    this.noise_rng = state.noise_rng;
+    this.noise_p = state.noise_p;
+    this.noise_f = state.noise_f;
+
+    this.OPL3_mode = state.OPL3_mode;
+    this.rhythm = state.rhythm;
+    this.nts = state.nts;
+
+    this.status = state.status;
+    this.status2 = state.status2;
+    this.statusMask = state.statusMask;
+
+    this.internalMute = state.internalMute;
   }
 
   private timer1: Timer;

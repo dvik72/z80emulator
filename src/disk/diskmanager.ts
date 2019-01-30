@@ -17,6 +17,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Disk } from './disk';
+import { SaveState } from '../core/savestate';
+
 
 export class DiskManager {
   public constructor() {
@@ -43,6 +45,23 @@ export class DiskManager {
 
   public ejectFloppyImage(index: number): void {
     this.floppyDisks[index].unload();
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.floppyDisks = [];
+    for (let i = 0; i < this.floppyDisks.length; i++) {
+      state.floppyDisks[i] = this.floppyDisks[i].getState();
+    }
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    for (let i = 0; i < this.floppyDisks.length; i++) {
+      this.floppyDisks[i].setState(state.floppyDisks[i]);
+    }
   }
 
   private floppyDisks = new Array<Disk>(4);

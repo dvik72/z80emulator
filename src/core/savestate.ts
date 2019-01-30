@@ -27,7 +27,7 @@ export class SaveState {
 
   public setState(state: any): void {
   }
-  
+ 
   public static getArrayState(array: Uint8Array | Uint16Array | Array<number> | Array<boolean>): any {
     let state = [];
 

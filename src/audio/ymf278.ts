@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { Board } from '../core/board';
+import { SaveState } from '../core/savestate';
 
 
 const EG_SH = 16;	// 16.16 fixed point (EG timing)
@@ -266,6 +267,94 @@ class Slot {
 
     this.lfo = newlfo;
     this.lfo_max = lfo_period[this.lfo | 0];
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.wave = this.wave;
+    state.FN = this.FN;
+    state.OCT = this.OCT;
+    state.PRVB = this.PRVB;
+    state.LD = this.LD;
+    state.TL = this.TL;
+    state.pan = this.pan;
+    state.lfo = this.lfo;
+    state.vib = this.vib;
+    state.AM = this.AM;
+
+    state.AR = this.AR;
+    state.D1R = this.D1R;
+    state.DL = this.DL;
+    state.D2R = this.D2R;
+    state.RC = this.RC;
+    state.RR = this.RR;
+
+    state.step = this.step;
+    state.stepptr = this.stepptr;
+    state.pos = this.pos;
+    state.sample1 = this.sample1;
+    state.sample2 = this.sample2;
+
+    state.active = this.active;
+    state.bits = this.bits;
+    state.startaddr = this.startaddr;
+    state.loopaddr = this.loopaddr;
+    state.endaddr = this.endaddr;
+
+    state.state = this.state;
+    state.env_vol = this.env_vol;
+    state.env_vol_step = this.env_vol_step;
+    state.env_vol_lim = this.env_vol_lim;
+
+    state.lfo_active = this.lfo_active;
+    state.lfo_cnt = this.lfo_cnt;
+    state.lfo_step = this.lfo_step;
+    state.lfo_max = this.lfo_max;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.wave = state.wave;
+    this.FN = state.FN;
+    this.OCT = state.OCT;
+    this.PRVB = state.PRVB;
+    this.LD = state.LD;
+    this.TL = state.TL;
+    this.pan = state.pan;
+    this.lfo = state.lfo;
+    this.vib = state.vib;
+    this.AM = state.AM;
+
+    this.AR = state.AR;
+    this.D1R = state.D1R;
+    this.DL = state.DL;
+    this.D2R = state.D2R;
+    this.RC = state.RC;
+    this.RR = state.RR;
+
+    this.step = state.step;
+    this.stepptr = state.stepptr;
+    this.pos = state.pos;
+    this.sample1 = state.sample1;
+    this.sample2 = state.sample2;
+
+    this.active = state.active;
+    this.bits = state.bits;
+    this.startaddr = state.startaddr;
+    this.loopaddr = state.loopaddr;
+    this.endaddr = state.endaddr;
+
+    this.state = state.state;
+    this.env_vol = state.env_vol;
+    this.env_vol_step = state.env_vol_step;
+    this.env_vol_lim = state.env_vol_lim;
+
+    this.lfo_active = state.lfo_active;
+    this.lfo_cnt = state.lfo_cnt;
+    this.lfo_step = state.lfo_step;
+    this.lfo_max = state.lfo_max;
   }
 
   public wave = 0;		// wavetable number
@@ -913,6 +1002,68 @@ export class Ymf278 {
     slot.sample2 = this.getSample(slot);
   }
   
+  public getState(): any {
+    let state: any = {};
+
+    state.eg_cnt = this.eg_cnt;
+    state.eg_timer = this.eg_timer;
+    state.eg_timer_add = this.eg_timer_add;
+
+    state.wavetblhdr = this.wavetblhdr;
+    state.memmode = this.memmode;
+    state.memadr = this.memadr;
+
+    state.fm_l = this.fm_l;
+    state.fm_r = this.fm_r;
+    state.pcm_l = this.pcm_l;
+    state.pcm_r = this.pcm_r;
+
+    state.LD_Time = this.LD_Time;
+    state.BUSY_Time = this.BUSY_Time;
+    state.BUSY_Time_Length = this.BUSY_Time_Length;
+
+    state.internalMute = this.internalMute;
+
+    state.ram = SaveState.getArrayState(this.ram);
+    state.regs = SaveState.getArrayState(this.regs);
+
+    state.slots = []
+    for (let i = 0; i < this.slots.length; i++) {
+      state.slots[i] = this.slots[i].getState();
+    }
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.eg_cnt = state.eg_cnt;
+    this.eg_timer = state.eg_timer;
+    this.eg_timer_add = state.eg_timer_add;
+
+    this.wavetblhdr = state.wavetblhdr;
+    this.memmode = state.memmode;
+    this.memadr = state.memadr;
+
+    this.fm_l = state.fm_l;
+    this.fm_r = state.fm_r;
+    this.pcm_l = state.pcm_l;
+    this.pcm_r = state.pcm_r;
+
+    this.LD_Time = state.LD_Time;
+    this.BUSY_Time = state.BUSY_Time;
+    this.BUSY_Time_Length = state.BUSY_Time_Length;
+
+    this.internalMute = state.internalMute;
+
+    SaveState.setArrayState(this.ram, state.ram);
+    SaveState.setArrayState(this.regs, state.regs);
+
+    for (let i = 0; i < this.slots.length; i++) {
+      this.slots[i].setState(state.slots[i]);
+    }
+
+  }
+
   private ram: Uint8Array;
 
   private freqbase = 0;
@@ -922,7 +1073,6 @@ export class Ymf278 {
   private eg_cnt = 0; // global envelope generator counter
   private eg_timer = 0; // global envelope generator counter
   private eg_timer_add = 0;  // step of eg_timer
-  private eg_timer_overflow = 0; // envelope generator timer overlfows every 1 sample (on real chip)
 
   private wavetblhdr = 0;
   private memmode = 0;
@@ -936,7 +1086,6 @@ export class Ymf278 {
   // precalculated attenuation values with some marging for
   // enveloppe and pan levels
   private volume = new Float32Array(256 * 4);
-
   
   private regs = new Uint8Array(256);
 

@@ -16,6 +16,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { SaveState } from '../core/savestate';
+
+
 const MAXSECTOR = 2 * 9 * 81;
 
 const SVI328_CPM80_TRACK = [0, 0, 0, 0, 0, 0, 0]; // TODO: Should be: 'CP/M-80'
@@ -438,6 +441,32 @@ export class Disk {
           this.sides = 2;
       }
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.changed = this.changed;
+    state.enabled = this.enabled;
+    state.sectorsPerTrack = this.sectorsPerTrack;
+    state.sectorSize = this.sectorSize;
+    state.sides = this.sides;
+    state.tracks = this.tracks;
+    state.type = this.type;
+    state.maxSector = this.maxSector;
+
+    return state;
+  }
+  
+  public setState(state: any): void {
+    this.changed = state.changed;
+    this.enabled = state.enabled;
+    this.sectorsPerTrack = state.sectorsPerTrack;
+    this.sectorSize = state.sectorSize;
+    this.sides = state.sides;
+    this.tracks = state.tracks;
+    this.type = state.type;
+    this.maxSector = state.maxSector;
   }
 
   private changed = true;
