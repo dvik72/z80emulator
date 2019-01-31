@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
+import { SaveState } from '../core/savestate';
 
 
 export class MapperSramMatsuchita extends Mapper {
@@ -92,6 +93,28 @@ export class MapperSramMatsuchita extends Mapper {
         this.address = (this.address + 1) & 0x1fff;
         return;
     }	
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.address = this.address;
+    state.color1 = this.color1;
+    state.color2 = this.color2;
+    state.pattern = this.pattern;
+
+    state.sram = SaveState.getArrayState(this.sram);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.address = state.address;
+    this.color1 = state.color1;
+    this.color2 = state.color2;
+    this.pattern = state.pattern;
+
+    SaveState.setArrayState(this.sram, state.sram);
   }
 
   private address = 0;

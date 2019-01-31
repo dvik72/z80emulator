@@ -19,6 +19,7 @@
 import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
+import { SaveState } from '../core/savestate';
 
 const SRAM_BASE = 0x80;
 const RAM_BASE = 0x180;
@@ -188,6 +189,29 @@ export class MapperRomPanasonic extends Mapper {
     }
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.control = this.control;
+
+    state.sram = SaveState.getArrayOfArrayState(this.sram);
+    state.romMapper = SaveState.getArrayState(this.romMapper);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.control = state.control;
+
+    SaveState.setArrayOfArrayState(this.sram, state.sram);
+    SaveState.setArrayState(this.romMapper, state.romMapper);
+
+    for (let i = 0; i < 8; i++) {
+      const romMapper = this.romMapper[i];
+      this.romMapper[i] = -1;
+      this.changeBank(i, romMapper);
+    }
+  }
 
   private sram: Array<Uint8Array>;
   private maxSRAMBank = 0;

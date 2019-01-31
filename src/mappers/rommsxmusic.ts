@@ -21,6 +21,7 @@ import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 import { Slot } from '../core/slotmanager';
 import { Ym2413 } from '../audio/ym2413';
+import { SaveState } from '../core/savestate';
 
 export class MapperMsxMusic extends Mapper {
   static NAME = 'MSX MUsic';
@@ -58,6 +59,15 @@ export class MapperMsxMusic extends Mapper {
         this.ym2413.writeReg(this.latch, value);
         break;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    return state;
+  }
+
+  public setState(state: any): void {
   }
 
   private ym2413: Ym2413;

@@ -21,6 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { DiskManager } from '../disk/diskmanager';
 import { Tc8566af } from '../disk/tc8566af';
+import { SaveState } from '../core/savestate';
 
 export enum Tc8566AfIo { MSX2, MSXTR };
 
@@ -131,6 +132,24 @@ export class MapperRomTc8566af extends Mapper {
         }
         break;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.mappedPage = this.mappedPage;
+
+    state.tc8566af = this.tc8566af.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.mappedPage = state.mappedPage;
+
+    this.tc8566af.setState(state.tc8566af);
+
+    this.slotInfo[0].map(true, false, this.pages[2 * this.mappedPage]);
   }
 
   private tc8566af: Tc8566af;

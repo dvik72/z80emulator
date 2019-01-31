@@ -18,6 +18,7 @@
 
 import { Counter, Timer } from '../core/timeoutmanager';
 import { Board } from '../core/board';
+import { SaveState } from '../core/savestate';
 
 enum Phase { NONE, LOW, HI };
 
@@ -322,6 +323,66 @@ class InternalCounter {
     this.outputLatched = true;
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.countingElement = this.countingElement;
+    state.outputLatch = this.outputLatch;
+    state.countRegister = this.countRegister;
+    state.controlWord = this.controlWord;
+    state.statusLatch = this.statusLatch;
+
+    state.outputLatched = this.outputLatched;
+    state.statusLatched = this.statusLatched;
+    state.readPhase = this.readPhase;
+    state.writePhase = this.writePhase;
+    state.mode = this.mode;
+    state.gate = this.gate;
+
+    state.counterLatched = this.counterLatched;
+
+    state.outputState = this.outputState;
+
+    state.outPhase = this.outPhase;
+    state.endOutPhase1 = this.endOutPhase1;
+    state.endOutPhase2 = this.endOutPhase2;
+
+    state.insideTimerLoop = this.insideTimerLoop;
+
+    state.counter = this.counter.getState();
+    state.timer = this.timer.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.countingElement = state.countingElement;
+    this.outputLatch = state.outputLatch;
+    this.countRegister = state.countRegister;
+    this.controlWord = state.controlWord;
+    this.statusLatch = state.statusLatch;
+
+    this.outputLatched = state.outputLatched;
+    this.statusLatched = state.statusLatched;
+    this.readPhase = state.readPhase;
+    this.writePhase = state.writePhase;
+    this.mode = state.mode;
+    this.gate = state.gate;
+
+    this.counterLatched = state.counterLatched;
+
+    this.outputState = state.outputState;
+
+    this.outPhase = state.outPhase;
+    this.endOutPhase1 = state.endOutPhase1;
+    this.endOutPhase2 = state.endOutPhase2;
+
+    this.insideTimerLoop = state.insideTimerLoop;
+
+    this.counter.setState(state.counter);
+    this.timer.setState(state.timer);
+  }
+
   private countingElement = 0;
   private outputLatch = 0;
   private countRegister = 0;
@@ -416,6 +477,22 @@ export class I8254 {
 
   public setGate(counter: I8254Counter, state: boolean): void {
     this.counters[counter].setGate(state);
+  }
+  public getState(): any {
+    let state: any = {};
+
+    state.counters = []
+    for (let i = 0; i < this.counters.length; i++) {
+      state.counters[i] = this.counters[i].getState();
+    }
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    for (let i = 0; i < this.counters.length; i++) {
+      this.counters[i].setState(state.counters[i]);
+    }
   }
 
   private counters = new Array<InternalCounter>(3);

@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Counter } from '../core/timeoutmanager';
 import { Port } from '../core/iomanager';
+import { SaveState } from '../core/savestate';
 
 export class MapperTurboRTimer extends Mapper {
   constructor(private board: Board) {
@@ -49,6 +50,18 @@ export class MapperTurboRTimer extends Mapper {
 
   private write(port: number, value: number): void {
     this.counter.reset();
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.counter = this.counter.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.counter.setState(state.counter);
   }
 
   private counter: Counter;

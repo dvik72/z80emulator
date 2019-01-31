@@ -18,6 +18,7 @@
 
 import { Timer } from '../core/timeoutmanager';
 import { Board } from '../core/board';
+import { SaveState } from '../core/savestate';
 
 const STAT_TXRDY = 0x01;
 const STAT_RXRDY = 0x02;
@@ -348,6 +349,76 @@ export class I8251 {
         this.board.getSystemFrequency() * this.charLength / this.frequency | 0;
       this.timerTrans.setTimeout(this.timeTrans);
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.timeRecv = this.timeRecv;
+    state.timeRxPoll = this.timeRxPoll;
+    state.timeTrans = this.timeTrans;
+
+    state.status = this.status;
+    state.command = this.command;
+    state.mode = this.mode;
+    state.sync1 = this.sync1;
+    state.sync2 = this.sync2;
+    state.charLength = this.charLength;
+    state.cmdFaze = this.cmdFaze;
+
+    state.dataBits = this.dataBits;
+    state.stopBits = this.stopBits;
+    state.parityEnabled = this.parityEnabled;
+    state.parity = this.parity;
+    state.recvBuf = this.recvBuf;
+    state.recvReady = this.recvReady;
+    state.sendByte = this.sendByte;
+    state.sendBuffer = this.sendBuffer;
+    state.sendBuffered = this.sendBuffered;
+
+    state.rxPending = this.rxPending;
+    state.rxHead = this.rxHead;
+
+    state.rxQueue = SaveState.getArrayState(this.rxQueue);
+
+    state.timerRecv = this.timerRecv.getState();
+    state.timerRxPoll = this.timerRxPoll.getState();
+    state.timerTrans = this.timerTrans.getState();
+    
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timeRecv = state.timeRecv;
+    this.timeRxPoll = state.timeRxPoll;
+    this.timeTrans = state.timeTrans;
+
+    this.status = state.status;
+    this.command = state.command;
+    this.mode = state.mode;
+    this.sync1 = state.sync1;
+    this.sync2 = state.sync2;
+    this.charLength = state.charLength;
+    this.cmdFaze = state.cmdFaze;
+
+    this.dataBits = state.dataBits;
+    this.stopBits = state.stopBits;
+    this.parityEnabled = state.parityEnabled;
+    this.parity = state.parity;
+    this.recvBuf = state.recvBuf;
+    this.recvReady = state.recvReady;
+    this.sendByte = state.sendByte;
+    this.sendBuffer = state.sendBuffer;
+    this.sendBuffered = state.sendBuffered;
+
+    this.rxPending = state.rxPending;
+    this.rxHead = state.rxHead;
+
+    SaveState.setArrayState(this.rxQueue, state.rxQueue);
+
+    this.timerRecv.setState(state.timerRecv);
+    this.timerRxPoll.setState(state.timerRxPoll);
+    this.timerTrans.setState(state.timerTrans);
   }
 
   private timeRecv = 0;

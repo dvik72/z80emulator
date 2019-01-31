@@ -19,6 +19,7 @@
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 import { Counter } from '../core/timeoutmanager';
+import { SaveState } from '../core/savestate';
 
 
 const MASK = [
@@ -194,6 +195,52 @@ export class Rtc {
     this.leapYear = (this.leapYear + carryYears) % 4;
 
     this.setRegisters();
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.modeReg = this.modeReg;
+    state.testReg = this.testReg;
+    state.resetReg = this.resetReg;
+    state.fraction = this.fraction;
+    state.seconds = this.seconds;
+    state.minutes = this.minutes;
+    state.hours = this.hours;
+    state.dayWeek = this.dayWeek;
+    state.days = this.days;
+    state.months = this.months;
+    state.years = this.years;
+    state.leapYear = this.leapYear;
+
+    state.latch = this.latch;
+
+    state.registers = SaveState.getArrayOfArrayState(this.registers);
+
+    state.counter = this.counter.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.modeReg = state.modeReg;
+    this.testReg = state.testReg;
+    this.resetReg = state.resetReg;
+    this.fraction = state.fraction;
+    this.seconds = state.seconds;
+    this.minutes = state.minutes;
+    this.hours = state.hours;
+    this.dayWeek = state.dayWeek;
+    this.days = state.days;
+    this.months = state.months;
+    this.years = state.years;
+    this.leapYear = state.leapYear;
+
+    this.latch = this.latch;
+
+    SaveState.setArrayOfArrayState(this.registers, state.registers);
+
+    this.counter.setState(state.counter);
   }
 
   private modeReg = MODE_TIMERENABLE;

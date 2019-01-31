@@ -21,6 +21,7 @@ import { Board } from '../core/board';
 import { Counter } from '../core/timeoutmanager';
 import { Port } from '../core/iomanager';
 import { Dac } from '../audio/dac';
+import { SaveState } from '../core/savestate';
 
 export class MapperTurboRPcm extends Mapper {
   constructor(private board: Board) {
@@ -68,6 +69,26 @@ export class MapperTurboRPcm extends Mapper {
         this.board.getAudioManager().setEnable((this.status & 2) != 0);
         break;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.status = this.status;
+    state.sample = this.sample;
+
+    state.counter = this.counter.getState();
+    state.dac = this.dac.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.status = state.status;
+    this.sample = state.sample;
+
+    this.counter.setState(state.counter);
+    this.dac.setState(state.dac);
   }
 
   private status = 0;

@@ -21,6 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { DiskManager } from '../disk/diskmanager';
 import { Wd2793, Wd2793Type } from '../disk/wd2793';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomPhilipsFdc extends Mapper {
   static NAME = 'Philips WD2793';
@@ -115,6 +116,24 @@ export class MapperRomPhilipsFdc extends Mapper {
         }
         break;
     }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.sideReg = this.sideReg;
+    state.driveReg = this.driveReg;
+
+    state.wd2793 = this.wd2793.getState();
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.sideReg = state.sideReg;
+    this.driveReg = state.driveReg
+
+    this.wd2793.setState(state.wd2793);
   }
 
   private wd2793: Wd2793;

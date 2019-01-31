@@ -21,6 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { Port } from '../core/iomanager';
 import { Y8950 } from '../audio/y8950';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomMsxAudio extends Mapper {
   static NAME = 'MSX Audio';
@@ -106,6 +107,15 @@ export class MapperRomMsxAudio extends Mapper {
   }
 
   private writeMidiIo(port: number, value: number): void {
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    return state;
+  }
+
+  public setState(state: any): void {
   }
 
   private slotInfo = new Array<Slot>(8);

@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 import { Z80Mode } from '../z80/z80';
+import { SaveState } from '../core/savestate';
 
 export class MapperS1990 extends Mapper {
   constructor(private board: Board) {
@@ -81,6 +82,21 @@ export class MapperS1990 extends Mapper {
     this.board.getZ80().setMode((this.cpuStatus & 0x20) ? Z80Mode.Z80 : Z80Mode.R800);
     const dramManager = this.board.getDramManager();
     dramManager && dramManager.setDram((this.cpuStatus & 0x40) == 0);
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.cpuStatus = this.cpuStatus;
+    state.registerSelect = this.registerSelect;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.registerSelect = state.registerSelect;
+
+    this.updateStatus(+state.cpuStatus);
   }
 
   private cpuStatus = 0;

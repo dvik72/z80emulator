@@ -21,6 +21,7 @@ import { Board } from '../core/board';
 import { Slot } from '../core/slotmanager';
 import { RamMapper, RamManager } from '../core/rammanager';
 import { DramMapper } from '../core/drammanager';
+import { SaveState } from '../core/savestate';
 
 
 export class MapperRamMapped extends Mapper {
@@ -85,6 +86,30 @@ export class MapperRamMapped extends Mapper {
     else {
       this.slotInfo[2 * bank].map(true, true, this.pages[2 * value]);
       this.slotInfo[2 * bank + 1].map(true, true, this.pages[2 * value + 1]);
+    }
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    state.mask = this.mask;
+    state.dramMode = this.dramMode;
+
+    state.pages = SaveState.getArrayOfArrayState(this.pages);
+    state.port = SaveState.getArrayState(this.port);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.mask = state.mask;
+    this.dramMode = state.dramMode;
+
+    SaveState.setArrayOfArrayState(this.pages, state.pages);
+    SaveState.setArrayState(this.port, state.port);
+
+    for (let i = 0; i < 4; i++) {
+      this.writeIo(i, this.port[i])
     }
   }
 

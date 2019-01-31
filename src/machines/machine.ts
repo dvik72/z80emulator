@@ -64,6 +64,13 @@ export abstract class Machine {
 
   public setState(state: any): void { }
 
+  protected getSubState(): any {
+    let state: any = {};
+    return state;
+  }
+
+  protected setSubState(state: any): void { }
+
   public dumpAsm(): void { }
 
   protected getSystemRom(romName: string): Uint8Array {

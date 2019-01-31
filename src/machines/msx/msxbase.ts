@@ -147,13 +147,6 @@ export abstract class MsxBase extends Machine {
     }
   }
 
-  protected getSubState(): any {
-    let state: any = {};
-    return state;
-  }
-
-  public setSubState(state: any): void { }
-
   // Board components
   private board: Board;
   private vdp?: Vdp;

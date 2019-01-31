@@ -21,6 +21,7 @@ import { Board, InterruptVector } from '../core/board';
 import { Port } from '../core/iomanager';
 import { I8251 } from './i8251';
 import { I8254 } from './i8254';
+import { SaveState } from '../core/savestate';
 
 export class MsxMidi {
   constructor(
@@ -221,6 +222,34 @@ export class MsxMidi {
     this.setTimerIrq(true); // Q: should it be state??
   }
 
+  public getState(): any {
+    let state: any = {};
+
+    state.timerIrqLatch = this.timerIrqLatch;
+    state.timerIrqEnabled = this.timerIrqEnabled;
+    state.rxRdyIrqLatch = this.rxRdyIrqLatch;
+    state.rxRdyIrqEnabled = this.rxRdyIrqEnabled;
+
+    state.i8251 = this.i8251.getState();
+    state.i8254 = this.i8254.getState();
+
+    state.ioStart = this.ioStart;
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.timerIrqLatch = state.timerIrqLatch;
+    this.timerIrqEnabled = state.timerIrqEnabled;
+    this.rxRdyIrqLatch = state.rxRdyIrqLatch;
+    this.rxRdyIrqEnabled = state.rxRdyIrqEnabled;
+
+    this.i8251.setState(state.i8251);
+    this.i8254.setState(state.i8254);
+
+    this.registerIoPorts(+state.ioStart);
+  }
+
   private ioStart = 0;
   private timerIrqLatch = false;
   private timerIrqEnabled = false;
@@ -229,5 +258,4 @@ export class MsxMidi {
 
   private i8251: I8251;
   private i8254: I8254;
-
 }

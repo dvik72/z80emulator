@@ -20,6 +20,7 @@ import { Mapper } from './mapper';
 import { Board } from '../core/board';
 import { Port } from '../core/iomanager';
 import { Moonsound } from '../audio/moonsound';
+import { SaveState } from '../core/savestate';
 
 export class MapperRomMoonsound extends Mapper {
   constructor(
@@ -54,6 +55,15 @@ export class MapperRomMoonsound extends Mapper {
 
   private write(port: number, value: number): void {
     this.moonsound.write(port, value);
+  }
+
+  public getState(): any {
+    let state: any = {};
+
+    return state;
+  }
+
+  public setState(state: any): void {
   }
 
   private moonsound: Moonsound;
