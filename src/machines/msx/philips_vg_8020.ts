@@ -21,7 +21,6 @@ import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 import { LedManager } from '../../core/ledmanager';
 
-import { Mapper } from '../../mappers/mapper';
 import { MapperRamNormal } from '../../mappers/ramnormal';
 import { MapperRomNormal } from '../../mappers/romnormal';
 
@@ -52,21 +51,7 @@ export class PhilipsVg8020 extends MsxBase {
     this.addCartridgeSlot(2);
 
     // Configure slots
-    new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('vg8020'));
-    this.ramNormal = new MapperRamNormal(this.getBoard(), 3, 0, 0, 0x10000);
+    this.addMapper(new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('vg8020')));
+    this.addMapper(new MapperRamNormal(this.getBoard(), 3, 0, 0, 0x10000));
   }
-  
-  protected getSubState(): any {
-    let state: any = {};
-
-    state.ramNormal = this.ramNormal!.getState();
-
-    return state;
-  }
-
-  public setSubState(state: any): void {
-    this.ramNormal!.setState(state.ramNormal);
-  }
-
-  private ramNormal?: Mapper;
 }

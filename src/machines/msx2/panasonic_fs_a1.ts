@@ -26,7 +26,6 @@ import { MapperRomNormal } from '../../mappers/romnormal';
 
 
 export class PanasonicFsA1 extends Msx2Base {
-
   static NAME = 'Panasonic FS-A1';
 
   public constructor(
@@ -50,10 +49,10 @@ export class PanasonicFsA1 extends Msx2Base {
     this.addCartridgeSlot(2);
 
     // Configure slots
-    new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('a1bios'));
-    new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('a1ext'));
-    new MapperRomNormal(this.getBoard(), 3, 2, 2, this.getSystemRom('a1desk1'));
-    new MapperRomNormal(this.getBoard(), 3, 3, 2, this.getSystemRom('a1desk2'));
-    new MapperRamNormal(this.getBoard(), 3, 0, 0, 0x10000);
+    this.addMapper(new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('a1bios')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('a1ext')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 2, 2, this.getSystemRom('a1desk1')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 3, 2, this.getSystemRom('a1desk2')));
+    this.addMapper(new MapperRamNormal(this.getBoard(), 3, 0, 0, 0x10000));
   }
 }

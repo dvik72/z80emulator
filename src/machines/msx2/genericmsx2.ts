@@ -21,6 +21,7 @@ import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 import { LedManager } from '../../core/ledmanager';
 
+
 import { MapperRamMapped } from '../../mappers/rammapped';
 import { MapperRomNormal } from '../../mappers/romnormal';
 import { MapperRomPhilipsFdc } from '../../mappers/romphilipsfdc';
@@ -52,10 +53,10 @@ export class GenericMsx2 extends Msx2Base {
     this.addCartridgeSlot(2);
 
     // Configure slots
-    new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('msx2bios'));
-    new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2ext'));
-    new MapperRomPhilipsFdc(this.getDiskManager(), this.getBoard(), 3, 1, this.getSystemRom('philipsdisk'));
-    new MapperRamMapped(this.getBoard(), 3, 2, 512 * 1024);
-    new MapperMsxMusic(this.getBoard(), 3, 3, this.getSystemRom('msx2pmus'));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('msx2bios')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2ext')));
+    this.addMapper(new MapperRomPhilipsFdc(this.getDiskManager(), this.getBoard(), 3, 1, this.getSystemRom('philipsdisk')));
+    this.addMapper(new MapperRamMapped(this.getBoard(), 3, 2, 512 * 1024));
+    this.addMapper(new MapperMsxMusic(this.getBoard(), 3, 3, this.getSystemRom('msx2pmus')));
   }
 }

@@ -55,18 +55,20 @@ export class GenericMsx2Plus extends Msx2PlusBase {
 
     // Machine specific hardware
     this.getBoard().getSlotManager().setSubslotted(0, true);
-    new MapperF4Device(this.getBoard(), true);
+
+    this.addMapper(new MapperF4Device(this.getBoard(), true));
 
     // Configure slots
-    new MapperKanji(this.getBoard(), this.getSystemRom('kanji'));
-    new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('msx2pbios'));
-    new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('msx2pmus'));
-    new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2pext'));
-    new MapperRomNormal(this.getBoard(), 3, 1, 2, this.getSystemRom('msxkanji'));
-    new MapperRomTc8566af(Tc8566AfIo.MSX2, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('panasonicdisk'));
-    new MapperRomNormal(this.getBoard(), 3, 3, 2, this.getSystemRom('xbasic'));
+    this.addMapper(new MapperKanji(this.getBoard(), this.getSystemRom('kanji')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('msx2pbios')));
+    this.addMapper(new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('msx2pmus')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('msx2pext')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 1, 2, this.getSystemRom('msxkanji')));
+    this.addMapper(new MapperRomTc8566af(Tc8566AfIo.MSX2, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('panasonicdisk')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 3, 2, this.getSystemRom('xbasic')));
 
     const ramMapper = new MapperRamMapped(this.getBoard(), 3, 0, 512 * 1024);
+    this.addMapper(ramMapper);
     this.getBoard().setMainRam(ramMapper.getRamPages());
   }
 }

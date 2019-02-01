@@ -58,20 +58,22 @@ export class PanasonicFsA1Wsx extends Msx2PlusBase {
 
     // Machine specific hardware
     this.getBoard().getSlotManager().setSubslotted(0, true);
-    new MapperSramS1985(this.getBoard());
-    new MapperF4Device(this.getBoard(), true);
-    new MapperSramMatsuchita(this.getBoard(), false);
+
+    this.addMapper(new MapperSramS1985(this.getBoard()));
+    this.addMapper(new MapperF4Device(this.getBoard(), true));
+    this.addMapper(new MapperSramMatsuchita(this.getBoard(), false));
 
     // Configure slots
-    new MapperKanji(this.getBoard(), this.getSystemRom('a1wskfn'));
-    new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('a1wsbios'));
-    new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('a1wsmusp'));
-    new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('a1wsext'));
-    new MapperRomNormal(this.getBoard(), 3, 1, 2, this.getSystemRom('a1wskdr'));
-    new MapperRomTc8566af(Tc8566AfIo.MSX2, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('a1wsdisp'));
-    new MapperRomPanasonic(this.getBoard(), 3, 3, 6, this.getSystemRom('a1wsfirm'), 0x4000);
+    this.addMapper(new MapperKanji(this.getBoard(), this.getSystemRom('a1wskfn')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 0, 0, 0, this.getSystemRom('a1wsbios')));
+    this.addMapper(new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('a1wsmusp')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 1, 0, this.getSystemRom('a1wsext')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 3, 1, 2, this.getSystemRom('a1wskdr')));
+    this.addMapper(new MapperRomTc8566af(Tc8566AfIo.MSX2, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('a1wsdisp')));
+    this.addMapper(new MapperRomPanasonic(this.getBoard(), 3, 3, 6, this.getSystemRom('a1wsfirm'), 0x4000));
 
     const ramMapper = new MapperRamMapped(this.getBoard(), 3, 0, 64 * 1024);
+    this.addMapper(ramMapper);
     this.getBoard().setMainRam(ramMapper.getRamPages());
   }
 }

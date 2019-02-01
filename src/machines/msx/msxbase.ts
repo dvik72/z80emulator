@@ -21,6 +21,7 @@ import { WebAudio } from '../../audio/webaudio';
 import { DiskManager } from '../../disk/diskmanager';
 import { LedManager } from '../../core/ledmanager';
 import { MediaInfo } from '../../util/mediainfo';
+import { SaveState } from '../../core/savestate';
 
 import { Board } from '../../core/board';
 import { MsxPpi } from '../../io/msxppi';
@@ -45,6 +46,8 @@ export abstract class MsxBase extends Machine {
   }
 
   public init(): void {
+    this.mappers = [];
+
     // Clear cartridge slots
     this.cartrdigeSlots = new Array<number[]>();
 
@@ -122,8 +125,11 @@ export abstract class MsxBase extends Machine {
     state.msxpsg = this.msxpsg!.getState();
     state.msxPpi = this.msxPpi!.getState();
 
-    state.subState = this.getSubState();
-    
+    state.mappers = [];
+    for (let i = 0; i < this.mappers.length; i++) {
+      state.mappers[i] = this.mappers[i].getState();
+    }
+
     state.cart = []
     for (let i = 0; i < this.cartridgeRoms.length; i++) {
       const cartridgeRom = this.cartridgeRoms[i];
@@ -139,13 +145,21 @@ export abstract class MsxBase extends Machine {
     this.msxpsg!.setState(state.msxpsg);
     this.msxPpi!.setState(state.msxPpi);
 
-    this.setSubState(state.subState);
+    for (let i = 0; i < this.mappers.length; i++) {
+      this.mappers[i].setState(state.mappers[i]);
+    }
 
     for (let i = 0; i < this.cartridgeRoms.length; i++) {
       const cartridgeRom = this.cartridgeRoms[i];
       cartridgeRom && state.cart[i] && cartridgeRom.setState(state.cart[i]);
     }
   }
+
+  protected addMapper(mapper: Mapper) {
+    this.mappers.push(mapper);
+  }
+
+  private mappers = new Array<Mapper>();
 
   // Board components
   private board: Board;

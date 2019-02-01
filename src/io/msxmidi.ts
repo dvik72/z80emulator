@@ -16,18 +16,21 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Timer } from '../core/timeoutmanager';
 import { Board, InterruptVector } from '../core/board';
 import { Port } from '../core/iomanager';
 import { I8251 } from './i8251';
 import { I8254 } from './i8254';
+import { Mapper } from '../mappers/mapper';
 import { SaveState } from '../core/savestate';
 
-export class MsxMidi {
+
+export class MsxMidi extends Mapper {
   constructor(
     private board: Board,
     private isExternal = false
   ) {
+    super(' MSX Midi');
+
     this.readIo = this.readIo.bind(this);
     this.writeIo = this.writeIo.bind(this);
 

@@ -632,18 +632,32 @@ export class MsxEmu {
 
     if (1) {
       if (event.code == 'KeyQ') {
-        this.saveState = this.machine!.getState();
-        console.log("Saved State!");
+        this.saveState();
       }
       if (event.code == 'KeyW') {
-        if (this.saveState) {
-          console.log("Loading State!");
-          this.machine!.setState(this.saveState);
-        }
+        this.loadState();
       }
     }
   }
 
+  private saveState(): void {
+    let state: any = {};
+
+    state.machine = this.machine!.getState();
+
+    this.savedState = state;
+  }
+
+  private loadState(): void {
+    if (!this.savedState) {
+      return;
+    }
+
+    let state: any = this.savedState;
+
+    this.machine!.setState(state.machine);
+  }
+  
   private keyUp(event: KeyboardEvent): void {
     event.preventDefault();
     this.machine && this.machine.keyUp(event.code);
@@ -670,5 +684,5 @@ export class MsxEmu {
   private windowSize = -1;
   private audioBufferSize = -1;
 
-  private saveState: any;
+  private savedState: any;
 }

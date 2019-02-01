@@ -62,26 +62,27 @@ export class PanasonicFsA1Gt extends MsxTrBase {
     this.addCartridgeSlot(2);
 
     // Machine specific hardware
-    new MapperS1990(this.getBoard());
-    new MapperTurboRTimer(this.getBoard());
-    new MapperTurboRPcm(this.getBoard());
-    new MapperTurboRIo(this.getBoard());
-    new MapperF4Device(this.getBoard(), false);
-    new MapperSramMatsuchita(this.getBoard(), false);
-    new MapperKanji(this.getBoard(), this.getSystemRom('a1gtkfn'));
-    new MsxMidi(this.getBoard());
+    this.addMapper(new MapperS1990(this.getBoard()));
+    this.addMapper(new MapperTurboRTimer(this.getBoard()));
+    this.addMapper(new MapperTurboRPcm(this.getBoard()));
+    this.addMapper(new MapperTurboRIo(this.getBoard()));
+    this.addMapper(new MapperF4Device(this.getBoard(), false));
+    this.addMapper(new MapperSramMatsuchita(this.getBoard(), false));
+    this.addMapper(new MapperKanji(this.getBoard(), this.getSystemRom('a1gtkfn')));
+    this.addMapper(new MsxMidi(this.getBoard()));
 
     // Configure slots
-    new MapperRomPanasonicDram(this.getBoard(), 0, 0, 0, this.getSystemRom('a1gtbios'));
-    new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('a1gtmus'));
-    new MapperRomNormal(this.getBoard(), 0, 3, 2, this.getSystemRom('a1gtopt'));
+    this.addMapper(new MapperRomPanasonicDram(this.getBoard(), 0, 0, 0, this.getSystemRom('a1gtbios')));
+    this.addMapper(new MapperMsxMusic(this.getBoard(), 0, 2, this.getSystemRom('a1gtmus')));
+    this.addMapper(new MapperRomNormal(this.getBoard(), 0, 3, 2, this.getSystemRom('a1gtopt')));
 
-    new MapperRomPanasonicDram(this.getBoard(), 3, 1, 0, this.getSystemRom('a1gtext'));
-    new MapperRomPanasonicDram(this.getBoard(), 3, 1, 2, this.getSystemRom('a1gtkdr'));
-    new MapperRomTc8566af(Tc8566AfIo.MSXTR, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('a1gtdos'));
-    new MapperRomPanasonic(this.getBoard(), 3, 3, 8, this.getSystemRom('a1gtfirm'), 0x8000);
+    this.addMapper(new MapperRomPanasonicDram(this.getBoard(), 3, 1, 0, this.getSystemRom('a1gtext')));
+    this.addMapper(new MapperRomPanasonicDram(this.getBoard(), 3, 1, 2, this.getSystemRom('a1gtkdr')));
+    this.addMapper(new MapperRomTc8566af(Tc8566AfIo.MSXTR, this.getDiskManager(), this.getBoard(), 3, 2, this.getSystemRom('a1gtdos')));
+    this.addMapper(new MapperRomPanasonic(this.getBoard(), 3, 3, 8, this.getSystemRom('a1gtfirm'), 0x8000));
 
     const ramMapper = new MapperRamMapped(this.getBoard(), 3, 0, 512 * 1024);
+    this.addMapper(ramMapper);
     this.getBoard().setMainRam(ramMapper.getRamPages());
   }
 }
