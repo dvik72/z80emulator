@@ -25,7 +25,7 @@ import { Board } from './board';
 export class Timer {
   setTimeout(timeout: number) {
     this.timeout = timeout & TIMER_RANGE;
-    this.setTimeoutCb(this);
+    this.setTimeoutCb(this, false);
   }
 
   getTimeout(): number {
@@ -34,7 +34,7 @@ export class Timer {
 
   addTimeout(timeToAdd: number) {
     this.timeout = this.timeout + timeToAdd & TIMER_RANGE;
-    this.setTimeoutCb(this);
+    this.setTimeoutCb(this, false);
   }
 
   isRunning(): boolean {
@@ -49,7 +49,7 @@ export class Timer {
   // to be used outside this file :/
   constructor(
     public name: string,
-    public setTimeoutCb: (timer: Timer) => void,
+    public setTimeoutCb: (timer: Timer, forceSchedule: boolean) => void,
     public expiredCb?: () => void
   ) {
     this.next = this;
@@ -74,12 +74,12 @@ export class Timer {
   }
 
   public setState(state: any): void {
+    this.unlink();
+
     this.timeout = state.timeout;
     if (state.running) {
-      this.setTimeoutCb(this);
+      this.setTimeoutCb(this, true);
 
-    } else {
-      this.unlink();
     }
   }
 
@@ -202,16 +202,18 @@ export class TimeoutManager {
     this.z80.setTimeoutAt(this.timerHead.next.timeout);
   }
 
-  private setTimeout(timer: Timer): void {
+  private setTimeout(timer: Timer, forceSchedule: boolean): void {
     if (!this.z80) {
       return;
     }
 
     timer.unlink();
 
-    // Dont schedule timer if it already expired.
-    if ((timer.timeout - this.z80.getSystemTime() & TIMER_RANGE) > TIMER_RANGE / 2) {
-      return;
+    if (!forceSchedule) {
+      // Dont schedule timer if it already expired.
+      if ((timer.timeout - this.z80.getSystemTime() & TIMER_RANGE) > TIMER_RANGE / 2) {
+        return;
+      }
     }
 
     let curr = this.timerHead.next;

@@ -630,7 +630,7 @@ export class MsxEmu {
     //  this.machine!.dumpAsm();
     //}
 
-    if (0) {
+    if (1) {
       if (event.code == 'KeyQ') {
         this.saveState = this.machine!.getState();
         console.log("Saved State!");
