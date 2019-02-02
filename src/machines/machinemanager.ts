@@ -43,23 +43,34 @@ export class MachineManager {
     return this.machineNames;
   }
 
-  public createMachine(name: string): Machine | undefined {
+  public createMachine(name: string, machineRomState?: any): Machine | undefined {
+    let machine: Machine | undefined = undefined;
     switch (name) {
       case PanasonicFsA1.NAME:
-        return new PanasonicFsA1(this.webAudio, this.diskManager, this.ledManager);
+        machine = new PanasonicFsA1(this.webAudio, this.diskManager, this.ledManager);
+        break;
       case PhilipsVg8020.NAME:
-        return new PhilipsVg8020(this.webAudio, this.diskManager, this.ledManager);
+        machine = new PhilipsVg8020(this.webAudio, this.diskManager, this.ledManager);
+        break;
       case GenericMsx2.NAME:
-        return new GenericMsx2(this.webAudio, this.diskManager, this.ledManager);
+        machine = new GenericMsx2(this.webAudio, this.diskManager, this.ledManager);
+        break;
       case GenericMsx2Plus.NAME:
-        return new GenericMsx2Plus(this.webAudio, this.diskManager, this.ledManager);
+        machine = new GenericMsx2Plus(this.webAudio, this.diskManager, this.ledManager);
+        break;
       case PanasonicFsA1Wsx.NAME:
-        return new PanasonicFsA1Wsx(this.webAudio, this.diskManager, this.ledManager);
+        machine = new PanasonicFsA1Wsx(this.webAudio, this.diskManager, this.ledManager);
+        break;
       case PanasonicFsA1Gt.NAME:
-        return new PanasonicFsA1Gt(this.webAudio, this.diskManager, this.ledManager);
+        machine = new PanasonicFsA1Gt(this.webAudio, this.diskManager, this.ledManager);
+        break;
     }
 
-    return undefined;
+    if (machine) {
+      machine.loadSystemRoms(machineRomState);
+    }
+
+    return machine;
   }
 
   private machineNames = [

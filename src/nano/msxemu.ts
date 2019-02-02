@@ -233,13 +233,19 @@ export class MsxEmu {
     }
   }
   
-  private setMachine(machineName: string): void {
+  private setMachine(machineName: string, machineRomState?: any): void {
     console.log("Set Machine " + machineName);
+
     if (this.machine) {
+      if (machineName == this.machine.getName()) {
+        this.resetEmulation();
+        return;
+      }
+
       const oldMachineDiv = document.getElementById('machine-' + this.machine!.getName());
       oldMachineDiv!.classList.remove('active');
     }
-    this.machine = this.machineManager.createMachine(machineName);
+    this.machine = this.machineManager.createMachine(machineName, machineRomState);
     if (!this.machine) {
       machineName = this.machineManager.getDefaultMachineName();
       this.machine = this.machineManager.createMachine(machineName);
@@ -317,6 +323,7 @@ export class MsxEmu {
       if (!mediaInfo) {
         mediaInfo = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
       }
+      this.diskMedia[slot] = mediaInfo;
       this.diskManager.insertFloppyImage(slot, mediaInfo.data);
       ejectMenuId = 'eject-disk' + slot;
     }
@@ -450,14 +457,20 @@ export class MsxEmu {
   }
 
   private ejectEvent(event: CustomEvent): void {
+    this.ejectMedia(event.detail);
+  }
+
+  private ejectMedia(menuId: string): void {
     let romTypeMenuId = '';
 
-    switch (event.detail) {
+    switch (menuId) {
       case 'eject-disk0': {
+        this.diskMedia[0] = undefined;
         this.diskManager.ejectFloppyImage(0);
         break;
       }
       case 'eject-disk1': {
+        this.diskMedia[1] = undefined;
         this.diskManager.ejectFloppyImage(1);
         break;
       }
@@ -475,7 +488,7 @@ export class MsxEmu {
       }
     }
 
-    const menuItemDiv = document.getElementById(event.detail);
+    const menuItemDiv = document.getElementById(menuId);
     (<HTMLButtonElement>menuItemDiv!).disabled = true;
 
     if (romTypeMenuId.length > 0) {
@@ -643,7 +656,23 @@ export class MsxEmu {
   private saveState(): void {
     let state: any = {};
 
+    state.machineName = this.machine!.getName();
     state.machine = this.machine!.getState();
+    state.machineRomState = this.machine!.getRomState();
+
+    state.romMedia = [];
+    for (let i = 0; i < this.romMedia.length; i++) {
+      const romMedia = this.romMedia[i];
+      state.romMedia[i] = romMedia ? romMedia.getState() : undefined;
+    }
+
+    state.diskMedia = [];
+    for (let i = 0; i < this.diskMedia.length; i++) {
+      const diskMedia = this.diskMedia[i];
+      state.diskMedia[i] = diskMedia ? diskMedia.getState() : undefined;
+    }
+
+    state.diskManager = this.diskManager.getState();
 
     this.savedState = state;
   }
@@ -655,6 +684,33 @@ export class MsxEmu {
 
     let state: any = this.savedState;
 
+    for (let i = 0; i < this.romMedia.length; i++) {
+      const romMedia = state.romMedia[i];
+      if (romMedia) {
+        const mediaInfo = new MediaInfo('', '', 0, '', MediaType.UNKNOWN, new Uint8Array(0));
+        mediaInfo.setState(romMedia);
+        this.mediaLoaded('', MediaType.ROM, i, new Uint8Array(0), mediaInfo);
+      }
+      else {
+        this.ejectMedia('eject-cart' + i);
+      }
+
+      for (let i = 0; i < this.diskMedia.length; i++) {
+        const diskMedia = state.diskMedia[i];
+        if (diskMedia) {
+          const mediaInfo = new MediaInfo('', '', 0, '', MediaType.UNKNOWN, new Uint8Array(0));
+          mediaInfo.setState(diskMedia);
+          this.mediaLoaded('', MediaType.FLOPPY, i, new Uint8Array(0), mediaInfo);
+        }
+        else {
+          this.ejectMedia('eject-cart' + i);
+        }
+      }
+    }
+
+    this.diskManager.setState(state.diskManager);
+    
+    this.setMachine(state.machineName, state.machineRomState);
     this.machine!.setState(state.machine);
   }
   
@@ -677,6 +733,7 @@ export class MsxEmu {
   private machineManager = new MachineManager(this.webAudio, this.diskManager, this.ledManager);
 
   private romMedia = new Array<MediaInfo | undefined>(2);
+  private diskMedia = new Array<MediaInfo | undefined>(2);
   private mediaInfoFactory = new MediaInfoFactory();
 
   private userPrefs = new UserPrefs();

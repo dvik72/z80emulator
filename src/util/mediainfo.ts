@@ -18,6 +18,8 @@
 
 import { hex_sha1_arr } from './sha1';
 import { romDatabase } from './romdatabase';
+import { SaveState } from '../core/savestate';
+
 
 export enum MediaType {
   UNKNOWN = 'Unknown',
@@ -81,7 +83,33 @@ export class MediaInfo {
     public country: string,
     public type: MediaType,
     public data: Uint8Array
-  ) {}
+  ) { }
+
+  public getState(): any {
+    let state: any = {};
+    
+    state.title = this.title;
+    state.company = this.company;
+    state.year = this.year
+    state.country = this.country;
+    state.type = this.type;
+
+    state.data = SaveState.getArrayState(this.data);
+
+    return state;
+  }
+
+  public setState(state: any): void {
+    this.title = state.title;
+    this.company = state.company;
+    this.year = state.year
+    this.country = state.country;
+    this.type = state.type;
+
+    const data = new Uint8Array(state.data.length);
+    SaveState.setArrayState(data, state.data);
+    this.data = data;
+  }
 }
 
 function iequals(a: string, b: string): boolean {

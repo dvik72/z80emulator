@@ -17,15 +17,23 @@
 //////////////////////////////////////////////////////////////////////////////
 
 import { MediaInfo } from '../util/mediainfo';
+import { SaveState } from '../core/savestate';
 
 export abstract class Machine {
 
   public constructor(
     private machineName: string,
-    romNames: string[]
-  ) {
-    for (let romName of romNames) {
-      this.loadSystemRom(romName);
+    private romNames: string[]
+  ) { }
+
+  public loadSystemRoms(romState?: any) {
+    if (romState) {
+      this.setRomState(romState);
+    }
+    else {
+      for (let romName of this.romNames) {
+        this.loadSystemRom(romName);
+      }
     }
   }
 
@@ -85,7 +93,7 @@ export abstract class Machine {
         if (httpReq.status == 200) {
           const arrayBuffer = httpReq.response;
           if (arrayBuffer instanceof ArrayBuffer) {
-            romData =new Uint8Array(arrayBuffer);
+            romData = new Uint8Array(arrayBuffer);
           }
         }
         if (!romData) {
@@ -103,6 +111,29 @@ export abstract class Machine {
 
     if (--this.romsPending == 0 && this.loadedCb) {
       this.loadedCb();
+    }
+  }
+
+  public getRomState(): any {
+    let state: any = {};
+
+    state.romData = {};
+    for (const romName of Object.keys(this.romData)) {
+      const data = this.romData[romName];
+      if (data) {
+        state.romData[romName] = SaveState.getArrayState(data);
+      }
+    }
+
+    return state;
+  }
+
+  public setRomState(state: any): void {
+    for (const romName of Object.keys(state.romData)) {
+      const stateData = state.romData[romName];
+      const data = new Uint8Array(stateData.length);
+      SaveState.setArrayState(data, stateData);
+      this.romData[romName] = data;
     }
   }
 
