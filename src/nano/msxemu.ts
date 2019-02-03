@@ -694,22 +694,21 @@ export class MsxEmu {
       else {
         this.ejectMedia('eject-cart' + i);
       }
-
-      for (let i = 0; i < this.diskMedia.length; i++) {
-        const diskMedia = state.diskMedia[i];
-        if (diskMedia) {
-          const mediaInfo = new MediaInfo('', '', 0, '', MediaType.UNKNOWN, new Uint8Array(0));
-          mediaInfo.setState(diskMedia);
-          this.mediaLoaded('', MediaType.FLOPPY, i, new Uint8Array(0), mediaInfo);
-        }
-        else {
-          this.ejectMedia('eject-cart' + i);
-        }
+    }
+    for (let i = 0; i < this.diskMedia.length; i++) {
+      const diskMedia = state.diskMedia[i];
+      if (diskMedia) {
+        const mediaInfo = new MediaInfo('', '', 0, '', MediaType.UNKNOWN, new Uint8Array(0));
+        mediaInfo.setState(diskMedia);
+        this.mediaLoaded('', MediaType.FLOPPY, i, new Uint8Array(0), mediaInfo);
+      }
+      else {
+        this.ejectMedia('eject-disk' + i);
       }
     }
 
     this.diskManager.setState(state.diskManager);
-    
+
     this.setMachine(state.machineName, state.machineRomState);
     this.machine!.setState(state.machine);
   }
