@@ -27,6 +27,7 @@ export abstract class Machine {
   ) { }
 
   public loadSystemRoms(romState?: any) {
+    this.romsPending = 0;
     if (romState) {
       this.setRomState(romState);
     }
@@ -72,7 +73,7 @@ export abstract class Machine {
 
   public setState(state: any): void { }
 
-  public dumpAsm(): void { }
+  public dumpAsm(count: number): void { }
 
   protected getSystemRom(romName: string): Uint8Array {
     return this.romData[romName] || new Uint8Array(0);

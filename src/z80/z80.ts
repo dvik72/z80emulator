@@ -152,6 +152,12 @@ class RegisterBank {
     state.r = this.r.getState();
     state.r2 = this.r2.getState();
 
+    state.iff1 = this.iff1;
+    state.iff2 = this.iff2;
+    state.im = this.im;
+    state.halt = this.halt;
+    state.interruptsEnabled = this.interruptsEnabled;
+
     return state;
   }
 
@@ -172,6 +178,12 @@ class RegisterBank {
     this.i.setState(state.i);
     this.r.setState(state.r);
     this.r2.setState(state.r2);
+
+    this.iff1 = state.iff1;
+    this.iff2 = state.iff2;
+    this.im = state.im;
+    this.halt = state.halt;
+    this.interruptsEnabled = state.interruptsEnabled;
   }
 
   reset(): void {
@@ -540,11 +552,11 @@ export class Z80 {
     this.timeout = time;
   }
 
-  public dumpAsm() {
-    this.yyyyEnable = 1;
+  public dumpAsm(count: number) {
+    this.yyyyCount = count;
   }
 
-  yyyyEnable = 0;
+  yyyyCount = 0;
   yyyy = 0; // TODO: Debug support
   qqqq = 0;
 
@@ -572,6 +584,20 @@ export class Z80 {
         }
       }
 
+      if (this.yyyyCount) {
+        this.yyyyCount--;
+        const dasm = new Z80Dasm(this.readMemCb);
+        const asm = dasm.dasm(this.regs.PC.get());
+        const regs =
+          ' AF:' + ('0000' + this.regs.AF.get().toString(16)).slice(-4) + ' BC:' + ('0000' + this.regs.BC.get().toString(16)).slice(-4) +
+          ' DE:' + ('0000' + this.regs.DE.get().toString(16)).slice(-4) + ' HL:' + ('0000' + this.regs.HL.get().toString(16)).slice(-4) +
+          ' IX:' + ('0000' + this.regs.IX.get().toString(16)).slice(-4) + ' IY:' + ('0000' + this.regs.IY.get().toString(16)).slice(-4) +
+          ' PC:' + ('0000' + this.regs.PC.get().toString(16)).slice(-4) + ' SH:' + ('0000' + this.regs.SH.get().toString(16)).slice(-4) +
+          ' R:' + ('0000' + this.regs.R.get().toString(16)).slice(-2) + ' I:' + ('0000' + this.regs.I.get().toString(16)).slice(-2) +
+          ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
+        console.log(asm + ' ' + regs);
+      }
+
       if (0) {
         const dasm = new Z80Dasm(this.readMemCb);
         const asm = dasm.dasm(this.regs.PC.get());
@@ -596,7 +622,7 @@ export class Z80 {
               ' T:' + ('00000000' + this.systemTime.toString(16)).slice(-6);
             console.log(asm + ' ' + regs);
           }
-          this.yyyy += 1||this.yyyyEnable;
+          this.yyyy += 1;
         }
       }
 

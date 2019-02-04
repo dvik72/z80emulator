@@ -174,8 +174,8 @@ export class Board {
     this.z80.execute(cpuCycles);
   }
 
-  public dumpAsm(): void {
-    this.z80.dumpAsm();
+  public dumpAsm(count: number): void {
+    this.z80.dumpAsm(count);
   }
 
   public getState(): any {
@@ -204,6 +204,10 @@ export class Board {
       this.ramManager.setState(state.ramManager);
     }
     this.audioManager.setState(state.audioManager);
+  }
+  
+  public mapRamSlots(): void {
+    this.slotManager.mapRamSlots();
   }
   
   private ioManager: IoManager;

@@ -97,6 +97,7 @@ export class MapperRamMapped extends Mapper {
 
     state.pages = SaveState.getArrayOfArrayState(this.pages);
     state.port = SaveState.getArrayState(this.port);
+    console.log('GET: ' + this.port[0] + ',' + this.port[1] + ',' + this.port[2] + ',' + this.port[3]);
 
     return state;
   }

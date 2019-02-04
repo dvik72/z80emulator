@@ -232,6 +232,17 @@ export class TimeoutManager {
     this.z80.setTimeoutAt(this.timerHead.next.timeout);
   }
 
+  public dumpTimers(): void {
+    let t = this.timerHead;
+    while (true) {
+      console.log('Timer: ' + t.name + ' ' + (t.timeout - this.timeAnchor).toString(16));
+      t = t.next;
+      if (t == this.timerHead) {
+        break;
+      }
+    }
+  }
+
   public getState(): any {
     let state: any = {}
 

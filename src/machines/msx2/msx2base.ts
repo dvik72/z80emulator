@@ -107,9 +107,9 @@ export class Msx2Base extends Machine {
       this.cartridgeRoms[cartridgeSlot] = mapperFromMediaInfo(this.board, mediaInfo, slotInfo[0], slotInfo[1]);
     }
   }
-
-  public dumpAsm(): void {
-    this.board.dumpAsm();
+  
+  public dumpAsm(count: number): void {
+    this.board!.dumpAsm(count);
   }
 
   protected addCartridgeSlot(slot: number, subslot: number = 0): void {
@@ -164,6 +164,8 @@ export class Msx2Base extends Machine {
       const cartridgeRom = this.cartridgeRoms[i];
       cartridgeRom && state.cart[i] && cartridgeRom.setState(state.cart[i]);
     }
+
+    this.board.mapRamSlots();
   }
 
   protected addMapper(mapper: Mapper) {

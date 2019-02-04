@@ -88,7 +88,10 @@ export class SlotManager {
   constructor() {
     this.read = this.read.bind(this);
     this.write = this.write.bind(this);
+    this.reset();
+  }
 
+  private reset(): void {
     for (let i = 0; i < 4; i++) this.pslot[i] = new SlotState(false, 0, 0, 0);
 
     for (let i = 0; i < 4; i++) {
@@ -232,7 +235,17 @@ export class SlotManager {
   public setSubslotted(slot: number, subslotted: boolean): void {
     this.pslot[slot].subslotted = subslotted;
   }
-  
+
+  public mapRamSlots(): void {
+    for (let page = 0; page < 4; page++) {
+      const psl = this.pslot[page].state;
+      const ssl = this.pslot[psl].subslotted ? this.pslot[page].substate : 0;
+
+      this.mapRamPage(psl, ssl, 2 * page);
+      this.mapRamPage(psl, ssl, 2 * page + 1);
+    }
+  }
+
   public getState(): any {
     let state: any = {};
 
@@ -247,14 +260,6 @@ export class SlotManager {
   public setState(state: any): void {
     for (let i = 0; i < this.pslot.length; i++) {
       this.pslot[i].setState(state.pslot[i]);
-    }
-
-    for (let page = 0; page < 4; page++) {
-      const psl = this.pslot[page].state;
-      const ssl = this.pslot[psl].subslotted ? this.pslot[page].substate : 0;
-
-      this.mapRamPage(psl, ssl, 2 * page);
-      this.mapRamPage(psl, ssl, 2 * page + 1);
     }
   }
 

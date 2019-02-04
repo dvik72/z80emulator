@@ -237,11 +237,6 @@ export class MsxEmu {
     console.log("Set Machine " + machineName);
 
     if (this.machine) {
-      if (machineName == this.machine.getName()) {
-        this.resetEmulation();
-        return;
-      }
-
       const oldMachineDiv = document.getElementById('machine-' + this.machine!.getName());
       oldMachineDiv!.classList.remove('active');
     }
@@ -640,7 +635,7 @@ export class MsxEmu {
     this.machine && this.machine.keyDown(event.code);
     //if (event.code == 'KeyD') {
     //  console.log('Trigger ASM dump');
-    //  this.machine!.dumpAsm();
+    //  this.machine!.dumpAsm(1000);
     //}
 
     if (1) {

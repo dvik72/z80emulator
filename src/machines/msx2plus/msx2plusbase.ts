@@ -103,9 +103,9 @@ export class Msx2PlusBase extends Machine {
       this.cartridgeRoms[cartridgeSlot] = mapperFromMediaInfo(this.board!, mediaInfo, slotInfo[0], slotInfo[1]);
     }
   }
-
-  public dumpAsm(): void {
-    this.board!.dumpAsm();
+  
+  public dumpAsm(count: number): void {
+    this.board!.dumpAsm(count);
   }
 
   protected addCartridgeSlot(slot: number, subslot: number = 0): void {
