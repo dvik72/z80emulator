@@ -24,6 +24,9 @@ import { SaveState } from '../core/savestate';
 export enum MediaType {
   UNKNOWN = 'Unknown',
 
+  // Save State Media
+  SAVESTATE = 'Save State',
+
   // Disk Media
   FLOPPY = 'Floppy Disk',
 

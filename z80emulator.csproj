@@ -70,9 +70,11 @@
     <Content Include="img\windowsize.png" />
     <Content Include="js\bootstrap-submenu.js" />
     <Content Include="js\docs.js" />
+    <Content Include="js\filesaver.js" />
     <Content Include="lib\require.js" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="tsconfig.json" />
+    <TypeScriptCompile Include="js\filesaver.d.ts" />
     <TypeScriptCompile Include="src\audio\dac.ts" />
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
     <TypeScriptCompile Include="src\audio\moonsound.ts" />

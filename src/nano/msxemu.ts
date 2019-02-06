@@ -28,6 +28,9 @@ import { DiskManager } from '../disk/diskmanager';
 
 import { UserPrefs } from './userprefs';
 
+/// <reference path="../../js/filesaver.d.ts" />
+
+
 class SpecialRom {
   constructor(
     public mediaInfo: MediaInfo,
@@ -87,6 +90,8 @@ export class MsxEmu {
     document.addEventListener('dragleave', (event) => { event.preventDefault(); });
     window.addEventListener('resize', this.resize.bind(this));
     document.addEventListener('fullscreen', this.toggleFullscreen.bind(this));
+    document.addEventListener('power', this.onPower.bind(this));
+    document.addEventListener('savestate', this.onSaveState.bind(this));
 
     this.userPrefs.load();
 
@@ -152,16 +157,42 @@ export class MsxEmu {
     }
   }
 
+  private onPower(event: CustomEvent): void {
+    if (event.detail == 'reset') {
+      this.resetEmulation();
+    } else if (event.detail == 'pause') {
+      if (this.isRunning) {
+        this.pauseEmulation();
+      }
+      else {
+        this.resumeEmulation();
+      }
+
+    }
+  }
+
+  private onSaveState(event: CustomEvent): void {
+    if (event.detail == 'quickload') {
+      this.quickLoadState();
+    } else if (event.detail == 'quicksave') {
+      this.quickSaveState();
+    } else if (event.detail == 'load') {
+      this.loadState();
+    } else if (event.detail == 'save') {
+      this.saveState();
+    }
+  }
+
   private changeMachine(event: CustomEvent): void {
     this.setMachine(event.detail);
   }
 
   private resize(event?: Event): void {
-    event && event.preventDefault(); 
+    event && event.preventDefault();
 
     this.updateWindowSize(this.windowSize);
   }
-  
+
   private setWindowSize(event: CustomEvent): void {
     this.updateWindowSize(event.detail);
     this.userPrefs.save();
@@ -232,7 +263,7 @@ export class MsxEmu {
       sizeItemDiv && (<HTMLButtonElement>sizeItemDiv!).classList.add('active');
     }
   }
-  
+
   private setMachine(machineName: string, machineRomState?: any): void {
     console.log("Set Machine " + machineName);
 
@@ -254,7 +285,7 @@ export class MsxEmu {
     const newMachineDiv = document.getElementById('machine-' + this.machine!.getName());
     newMachineDiv!.classList.add('active');
 
-    this.stopEmulation();
+    this.pauseEmulation();
     this.machine!.notifyWhenLoaded(this.startEmulation.bind(this));
   }
 
@@ -288,6 +319,9 @@ export class MsxEmu {
       if (file.name.slice(-3).toLowerCase() == 'dsk') {
         type = MediaType.FLOPPY;
       }
+      if (file.name.slice(-3).toLowerCase() == 'sta') {
+        type = MediaType.SAVESTATE;
+      }
       if (file.name.slice(-3).toLowerCase() == 'rom') {
         type = MediaType.ROM;
       }
@@ -314,6 +348,10 @@ export class MsxEmu {
   private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array, mediaInfo?: MediaInfo): void {
     let ejectMenuId = '';
     let romTypeMenuId = '';
+    if (type == MediaType.SAVESTATE) {
+      let state = JSON.parse(new TextDecoder("utf-8").decode(data));
+      this.setState(state);
+    }
     if (type == MediaType.FLOPPY) {
       if (!mediaInfo) {
         mediaInfo = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
@@ -432,7 +470,7 @@ export class MsxEmu {
         }
       }
       this.resetEmulation();
-      
+
       if (getSupportedCartridgeTypeNames().indexOf(typeName) < 0) {
         typeName = MediaType.UNKNOWN.toString();
       }
@@ -497,6 +535,11 @@ export class MsxEmu {
     let type = MediaType.FLOPPY;
 
     switch (event.detail) {
+      case 'load-state': {
+        slot = 0;
+        type = MediaType.SAVESTATE;
+        break;
+      }
       case 'insert-cart0': {
         slot = 0;
         type = MediaType.ROM;
@@ -540,7 +583,7 @@ export class MsxEmu {
     this.diskManager.reset();
     this.machine.init();
     this.machine.reset();
-    
+
     // Insert cartridge rom if present
     const romMedia0 = this.romMedia[0];
     romMedia0 && this.machine.insertRomMedia(romMedia0, 0);
@@ -549,8 +592,24 @@ export class MsxEmu {
     romMedia1 && this.machine.insertRomMedia(romMedia1, 1);
 
     // Start emulation and renderer    
-    this.isRunning = true;
+    this.resumeEmulation();
+  }
 
+  private pauseEmulation(): void {
+    const element = document.getElementById('emu-pause');
+    if (element) {
+      element.innerHTML = 'Resume';
+    }
+    this.isRunning = false;
+  }
+
+  private resumeEmulation(): void {
+    const element = document.getElementById('emu-pause');
+    if (element) {
+      element.innerHTML = 'Pause';
+    }
+
+    this.isRunning = true;
     this.runCount = 0;
     this.emulationTime = 0;
     this.wallTime = window.performance.now();
@@ -558,12 +617,8 @@ export class MsxEmu {
     this.runStep();
   }
 
-  private stopEmulation(): void {
-    this.isRunning = false;
-  }
-  
   private resetEmulation(): void {
-    this.stopEmulation();
+    this.pauseEmulation();
     this.startEmulation();
   }
 
@@ -602,14 +657,14 @@ export class MsxEmu {
       this.emulationTime += window.performance.now() - timeNow;
     }
   }
-  
+
   private refreshScreen(): void {
     this.updateLeds();
     if (this.isRunning && this.machine) {
       const frameBuffer = this.machine.getFrameBuffer();
       const width = this.machine.getFrameBufferWidth();
       const height = this.machine.getFrameBufferHeight();
-      
+
       frameBuffer && this.glRenderer.render(width, height, frameBuffer);
     }
     requestAnimationFrame(this.refreshScreen);
@@ -618,8 +673,8 @@ export class MsxEmu {
   private drop(event: DragEvent) {
     event.preventDefault();
 
-    this.webAudio.resume(); 
-    
+    this.webAudio.resume();
+
     if (event.dataTransfer && event.dataTransfer.items) {
       if (event.dataTransfer.items.length == 1 && event.dataTransfer.items[0].kind === 'file') {
         const file = event.dataTransfer.items[0].getAsFile();
@@ -640,15 +695,35 @@ export class MsxEmu {
 
     if (1) {
       if (event.code == 'KeyQ') {
-        this.saveState();
+        this.quickSaveState();
       }
       if (event.code == 'KeyW') {
-        this.loadState();
+        this.quickLoadState();
       }
     }
   }
 
+  private loadState(): void {
+  }
+
   private saveState(): void {
+    let state = this.getState();
+
+    var blob = new Blob([JSON.stringify(state)], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, 'savestate.sta');
+  }
+
+  private quickLoadState(): void {
+    if (this.savedState) {
+      this.setState(this.savedState);
+    }
+  }
+
+  private quickSaveState(): void {
+    this.savedState = this.getState();
+  }
+
+  private getState(): any {
     let state: any = {};
 
     state.machineName = this.machine!.getName();
@@ -669,16 +744,10 @@ export class MsxEmu {
 
     state.diskManager = this.diskManager.getState();
 
-    this.savedState = state;
+    return state;
   }
 
-  private loadState(): void {
-    if (!this.savedState) {
-      return;
-    }
-
-    let state: any = this.savedState;
-
+  private setState(state: any): void {
     for (let i = 0; i < this.romMedia.length; i++) {
       const romMedia = state.romMedia[i];
       if (romMedia) {

@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.5/umd/popper.js" defer></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.js" defer></script>
+    <script src="js/filesaver.js" defer></script>
     <script src="js/bootstrap-submenu.js" defer></script>
     <script src="js/docs.js" defer></script>
     <script data-main="src/webapp/webappboot" type="text/javascript" src="lib/require.js" defer></script>
@@ -18,7 +19,19 @@
     <div id="windowContainer" class=" emu-container">
         <div id="emuContainer" class="emu-window">
             <div id="emuLeftBar" class="emu-left">
-                <img class="emu-center emu-topmargin" src="img/power.png" type="button" onclick="javascript: document.dispatchEvent(new Event('reset'));">
+                <div class="dropright buttongroupmargin">
+                    <img src="img/power.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('power', { detail: 'reset' }));">Reset</button>
+                        <button class="dropdown-item btn-sm" type="button" id="emu-pause" onclick="javascript: document.dispatchEvent(new CustomEvent('power', { detail: 'pause' }));">Pause</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('savestate', { detail: 'quickload' }));">Quick Load State</button>
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('savestate', { detail: 'quicksave' }));">Quick Save State</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('file', { detail: 'load-state' }));">Load State</button>
+                        <button class="dropdown-item btn-sm" type="button" onclick="javascript: document.dispatchEvent(new CustomEvent('savestate', { detail: 'save' }));">Save State</button>
+                    </div>
+                </div>
 
                 <div class="dropright buttongroupmargin">
                     <img src="img/cart1.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
