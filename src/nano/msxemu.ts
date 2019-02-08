@@ -27,6 +27,7 @@ import { getSupportedCartridgeTypes, getSupportedCartridgeTypeNames } from '../m
 import { DiskManager } from '../disk/diskmanager';
 
 import { UserPrefs } from './userprefs';
+import { PngSaveState } from '../util/pngsavestate';
 
 /// <reference path="../../js/filesaver.d.ts" />
 
@@ -319,7 +320,7 @@ export class MsxEmu {
       if (file.name.slice(-3).toLowerCase() == 'dsk') {
         type = MediaType.FLOPPY;
       }
-      if (file.name.slice(-3).toLowerCase() == 'sta') {
+      if (file.name.slice(-3).toLowerCase() == 'png') {
         type = MediaType.SAVESTATE;
       }
       if (file.name.slice(-3).toLowerCase() == 'rom') {
@@ -349,8 +350,10 @@ export class MsxEmu {
     let ejectMenuId = '';
     let romTypeMenuId = '';
     if (type == MediaType.SAVESTATE) {
-      let state = JSON.parse(new TextDecoder("utf-8").decode(data));
-      this.setState(state);
+      let state = PngSaveState.decode(data);
+      if (state) {
+        this.setState(state);
+      }
     }
     if (type == MediaType.FLOPPY) {
       if (!mediaInfo) {
@@ -707,10 +710,33 @@ export class MsxEmu {
   }
 
   private saveState(): void {
+    if (!this.machine) {
+      return;
+    }
+
     let state = this.getState();
 
-    var blob = new Blob([JSON.stringify(state)], { type: "text/plain;charset=utf-8" });
-    saveAs(blob, 'savestate.sta');
+//    var blob = new Blob([JSON.stringify(state)], { type: "text/plain;charset=utf-8" });
+//    saveAs(blob, 'savestate.sta');
+
+    const frameBuffer = this.machine.getFrameBuffer();
+    const width = this.machine.getFrameBufferWidth();
+    const height = this.machine.getFrameBufferHeight();
+
+    if (frameBuffer) {
+      const date = new Date();
+      const dateString =
+        date.getFullYear() + '-' +
+        ('00' + date.getMonth()).slice(-2) + '-' +
+        ('00' + date.getDate()).slice(-2) + '_' +
+        ('00' + date.getHours()).slice(-2) + '-' +
+        ('00' + date.getMinutes()).slice(-2) + '-' +
+        ('00' + date.getSeconds()).slice(-2);
+
+
+      var blob = new Blob([PngSaveState.encode(state, frameBuffer, width, height)], { type: 'image/png' });
+      saveAs(blob, 'bluemsx-savestate_' + dateString + '.png');
+    }
   }
 
   private quickLoadState(): void {
