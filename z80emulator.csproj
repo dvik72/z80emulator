@@ -149,6 +149,7 @@
     <TypeScriptCompile Include="src\memory\amdflash.ts" />
     <TypeScriptCompile Include="src\nano\gamerom.ts" />
     <TypeScriptCompile Include="src\nano\userprefs.ts" />
+    <TypeScriptCompile Include="src\util\fullscreen.ts" />
     <TypeScriptCompile Include="src\util\mediainfo.ts" />
     <TypeScriptCompile Include="src\util\pngsavestate.ts" />
     <TypeScriptCompile Include="src\util\romdatabase.ts" />

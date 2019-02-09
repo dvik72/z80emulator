@@ -28,6 +28,7 @@ import { DiskManager } from '../disk/diskmanager';
 
 import { UserPrefs } from './userprefs';
 import { PngSaveState } from '../util/pngsavestate';
+import { Fullscreen } from '../util/fullscreen';
 
 /// <reference path="../../js/filesaver.d.ts" />
 
@@ -200,7 +201,7 @@ export class MsxEmu {
   }
 
   private updateWindowSize(windowSize: number): void {
-    let height = document.fullscreen ? 0 : +WINDOW_SIZES[windowSize][0] * 480;
+    let height = Fullscreen.fullscreenElement() ? 0 : +WINDOW_SIZES[windowSize][0] * 480;
 
     const leftBarDiv = document.getElementById('emuLeftBar');
     const leftBarWidth = leftBarDiv!.clientWidth;
@@ -236,11 +237,11 @@ export class MsxEmu {
 
   private toggleFullscreen(event?: Event): void {
     const emuDiv = document.getElementById('windowContainer');
-    if (!document.fullscreen) {
-      emuDiv!.requestFullscreen();
+    if (Fullscreen.fullscreenElement()) {
+      Fullscreen.exitFullscreen();
     }
     else {
-      document.exitFullscreen();
+      Fullscreen.requestFullscreen(emuDiv!);
     }
   }
 
@@ -696,7 +697,7 @@ export class MsxEmu {
     //  this.machine!.dumpAsm(1000);
     //}
 
-    if (1) {
+    if (0) {
       if (event.code == 'KeyQ') {
         this.quickSaveState();
       }
