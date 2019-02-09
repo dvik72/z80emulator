@@ -39,6 +39,7 @@ export enum MediaType {
   BASIC = 'Basic',
   NORMAL_0xc000 = 'Normal - 0xc000',
   NORMAL_MIRRORED = 'Mirrored',
+  MSXDOS2 = 'MSXDOS2',
   ASCII16 = 'ASCII16',
   ASCII16SRAM = 'ASCII16 SRAM',
   ASCII8 = 'ASCII8',
@@ -153,6 +154,7 @@ class Dump {
     if (iequals(name, "ASCII16SRAM2")) return MediaType.ASCII16SRAM;
     if (iequals(name, "ASCII8")) return MediaType.ASCII8;
     if (iequals(name, "ASCII8SRAM8")) return MediaType.ASCII8SRAM;
+    if (iequals(name, "MSXDOS2")) return MediaType.MSXDOS2;
     if (iequals(name, "KoeiSRAM8")) return MediaType.KOEI;
     if (iequals(name, "KoeiSRAM32")) return MediaType.KOEI;
     if (iequals(name, "Konami")) return MediaType.KONAMI;
@@ -253,7 +255,92 @@ export class MediaInfoFactory {
         type,
         data);
     }
-    return new MediaInfo('Unknown Software', '', 1900, '', MediaType.UNKNOWN, data);
+
+    const mediaType = this.guessMediaType(data);
+
+    return new MediaInfo('Unknown Software', '', 1900, '', mediaType, data);
+  }
+
+  public guessMediaType(data: Uint8Array): MediaType {
+    if (data.length <= 0x10000) {
+      if (data.length == 0x10000) {
+        return data[0x4000] == 0x41 && data[0x4001] == 0x42 ? MediaType.NORMAL_MIRRORED : MediaType.ASCII16;
+      }
+
+      if (data.length <= 0x4000 && data[0] == 0x41 && data[1] == 0x42) {
+        const init = data[2] + 256 * data[3];
+        const text = data[8] + 256 * data[9];
+        return (text & 0xc000) == 0x8000 ? MediaType.BASIC : MediaType.NORMAL_MIRRORED;
+      }
+    }
+
+    const counters = [0, 0, 0, 0, 0, 0];
+
+    for (let i = 0; i < data.length - 3; i++) {
+      if (data[i] == 0x32) {
+        const value = data[i + 1] + 256 * data[i + 2];
+
+        switch (value) {
+          case 0x4000:
+          case 0x8000:
+          case 0xa000:
+            counters[3]++;
+            break;
+
+          case 0x5000:
+          case 0x9000:
+          case 0xb000:
+            counters[2]++;
+            break;
+
+          case 0x6000:
+            counters[3]++;
+            counters[4]++;
+            counters[5]++;
+            break;
+
+          case 0x6800:
+          case 0x7800:
+            counters[4]++;
+            break;
+
+          case 0x7000:
+            counters[2]++;
+            counters[4]++;
+            counters[5]++;
+            break;
+
+          case 0x77ff:
+            counters[5]++;
+            break;
+        }
+      }
+    }
+
+    let mapper = 0;
+    counters[4] -= counters[4] ? 1 : 0;
+
+    for (let i = 0; i <= 5; i++) {
+      if (counters[i] > 0 && counters[i] >= counters[mapper]) {
+        mapper = i;
+      }
+    }
+
+    if (mapper == 5 && counters[0] == counters[5]) {
+      mapper = 0;
+    }
+
+    switch (mapper) {
+      default:
+      case 0: return MediaType.NORMAL_0x4000;
+      case 1: return MediaType.MSXDOS2;
+      case 2: return MediaType.KONAMISCC;
+      case 3: return MediaType.KONAMI;
+      case 4: return MediaType.ASCII8;
+      case 5: return MediaType.ASCII16;
+    }
+
+    return MediaType.UNKNOWN;
   }
   
   private softwareByHash: { [key: string]: Software };

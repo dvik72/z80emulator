@@ -22,6 +22,7 @@ import { Mapper } from '../mappers/mapper';
 
 import { MapperRomAscii8 } from './romascii8';
 import { MapperRomAscii16 } from './romascii16';
+import { MapperRomMsxDos2 } from './rommsxdos2';
 import { MapperRomAscii8sram, Ascii8SramType } from './romascii8sram';
 import { MapperRomAscii16sram } from './romascii16sram';
 import { MapperRomKonami } from './romkonami';
@@ -75,6 +76,7 @@ export function getSupportedCartridgeTypes(): Array<MediaType> {
     MediaType.KOREAN90,
     MediaType.KOREAN126,
     MediaType.MAJUTSUSHI,
+    MediaType.MSXDOS2,
     MediaType.MANBOW2,
     MediaType.MANBOW2_V2,
 //    MediaType.HOLYQURAN,
@@ -91,6 +93,7 @@ export function mapperFromMediaInfo(board: Board, mediaInfo: MediaInfo, slot: nu
     case MediaType.ASCII8: return new MapperRomAscii8(board, slot, subslot, mediaInfo.data);
     case MediaType.ASCII16: return new MapperRomAscii16(board, slot, subslot, mediaInfo.data);
     case MediaType.ASCII8SRAM: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data);
+    case MediaType.MSXDOS2: return new MapperRomMsxDos2(board, slot, subslot, mediaInfo.data);
     case MediaType.KOEI: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data, Ascii8SramType.KOEI);
     case MediaType.WIZARDRY: return new MapperRomAscii8sram(board, slot, subslot, mediaInfo.data, Ascii8SramType.WIZARDRY);
     case MediaType.ASCII16SRAM: return new MapperRomAscii16sram(board, slot, subslot, mediaInfo.data);

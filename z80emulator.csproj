@@ -117,6 +117,7 @@
     <TypeScriptCompile Include="src\mappers\rommegaflashromscc.ts" />
     <TypeScriptCompile Include="src\mappers\rommoonsound.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxaudio.ts" />
+    <TypeScriptCompile Include="src\mappers\rommsxdos2.ts" />
     <TypeScriptCompile Include="src\mappers\rommsxmusic.ts" />
     <TypeScriptCompile Include="src\mappers\rammapped.ts" />
     <TypeScriptCompile Include="src\mappers\rompanasonic.ts" />
