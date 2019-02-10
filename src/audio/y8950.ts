@@ -781,7 +781,7 @@ class OPL_CH {
 
   public setState(state: any): void {
     for (let i = 0; i < this.SLOT.length; i++) {
-      this.SLOT[i].setState(this.SLOT[i]);
+      this.SLOT[i].setState(state.SLOT[i]);
     }
 
     this.CON = state.CON;
@@ -1459,7 +1459,7 @@ class FM_OPL {
     this.vibIncr = state.vibIncr;
     this.wavesel = state.wavesel;
 
-    state.dacSampleVolume = this.dacSampleVolume;
+    this.dacSampleVolume = state.dacSampleVolume;
 
     SaveState.setArrayState(this.regs, state.regs);
     this.reg6 = state.reg6;

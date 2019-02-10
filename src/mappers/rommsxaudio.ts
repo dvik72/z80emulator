@@ -112,10 +112,17 @@ export class MapperRomMsxAudio extends Mapper {
   public getState(): any {
     let state: any = {};
 
+    state.bankSelect = this.bankSelect;
+    state.ram = SaveState.getArrayState(this.ram);
+    state.y8950 = this.y8950.getState();
+
     return state;
   }
 
   public setState(state: any): void {
+    this.bankSelect = state.bankSelect;
+    SaveState.setArrayState(this.ram, state.ram);
+    this.y8950.setState(state.y8950);
   }
 
   private slotInfo = new Array<Slot>(8);
