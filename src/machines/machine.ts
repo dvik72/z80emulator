@@ -61,10 +61,6 @@ export abstract class Machine {
 
   public abstract getFrameBufferHeight(): number;
 
-  public abstract keyDown(keyCode: string): void;
-
-  public abstract keyUp(keyCode: string): void;
-
   public abstract insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void;
 
   public getState(): any {

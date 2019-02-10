@@ -83,14 +83,6 @@ export class Msx2PlusBase extends Machine {
     return this.vdp!.getFrameBufferHeight();
   }
 
-  public keyDown(keyCode: string): void {
-    this.msxPpi!.keyDown(keyCode);
-  }
-
-  public keyUp(keyCode: string): void {
-    this.msxPpi!.keyUp(keyCode);
-  }
-
   public insertRomMedia(mediaInfo: MediaInfo, cartridgeSlot?: number): void {
     cartridgeSlot = cartridgeSlot || 0;
 

@@ -29,6 +29,7 @@ import { DiskManager } from '../disk/diskmanager';
 import { UserPrefs } from './userprefs';
 import { PngSaveState } from '../util/pngsavestate';
 import { Fullscreen } from '../util/fullscreen';
+import { Input } from '../util/input';
 
 /// <reference path="../../js/filesaver.d.ts" />
 
@@ -96,6 +97,8 @@ export class MsxEmu {
     document.addEventListener('savestate', this.onSaveState.bind(this));
 
     this.userPrefs.load();
+
+    Input.init();
 
     this.createMachineMenu();
     this.createCartSpecialMenu();
@@ -693,7 +696,7 @@ export class MsxEmu {
 
   private keyDown(event: KeyboardEvent): void {
     event.preventDefault();
-    this.machine && this.machine.keyDown(event.code);
+    Input.keyDown(event.code);
     //if (event.code == 'KeyD') {
     //  console.log('Trigger ASM dump');
     //  this.machine!.dumpAsm(1000);
@@ -808,7 +811,7 @@ export class MsxEmu {
   
   private keyUp(event: KeyboardEvent): void {
     event.preventDefault();
-    this.machine && this.machine.keyUp(event.code);
+    Input.keyUp(event.code);
   }
 
   private machine?: Machine;
