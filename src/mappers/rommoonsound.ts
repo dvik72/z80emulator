@@ -60,10 +60,13 @@ export class MapperRomMoonsound extends Mapper {
   public getState(): any {
     let state: any = {};
 
+    state.moonsound = this.moonsound.getState();
+
     return state;
   }
 
   public setState(state: any): void {
+    this.moonsound.setState(state.moonsound);
   }
 
   private moonsound: Moonsound;
