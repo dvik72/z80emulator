@@ -1515,7 +1515,7 @@ export class Vdp {
               this.renderPattern = this.vram[patternBase | this.vram[charTableOffset] * 8];
 
               const colPattern = this.vram[this.colTabBase & ((~0 << 9) | (this.renderCharOffset >> 3))];
-              if ((colPattern << (x & 7)) & 0x80) {
+              if ((colPattern << (this.renderCharOffset & 7)) & 0x80) {
                 this.renderColors = [xbgColor, xfgColor];
               }
               else {
