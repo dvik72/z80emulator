@@ -1773,10 +1773,13 @@ export class Vdp {
     rightBorder && x2--;
 
     if (leftBorder) {
-      this.refreshLeftBorder(bgColor, 0);
-    }
+      this.lineHScroll = this.hScroll();
+      const extraBorder = -this.lineHScroll & 7;
+      this.refreshLeftBorder(bgColor, extraBorder);
+      this.spriteLineOffset += extraBorder;
 
-    const y = scanLine - this.firstLine + this.lineVScroll;
+      this.scrollIndex = this.lineHScroll + 7 & ~7;
+    }
 
     if (!this.screenOn || !this.isDrawArea) {
       while (x < x2) {
@@ -1787,10 +1790,17 @@ export class Vdp {
       }
     }
     else {
-      let charTableOffset = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3)))) + x;
+      const y = scanLine - this.firstLine + this.vScroll();
+
+      let charTableBase = (this.chrTabBase & ((~0 << 10) | (32 * (y >> 3))));
       let patternBase = this.chrGenBase & ((~0 << 11) | ((y >> 2) & 7));
 
+      let maskCount = (x2 > 0 && x < 1) && this.isEdgeMasked() ? (this.lineHScroll & 7) || 8 : 0;
+
       while (x < x2) {
+        let charTableOffset = (charTableBase | (this.scrollIndex & 0x1f));
+        this.scrollIndex++;
+
         const colPattern = this.vram[patternBase | (this.vram[charTableOffset] * 8)];
         const fc = this.palette[colPattern >> 4];
         const bc = this.palette[colPattern & 0x0f];
@@ -1803,12 +1813,12 @@ export class Vdp {
         { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
         { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
         { const col = this.spriteLine[this.spriteLineOffset++]; this.frameBuffer[this.frameOffset++] = col ? this.palette[col] : bc; }
-        charTableOffset++;
         x++;
       }
     }
 
     if (rightBorder) {
+      this.frameOffset -= -this.lineHScroll & 7;
       this.refreshRightBorder(bgColor, 0);
       this.updateSpritesLine(scanLine);
     }
@@ -1946,7 +1956,6 @@ export class Vdp {
       this.refreshRightBorder(bgColor, 0);
     }
   }
-
 
   private refreshLine6(scanLine: number, x: number, x2: number): void {
     if (x < 24 && x2 >= 24) {
