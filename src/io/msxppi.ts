@@ -21,7 +21,7 @@ import { Port } from '../core/iomanager';
 import { LedType } from '../core/ledmanager';
 import { KeyClick } from '../audio/keyclick';
 import { I8255 } from './i8255';
-import { Input, Key } from '../util/input';
+import { Input, Key } from '../input/input';
 
 export class MsxPpi {
   constructor(

@@ -29,7 +29,7 @@ import { DiskManager } from '../disk/diskmanager';
 import { UserPrefs } from './userprefs';
 import { PngSaveState } from '../util/pngsavestate';
 import { Fullscreen } from '../util/fullscreen';
-import { Input } from '../util/input';
+import { Input } from '../input/input';
 
 /// <reference path="../../js/filesaver.d.ts" />
 
