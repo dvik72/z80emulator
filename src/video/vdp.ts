@@ -1905,8 +1905,9 @@ export class Vdp {
 
     if (leftBorder) {
       this.lineHScroll = this.hScroll();
-      const extraBorder = -this.lineHScroll & 7
+      const extraBorder = -this.lineHScroll & 7;
       this.refreshLeftBorder(bgColor, extraBorder);
+      this.spriteLineOffset += extraBorder;
 
       this.lineHScroll512 = this.hScroll512() << 15;
       this.scrollIndex = this.lineHScroll + 7 & ~7;
@@ -2076,8 +2077,9 @@ export class Vdp {
 
     if (leftBorder) {
       this.lineHScroll = this.hScroll();
-      const extraBorder = -this.lineHScroll & 7
+      const extraBorder = -this.lineHScroll & 7;
       this.refreshLeftBorder(bgColor, extraBorder);
+      this.spriteLineOffset += extraBorder;
 
       this.lineHScroll512 = this.hScroll512() << 15;
       this.scrollIndex = this.lineHScroll + 7 & ~7;
