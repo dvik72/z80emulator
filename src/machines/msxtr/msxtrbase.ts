@@ -159,6 +159,8 @@ export class MsxTrBase extends Machine {
       const cartridgeRom = this.cartridgeRoms[i];
       cartridgeRom && state.cart[i] && cartridgeRom.setState(state.cart[i]);
     }
+
+    this.board!.mapRamSlots();
   }
 
   protected addMapper(mapper: Mapper) {
