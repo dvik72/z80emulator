@@ -64,10 +64,17 @@ export class MapperMsxMusic extends Mapper {
   public getState(): any {
     let state: any = {};
 
+    state.ym2413 = this.ym2413.getState();
+
+    state.latch = this.latch;
+
     return state;
   }
 
   public setState(state: any): void {
+    this.ym2413.setState(state.ym2413);
+
+    this.latch = state.latch;
   }
 
   private ym2413: Ym2413;

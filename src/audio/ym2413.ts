@@ -120,7 +120,8 @@ const INST_DATA = [
   new Uint8Array([0x21, 0x01, 0x89, 0x03, 0xf1, 0xe4, 0xf0, 0x23]), // electric guitar
   new Uint8Array([0x07, 0x21, 0x14, 0x00, 0xee, 0xf8, 0xff, 0xf8]),
   new Uint8Array([0x01, 0x31, 0x00, 0x00, 0xf8, 0xf7, 0xf8, 0xf7]),
-  new Uint8Array([0x25, 0x11, 0x00, 0x00, 0xf8, 0xfa, 0xf8, 0x55])
+  new Uint8Array([0x25, 0x11, 0x00, 0x00, 0xf8, 0xfa, 0xf8, 0x55]),
+  new Uint8Array([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]) // Null Patch
 ];
 
 // Cut the lower b bit off
@@ -213,9 +214,9 @@ class Patch {
   }
 
   public setState(state: any): void {
-    this.AM = this.AM;
-    this.PM = this.PM;
-    this.EG = this.EG;
+    this.AM = state.AM;
+    this.PM = state.PM;
+    this.EG = state.EG;
 
     this.KR = state.KR;
     this.ML = state.ML;
@@ -246,7 +247,7 @@ class Patch {
 }
 
 class Slot {
-  constructor(type: boolean) {
+  constructor(private patches: Array<Patch>, type: boolean) {
     this.reset(this.type);
   }
 
@@ -606,7 +607,6 @@ class Slot {
   }
 
   public type = false;
-  public patches = new Array<Patch>(0);
   public patchIdx = 0;
   public slotOnFlag = false;
 
@@ -631,7 +631,10 @@ class Slot {
 }
 
 class Channel {
-  constructor() { }
+  constructor(private patches: Array<Patch>) {
+    this.mod = new Slot(this.patches, false);
+    this.car = new Slot(this.patches, true);
+  }
 
   public reset(): void {
     this.mod.reset(false);
@@ -693,10 +696,9 @@ class Channel {
     this.car.setState(state.car);
   }
 
-  public patches = new Array<Patch>(1);
   public patchNumber = 0;
-  public mod = new Slot(false);
-  public car = new Slot(true);
+  public mod: Slot;
+  public car: Slot;
 }
 
 export class Ym2413 extends AudioDevice {
@@ -710,15 +712,14 @@ export class Ym2413 extends AudioDevice {
       this.patches[2 * i + 1] = new Patch(1, INST_DATA[i]);
     }
 
+    this.patches[NULL_PATCH_IDX] = new Patch(1, INST_DATA[19]); 
+
     for (let i = 0; i < 0x40; i++) {
       this.reg[i] = 0;
     }
 
     for (let i = 0; i < 9; i++) {
-      this.ch[i] = new Channel();
-      this.ch[i].patches = this.patches;
-      this.ch[i].mod.patches = this.patches;
-      this.ch[i].car.patches = this.patches;
+      this.ch[i] = new Channel(this.patches);
     }
 
     this.makePmTable();
@@ -1303,9 +1304,9 @@ export class Ym2413 extends AudioDevice {
   }
 
   public setState(state: any): void {
-    this.maxVolume = this.maxVolume;
-    this.internalMuted = this.internalMuted;
-    this.reg = SaveState.getArrayState(this.reg);
+    this.maxVolume = state.maxVolume;
+    this.internalMuted = state.internalMuted;
+    SaveState.setArrayState(this.reg, state.reg);
 
     this.pmPhase = state.pmPhase;
     this.lfoPm = state.lfoPm;
