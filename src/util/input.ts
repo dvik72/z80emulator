@@ -123,135 +123,129 @@ export enum Key {
   EC_NUM0,
   EC_NUMPER,
   EC_NUMCOM,
-  EC_NUMADD
+  EC_NUMADD,
+
+  EC_MAX_KEY_NUM
 };
 
 export class Input {
   public static keyDown(keyCode: string): void {
-    Input.s[Input.keyMap[keyCode] || Key.EC_NONE] = 1;
+    Input.keyArray[keyCode] = true;
+
+    for (let i = 0; i < Input.keyMap.length; i++) {
+      Input.keyMap[i] == keyCode && (Input.keyState[i] = 1);
+    }
   }
 
   public static keyUp(keyCode: string) {
-    Input.s[Input.keyMap[keyCode] || Key.EC_NONE] = 0;
+    Input.keyArray[keyCode] = true;
+
+    for (let i = 0; i < Input.keyMap.length; i++) {
+      Input.keyMap[i] == keyCode && (Input.keyState[i] = 0);
+    }
   }
 
   public static getKeyState(key: Key): boolean {
-    return !!Input.s[key];
+    return !!Input.keyState[key];
   }
 
   public static getKeyStateMap(): Array<number> {
-    return Input.s;
+    return Input.keyState;
   }
 
   public static init(): void {
-    Input.keyMap = {};
+    Input.keyMap[Key.EC_0] = 'Digit0';
+    Input.keyMap[Key.EC_1] = 'Digit1';
+    Input.keyMap[Key.EC_2] = 'Digit2';
+    Input.keyMap[Key.EC_3] = 'Digit3';
+    Input.keyMap[Key.EC_4] = 'Digit4';
+    Input.keyMap[Key.EC_5] = 'Digit5';
+    Input.keyMap[Key.EC_6] = 'Digit6';
+    Input.keyMap[Key.EC_7] = 'Digit7';
+    Input.keyMap[Key.EC_8] = 'Digit8';
+    Input.keyMap[Key.EC_9] = 'Digit9';
 
-    Input.keyMap['Digit0'] = Key.EC_0;
-    Input.keyMap['Digit1'] = Key.EC_1;
-    Input.keyMap['Digit2'] = Key.EC_2;
-    Input.keyMap['Digit3'] = Key.EC_3;
-    Input.keyMap['Digit4'] = Key.EC_4;
-    Input.keyMap['Digit5'] = Key.EC_5;
-    Input.keyMap['Digit6'] = Key.EC_6;
-    Input.keyMap['Digit7'] = Key.EC_7;
-    Input.keyMap['Digit8'] = Key.EC_8;
-    Input.keyMap['Digit9'] = Key.EC_9;
+    Input.keyMap[Key.EC_A] = 'KeyA';
+    Input.keyMap[Key.EC_B] = 'KeyB';
+    Input.keyMap[Key.EC_C] = 'KeyC';
+    Input.keyMap[Key.EC_D] = 'KeyD';
+    Input.keyMap[Key.EC_E] = 'KeyE';
+    Input.keyMap[Key.EC_F] = 'KeyF';
+    Input.keyMap[Key.EC_G] = 'KeyG';
+    Input.keyMap[Key.EC_H] = 'KeyH';
+    Input.keyMap[Key.EC_I] = 'KeyI';
+    Input.keyMap[Key.EC_J] = 'KeyJ';
+    Input.keyMap[Key.EC_K] = 'KeyK';
+    Input.keyMap[Key.EC_L] = 'KeyL';
+    Input.keyMap[Key.EC_M] = 'KeyM';
+    Input.keyMap[Key.EC_N] = 'KeyN';
+    Input.keyMap[Key.EC_O] = 'KeyO';
+    Input.keyMap[Key.EC_P] = 'KeyP';
+    Input.keyMap[Key.EC_Q] = 'KeyQ';
+    Input.keyMap[Key.EC_R] = 'KeyR';
+    Input.keyMap[Key.EC_S] = 'KeyS';
+    Input.keyMap[Key.EC_T] = 'KeyT';
+    Input.keyMap[Key.EC_U] = 'KeyU';
+    Input.keyMap[Key.EC_V] = 'KeyV';
+    Input.keyMap[Key.EC_W] = 'KeyW';
+    Input.keyMap[Key.EC_X] = 'KeyX';
+    Input.keyMap[Key.EC_Y] = 'KeyY';
+    Input.keyMap[Key.EC_Z] = 'KeyZ';
 
-    Input.keyMap['KeyA'] = Key.EC_A;
-    Input.keyMap['KeyB'] = Key.EC_B;
-    Input.keyMap['KeyC'] = Key.EC_C;
-    Input.keyMap['KeyD'] = Key.EC_D;
-    Input.keyMap['KeyE'] = Key.EC_E;
-    Input.keyMap['KeyF'] = Key.EC_F;
-    Input.keyMap['KeyG'] = Key.EC_G;
-    Input.keyMap['KeyH'] = Key.EC_H;
-    Input.keyMap['KeyI'] = Key.EC_I;
-    Input.keyMap['KeyJ'] = Key.EC_J;
-    Input.keyMap['KeyK'] = Key.EC_K;
-    Input.keyMap['KeyL'] = Key.EC_L;
-    Input.keyMap['KeyM'] = Key.EC_M;
-    Input.keyMap['KeyN'] = Key.EC_N;
-    Input.keyMap['KeyO'] = Key.EC_O;
-    Input.keyMap['KeyP'] = Key.EC_P;
-    Input.keyMap['KeyQ'] = Key.EC_Q;
-    Input.keyMap['KeyR'] = Key.EC_R;
-    Input.keyMap['KeyS'] = Key.EC_S;
-    Input.keyMap['KeyT'] = Key.EC_T;
-    Input.keyMap['KeyU'] = Key.EC_U;
-    Input.keyMap['KeyV'] = Key.EC_V;
-    Input.keyMap['KeyW'] = Key.EC_W;
-    Input.keyMap['KeyX'] = Key.EC_X;
-    Input.keyMap['KeyY'] = Key.EC_Y;
-    Input.keyMap['KeyZ'] = Key.EC_Z;
+    Input.keyMap[Key.EC_COMMA] = 'Comma';
+    Input.keyMap[Key.EC_PERIOD] = 'Period';
+    Input.keyMap[Key.EC_SEMICOL] = 'Semicolon';
+    Input.keyMap[Key.EC_COLON] = 'Quote';
+    Input.keyMap[Key.EC_LBRACK] = 'BracketLeft';
+    Input.keyMap[Key.EC_RBRACK] = 'BracketRight';
+    Input.keyMap[Key.EC_BKSLASH] = 'Backslash';
+    Input.keyMap[Key.EC_NEG] = 'Minus';
+    Input.keyMap[Key.EC_CIRCFLX] = 'Equal';
+    Input.keyMap[Key.EC_BKSPACE] = 'Backspace';
 
-    Input.keyMap['Comma'] = Key.EC_COMMA;
-    Input.keyMap['Period'] = Key.EC_PERIOD;
-    Input.keyMap['Semicolon'] = Key.EC_SEMICOL;
-    Input.keyMap['Quote'] = Key.EC_COLON;
-    Input.keyMap['BracketLeft'] = Key.EC_LBRACK;
-    Input.keyMap['BracketRight'] = Key.EC_RBRACK;
-    Input.keyMap['Backquote'] = Key.EC_NONE;
-    Input.keyMap['Backslash'] = Key.EC_BKSLASH;
-    Input.keyMap['Minus'] = Key.EC_NEG;
-    Input.keyMap['Equal'] = Key.EC_CIRCFLX;
-    Input.keyMap['IntlRo'] = Key.EC_NONE;
-    Input.keyMap['IntlYen'] = Key.EC_NONE;
-    Input.keyMap['Backspace'] = Key.EC_BKSPACE;
+    Input.keyMap[Key.EC_TORIKE] = 'AltLeft';
+    Input.keyMap[Key.EC_JIKKOU] = 'AltRight';
+    Input.keyMap[Key.EC_CAPS] = 'CapsLock';
+    Input.keyMap[Key.EC_CTRL] = 'ControlLeft';
+    Input.keyMap[Key.EC_UNDSCRE] = 'ControlRight';
+    Input.keyMap[Key.EC_GRAPH] = 'OSLeft';
+    Input.keyMap[Key.EC_LSHIFT] = 'ShiftLeft';
+    Input.keyMap[Key.EC_RSHIFT] = 'ShiftRight';
+    Input.keyMap[Key.EC_RETURN] = 'Enter';
+    Input.keyMap[Key.EC_SPACE] = 'Space';
+    Input.keyMap[Key.EC_TAB] = 'Tab';
+    Input.keyMap[Key.EC_DOWN] = 'ArrowDown';
+    Input.keyMap[Key.EC_LEFT] = 'ArrowLeft';
+    Input.keyMap[Key.EC_RIGHT] = 'ArrowRight';
+    Input.keyMap[Key.EC_UP] = 'ArrowUp';
+    Input.keyMap[Key.EC_ESC] = 'Escape';
+    Input.keyMap[Key.EC_PAUSE] = 'Pause';
 
-    Input.keyMap['AltLeft'] = Key.EC_TORIKE;
-    Input.keyMap['AltRight'] = Key.EC_JIKKOU;
-    Input.keyMap['CapsLock'] = Key.EC_CAPS;
-    Input.keyMap['ControlLeft'] = Key.EC_CTRL;
-    Input.keyMap['ControlRight'] = Key.EC_UNDSCRE;
-    Input.keyMap['OSLeft'] = Key.EC_GRAPH;
-    Input.keyMap['OSRight'] = Key.EC_NONE;
-    Input.keyMap['ShiftLeft'] = Key.EC_LSHIFT;
-    Input.keyMap['ShiftRight'] = Key.EC_RSHIFT;
-    Input.keyMap['ContextMenu'] = Key.EC_NONE;
-    Input.keyMap['Enter'] = Key.EC_RETURN;
-    Input.keyMap['Space'] = Key.EC_SPACE;
-    Input.keyMap['Tab'] = Key.EC_TAB;
-    Input.keyMap['Delete'] = Key.EC_NONE;
-    Input.keyMap['End'] = Key.EC_NONE;
-    Input.keyMap['Help'] = Key.EC_NONE;
-    Input.keyMap['Home'] = Key.EC_NONE;
-    Input.keyMap['Insert'] = Key.EC_NONE;
-    Input.keyMap['PageDown'] = Key.EC_NONE;
-    Input.keyMap['PageUp'] = Key.EC_NONE;
-    Input.keyMap['ArrowDown'] = Key.EC_DOWN;
-    Input.keyMap['ArrowLeft'] = Key.EC_LEFT;
-    Input.keyMap['ArrowRight'] = Key.EC_RIGHT;
-    Input.keyMap['ArrowUp'] = Key.EC_UP;
-    Input.keyMap['Escape'] = Key.EC_ESC;
-    Input.keyMap['PrintScreen'] = Key.EC_NONE;
-    Input.keyMap['ScrollLock'] = Key.EC_NONE;
-    Input.keyMap['Pause'] = Key.EC_PAUSE;
+    Input.keyMap[Key.EC_F1] = 'F1';
+    Input.keyMap[Key.EC_F2] = 'F2';
+    Input.keyMap[Key.EC_F3] = 'F3';
+    Input.keyMap[Key.EC_F4] = 'F4';
+    Input.keyMap[Key.EC_F5] = 'F5';
 
-    Input.keyMap['F1'] = Key.EC_F1;
-    Input.keyMap['F2'] = Key.EC_F2;
-    Input.keyMap['F3'] = Key.EC_F3;
-    Input.keyMap['F4'] = Key.EC_F4;
-    Input.keyMap['F5'] = Key.EC_F5;
-
-    Input.keyMap['NumLock'] = Key.EC_NONE;
-    Input.keyMap['Numpad0'] = Key.EC_NUM0;
-    Input.keyMap['Numpad1'] = Key.EC_NUM1;
-    Input.keyMap['Numpad2'] = Key.EC_NUM2;
-    Input.keyMap['Numpad3'] = Key.EC_NUM3;
-    Input.keyMap['Numpad4'] = Key.EC_NUM4;
-    Input.keyMap['Numpad5'] = Key.EC_NUM5;
-    Input.keyMap['Numpad6'] = Key.EC_NUM6;
-    Input.keyMap['Numpad7'] = Key.EC_NUM7;
-    Input.keyMap['Numpad8'] = Key.EC_NUM8;
-    Input.keyMap['Numpad9'] = Key.EC_NUM9;
-    Input.keyMap['NumpadAdd'] = Key.EC_NUMADD;
-    Input.keyMap['NumpadComma'] = Key.EC_NUMCOM;
-    Input.keyMap['NumpadDecimal'] = Key.EC_NUMPER;
-    Input.keyMap['NumpadSubtract'] = Key.EC_NUMSUB;
-    Input.keyMap['"NumpadDivide'] = Key.EC_NUMDIV;
-    Input.keyMap['NumpadMultiply'] = Key.EC_NUMMUL;
+    Input.keyMap[Key.EC_NUM0] = 'Numpad0';
+    Input.keyMap[Key.EC_NUM1] = 'Numpad1';
+    Input.keyMap[Key.EC_NUM2] = 'Numpad2';
+    Input.keyMap[Key.EC_NUM3] = 'Numpad3';
+    Input.keyMap[Key.EC_NUM4] = 'Numpad4';
+    Input.keyMap[Key.EC_NUM5] = 'Numpad5';
+    Input.keyMap[Key.EC_NUM6] = 'Numpad6';
+    Input.keyMap[Key.EC_NUM7] = 'Numpad7';
+    Input.keyMap[Key.EC_NUM8] = 'Numpad8';
+    Input.keyMap[Key.EC_NUM9] = 'Numpad9';
+    Input.keyMap[Key.EC_NUMADD] = 'NumpadAdd';
+    Input.keyMap[Key.EC_NUMCOM] = 'NumpadComma';
+    Input.keyMap[Key.EC_NUMPER] = 'NumpadDecimal';
+    Input.keyMap[Key.EC_NUMSUB] = 'NumpadSubtract';
+    Input.keyMap[Key.EC_NUMDIV] = 'NumpadDivide';
+    Input.keyMap[Key.EC_NUMMUL] = 'NumpadMultiply';
   }
 
-  private static s = new Array<number>(256);  
-  private static keyMap: { [key: string]: Key };
+  private static keyState = new Array<number>(Key.EC_MAX_KEY_NUM);
+  private static keyMap = new Array<string>(Key.EC_MAX_KEY_NUM);
+  private static keyArray: { [key: string]: boolean } = {};
 }
