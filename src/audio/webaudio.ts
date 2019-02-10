@@ -101,8 +101,10 @@ export class WebAudio {
       }
       if (this.chunks.length == 0) {
         if (this.autoAdjust) {
-          this.fragmentSize = this.fragmentSize * 1.05 | 0;
-          console.log('WEBAUDIO increasing fragment size to ' + this.fragmentSize);
+          if (this.fragmentSize < 1200) {
+            this.fragmentSize = this.fragmentSize * 1.05 | 0;
+            console.log('WEBAUDIO increasing fragment size to ' + this.fragmentSize);
+          }
         }
         this.autoCount = 0;
 //        console.log('WEBAUDIO buffer underrun');
