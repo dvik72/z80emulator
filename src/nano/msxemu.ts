@@ -536,7 +536,7 @@ export class MsxEmu {
 
   private fileEvent(event: CustomEvent): void {
     let slot = 0;
-    let type = MediaType.FLOPPY;
+    let type = MediaType.UNKNOWN;
 
     switch (event.detail) {
       case 'load-state': {
@@ -568,14 +568,16 @@ export class MsxEmu {
 
     const element = document.getElementById('fileLoader');
     element!.onchange = (event) => {
+      event.preventDefault();
       if (event.target instanceof HTMLInputElement) {
         const file = (<any>event.target.files)[0];
         if (file instanceof File) {
           this.loadMedia(slot, type, file);
         }
-      }
+      };
     };
 
+    (element! as HTMLInputElement).value = '';
     element!.click();
   }
 
