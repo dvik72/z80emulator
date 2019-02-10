@@ -1164,6 +1164,7 @@ export class Vdp {
         if ((this.status[0] & 0xc0) == 0) {
           this.status[0] = (this.status[0] & 0xe0) | 0x40 | idx;
         }
+        break;
       }
 
       this.spriteAttribOffsets[visibleCnt++] = attribOffset;
