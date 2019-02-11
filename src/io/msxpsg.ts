@@ -20,6 +20,7 @@ import { Board } from '../core/board';
 import { LedType } from '../core/ledmanager';
 import { SaveState } from '../core/savestate';
 import { Ay8910, Ay8910ConnectorType, PsgType } from '../audio/ay8910';
+import { JoystickPortManager } from '../input/joystickportmanager';
 
 export class MsxPsg {
   constructor(
@@ -48,9 +49,7 @@ export class MsxPsg {
 
     /* joystick pins */
     const renshaSpeed = 0; // TODO: Connect user configruable switch
-    let state = 0x3f;
-
-    // TODO: Hook up joystick controllers
+    let state = JoystickPortManager.read(this.joystickPort) & 0x3f;
 
     /* ANSI/JIS */
     state |= 0x40;
@@ -66,6 +65,9 @@ export class MsxPsg {
 
   private writeIo(address: number, value: number): void {
     if (address & 1) {
+      JoystickPortManager.write(0, ((value >> 0) & 0x03) | ((value >> 2) & 0x04));
+      JoystickPortManager.write(1, ((value >> 2) & 0x03) | ((value >> 3) & 0x04));
+
       this.joystickPort = (value >> 6) & 0x01;
 
       this.board.getLedManager().getLed(LedType.KANA).set((value & 0x80) == 0);

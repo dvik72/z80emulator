@@ -90,6 +90,8 @@
     <TypeScriptCompile Include="src\core\rammanager.ts" />
     <TypeScriptCompile Include="src\core\savestate.ts" />
     <TypeScriptCompile Include="src\disk\wd2793.ts" />
+    <TypeScriptCompile Include="src\input\joystickportmanager.ts" />
+    <TypeScriptCompile Include="src\input\msxjoystick.ts" />
     <TypeScriptCompile Include="src\io\i8251.ts" />
     <TypeScriptCompile Include="src\io\i8254.ts" />
     <TypeScriptCompile Include="src\io\msxmidi.ts" />
