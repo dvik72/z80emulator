@@ -30,6 +30,8 @@ import { UserPrefs } from './userprefs';
 import { PngSaveState } from '../util/pngsavestate';
 import { Fullscreen } from '../util/fullscreen';
 import { Input } from '../input/input';
+import { JoystickPortManager } from '../input/joystickportmanager';
+import { MsxJoystick } from '../input/msxjoystick';
 
 /// <reference path="../../js/filesaver.d.ts" />
 
@@ -99,6 +101,9 @@ export class MsxEmu {
     this.userPrefs.load();
 
     Input.init();
+
+    JoystickPortManager.registerJoystick(0, new MsxJoystick());
+    JoystickPortManager.registerJoystick(1, new MsxJoystick());
 
     this.createMachineMenu();
     this.createCartSpecialMenu();
@@ -668,6 +673,8 @@ export class MsxEmu {
   }
 
   private refreshScreen(): void {
+    Input.pollGamepads();
+
     this.updateLeds();
     if (this.isRunning && this.machine) {
       const frameBuffer = this.machine.getFrameBuffer();

@@ -2,7 +2,7 @@
 <head>
     <meta charset="utf-8" />
     <title>blueMSX Live</title>
-    <link rel="stylesheet" href="app.css?201901271430" type="text/css" />
+    <link rel="stylesheet" href="app.css?201902121430" type="text/css" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.css">
     <link rel="stylesheet" href="css/bootstrap-submenu.css">
 
@@ -97,6 +97,8 @@
                 <div class="dropright buttongroupmargin">
                     <img src="img/settings.png" class="emu-center dropdown-toggle" type="button" data-toggle="dropdown" data-submenu>
                     <div class="dropdown-menu">
+                        <button class="dropdown-item btn-sm" type="button" data-toggle="modal" data-target="#inputConfigModal">Input Configuration</button>
+                        <div class="dropdown-divider"></div>
                         <div class="dropdown dropright dropdown-submenu">
                             <button class="dropdown-item dropdown-toggle btn-sm" type="button">Window Size</button>
                             <div class="dropdown-menu" id="windowsize-menu">
@@ -158,10 +160,54 @@
                 <div class="emu-logo">
                     <img src="img/bluemsx.png" width="32" height="32" />
                 </div>
-                <div class="emu-version">v 0.3.2</div>
+                <div class="emu-version">v 0.3.3</div>
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="inputConfigModal" tabindex="-1" role="dialog" aria-labelledby="inputConfigModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inputConfigModalLabel">Input Configuration</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body input-body">
+
+                    <nav>
+                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                            <a class="nav-item nav-link active" id="nav-keyboard-tab" data-toggle="tab" href="#nav-keyboard" role="tab" aria-controls="nav-keyboard" aria-selected="true">Keyboard</a>
+                            <a class="nav-item nav-link" id="nav-joystick1-tab" data-toggle="tab" href="#nav-joystick1" role="tab" aria-controls="nav-joystick1" aria-selected="false">Joystick 1</a>
+                            <a class="nav-item nav-link" id="nav-joystick2-tab" data-toggle="tab" href="#nav-joystick2" role="tab" aria-controls="nav-joystick2" aria-selected="false">Joystick 2</a>
+                        </div>
+                    </nav>
+                    <div class="tab-content" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="nav-keyboard" role="tabpanel" aria-labelledby="nav-keyboard-tab">
+                            <div class="input-panel">
+                                <div class="keyboard-wrapper">
+                                    <img class="keyboard" src="img/keyboard.png" />
+                                    <img class="keyboard-key" src="img/clear.gif" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="nav-joystick1" role="tabpanel" aria-labelledby="nav-joystick1-tab">
+
+                        </div>
+                        <div class="tab-pane fade" id="nav-joystick2" role="tabpanel" aria-labelledby="nav-joystick2-tab">
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <input type="file" id="fileLoader" name="files" title="Load File" style="display: none;" />
 </body>
 </html>

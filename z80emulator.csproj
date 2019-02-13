@@ -61,9 +61,12 @@
     <Content Include="img\bluemsx.png" />
     <Content Include="img\cart1.png" />
     <Content Include="img\cart2.png" />
+    <Content Include="img\clear.gif" />
     <Content Include="img\diska.png" />
     <Content Include="img\diskb.png" />
     <Content Include="img\fullscreen.png" />
+    <Content Include="img\keyboard.png" />
+    <Content Include="img\keyboardpressed.png" />
     <Content Include="img\machine.png" />
     <Content Include="img\power.png" />
     <Content Include="img\settings.png" />

@@ -154,3 +154,35 @@ span {
 :fullscreen {
     background-color: #000000;
 }
+
+/* Keyboard Editor */
+.input-body {
+    height: 300px;
+    min-height: 300px;
+}
+
+.input-panel {
+    position: relative;
+}
+
+.keyboard-wrapper {
+    width: 590px;
+    min-width: 590px;
+}
+
+.keyboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.keyboard-key {
+    position: absolute;
+    left: 44px;
+    top: 50px;
+    width: 30px;
+    height: 22px;
+    z-index: 100;
+    background: url(img/keyboardpressed.png) -45px -51px;
+}
