@@ -19,7 +19,7 @@
 import { Input, Key } from './input';
 import { JoystickDevice } from './joystickportmanager';
 
-class MsxJoystick extends JoystickDevice {
+export class MsxJoystick extends JoystickDevice {
   constructor() {
     super();
   }

@@ -151,10 +151,6 @@ export class Input {
     }
   }
 
-  public static getKeyState(key: Key): boolean {
-    return !!Input.keyState[key];
-  }
-
   public static getKeyStateMap(): Array<number> {
     return Input.keyState;
   }
@@ -249,9 +245,83 @@ export class Input {
     Input.keyMap[Key.EC_NUMSUB] = 'NumpadSubtract';
     Input.keyMap[Key.EC_NUMDIV] = 'NumpadDivide';
     Input.keyMap[Key.EC_NUMMUL] = 'NumpadMultiply';
+
+    Input.keyMap[Key.EC_JOY1_UP] = 'Gamepad1_Up1';
+    Input.keyMap[Key.EC_JOY1_DOWN] = 'Gamepad1_Down1';
+    Input.keyMap[Key.EC_JOY1_LEFT] = 'Gamepad1_Left1';
+    Input.keyMap[Key.EC_JOY1_RIGHT] = 'Gamepad1_Right1';
+    Input.keyMap[Key.EC_JOY1_BT1] = 'Gamepad1_Button1';
+    Input.keyMap[Key.EC_JOY1_BT2] = 'Gamepad1_Button2';
+
+    Input.keyMap[Key.EC_JOY2_UP] = 'Gamepad2_Up1';
+    Input.keyMap[Key.EC_JOY2_DOWN] = 'Gamepad2_Down1';
+    Input.keyMap[Key.EC_JOY2_LEFT] = 'Gamepad2_Left1';
+    Input.keyMap[Key.EC_JOY2_RIGHT] = 'Gamepad2_Right1';
+    Input.keyMap[Key.EC_JOY2_BT1] = 'Gamepad2_Button1';
+    Input.keyMap[Key.EC_JOY2_BT2] = 'Gamepad2_Button2';
+
+    Input.updateGamepadsCache();
   }
 
+  private static updateGamepadsCache(): void {
+    Input.gamepadCache = [];
+
+    for (let i = 0; i < Key.EC_MAX_KEY_NUM; i++) {
+      if (Input.keyMap[i] && Input.keyMap[i].substr(0, 7) == 'Gamepad') {
+        Input.gamepadCache.push(Input.keyMap[i]);
+      }
+    }
+  }
+  
+  public static pollGamepads(): void {
+    let gamepads = navigator.getGamepads ? navigator.getGamepads() : ((navigator as any).webkitGetGamepads ? (navigator as any).webkitGetGamepads() : []);
+
+    for (let i = 0; i < gamepads.length; i++) {
+      const gp = gamepads[i];
+
+      if (gp) {
+        let gpIdx = (i ^ 1) % 2 + 1;
+        for (let j = 0; j < gp.axes.length / 2; j++) {
+          const keyCodeUp = 'Gamepad' + gpIdx + '_Up' + (j + 1);
+          if (Input.gamepadCache.indexOf(keyCodeUp) >= 0) {
+            gp.axes[2 * j + 1] < -Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeUp) : Input.keyUp(keyCodeUp);
+          }
+          const keyCodeDown = 'Gamepad' + gpIdx + '_Down' + (j + 1);
+          if (Input.gamepadCache.indexOf(keyCodeDown) >= 0) {
+            gp.axes[2 * j + 1] > Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeDown) : Input.keyUp(keyCodeDown);
+          }
+          const keyCodeLeft = 'Gamepad' + gpIdx + '_Left' + (j + 1);
+          if (Input.gamepadCache.indexOf(keyCodeLeft) >= 0) {
+            gp.axes[2 * j] < -Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeLeft) : Input.keyUp(keyCodeLeft);
+          }
+          const keyCodeRight = 'Gamepad' + gpIdx + '_Right' + (j + 1);
+          if (Input.gamepadCache.indexOf(keyCodeRight) >= 0) {
+            gp.axes[2 * j] > Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeRight) : Input.keyUp(keyCodeRight);
+          }
+        }
+
+        for (let j = 0; j < gp.buttons.length; j++) {
+          const keyCode = 'Gamepad' + gpIdx + '_Button' + (j + 1);
+          const b = gp.buttons[j];
+          if (Input.gamepadCache.indexOf(keyCode) >= 0) {
+            let pressed = false;
+            if (typeof(b) == 'object') {
+              pressed = !!b.pressed;
+            }
+            else {
+              pressed = b == 1.0;
+            }
+
+            pressed ? Input.keyDown(keyCode) : Input.keyUp(keyCode);
+          }
+        }
+      }
+    }
+  }
+  
   private static keyState = new Array<number>(Key.EC_MAX_KEY_NUM);
   private static keyMap = new Array<string>(Key.EC_MAX_KEY_NUM);
   private static keyArray: { [key: string]: boolean } = {};
+  private static gamepadCache = new Array<string>(0);
+  private static AXIS_THRESHOLD = 0.5;
 }
