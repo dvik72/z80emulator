@@ -273,6 +273,26 @@ export class Input {
     }
   }
   
+  private static registerGamepadIndex(index: number): void {
+    for (let i of Input.gamepadMapping) {
+      if (i == index) {
+        return;
+      }
+    }
+    Input.gamepadMapping.push(index);
+  }
+
+  private static getGamepadIndex(index: number): number {
+    let offset = 0;
+    for (let i of Input.gamepadMapping) {
+      if (i == index) {
+        return offset;
+      }
+      offset++;
+    }
+    return -1;
+  }
+  
   public static pollGamepads(): void {
     let gamepads = navigator.getGamepads ? navigator.getGamepads() : ((navigator as any).webkitGetGamepads ? (navigator as any).webkitGetGamepads() : []);
 
@@ -280,38 +300,52 @@ export class Input {
       const gp = gamepads[i];
 
       if (gp) {
-        let gpIdx = (i ^ 1) % 2 + 1;
         for (let j = 0; j < gp.axes.length / 2; j++) {
+          const up = gp.axes[2 * j + 1] < -Input.AXIS_THRESHOLD;
+          const down = gp.axes[2 * j + 1] > Input.AXIS_THRESHOLD;
+          const left = gp.axes[2 * j] < -Input.AXIS_THRESHOLD;
+          const right = gp.axes[2 * j] > Input.AXIS_THRESHOLD;
+
+          if (up || down || left || right) {
+            Input.registerGamepadIndex(i);
+          }
+          const gpIdx = Input.getGamepadIndex(i) + 1;
+
           const keyCodeUp = 'Gamepad' + gpIdx + '_Up' + (j + 1);
           if (Input.gamepadCache.indexOf(keyCodeUp) >= 0) {
-            gp.axes[2 * j + 1] < -Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeUp) : Input.keyUp(keyCodeUp);
+            up ? Input.keyDown(keyCodeUp) : Input.keyUp(keyCodeUp);
           }
           const keyCodeDown = 'Gamepad' + gpIdx + '_Down' + (j + 1);
           if (Input.gamepadCache.indexOf(keyCodeDown) >= 0) {
-            gp.axes[2 * j + 1] > Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeDown) : Input.keyUp(keyCodeDown);
+            down ? Input.keyDown(keyCodeDown) : Input.keyUp(keyCodeDown);
           }
           const keyCodeLeft = 'Gamepad' + gpIdx + '_Left' + (j + 1);
           if (Input.gamepadCache.indexOf(keyCodeLeft) >= 0) {
-            gp.axes[2 * j] < -Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeLeft) : Input.keyUp(keyCodeLeft);
+            left ? Input.keyDown(keyCodeLeft) : Input.keyUp(keyCodeLeft);
           }
           const keyCodeRight = 'Gamepad' + gpIdx + '_Right' + (j + 1);
           if (Input.gamepadCache.indexOf(keyCodeRight) >= 0) {
-            gp.axes[2 * j] > Input.AXIS_THRESHOLD ? Input.keyDown(keyCodeRight) : Input.keyUp(keyCodeRight);
+            right ? Input.keyDown(keyCodeRight) : Input.keyUp(keyCodeRight);
           }
         }
 
         for (let j = 0; j < gp.buttons.length; j++) {
-          const keyCode = 'Gamepad' + gpIdx + '_Button' + (j + 1);
           const b = gp.buttons[j];
-          if (Input.gamepadCache.indexOf(keyCode) >= 0) {
-            let pressed = false;
-            if (typeof(b) == 'object') {
-              pressed = !!b.pressed;
-            }
-            else {
-              pressed = b == 1.0;
-            }
+          let pressed = false;
+          if (typeof (b) == 'object') {
+            pressed = !!b.pressed;
+          }
+          else {
+            pressed = b == 1.0;
+          }
 
+          if (pressed) {
+            Input.registerGamepadIndex(i);
+          }
+          const gpIdx = Input.getGamepadIndex(i) + 1;
+
+          const keyCode = 'Gamepad' + gpIdx + '_Button' + (j + 1);
+          if (Input.gamepadCache.indexOf(keyCode) >= 0) {
             pressed ? Input.keyDown(keyCode) : Input.keyUp(keyCode);
           }
         }
@@ -323,5 +357,6 @@ export class Input {
   private static keyMap = new Array<string>(Key.EC_MAX_KEY_NUM);
   private static keyArray: { [key: string]: boolean } = {};
   private static gamepadCache = new Array<string>(0);
+  private static gamepadMapping = new Array<number>(0);
   private static AXIS_THRESHOLD = 0.5;
 }
