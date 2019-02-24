@@ -100,7 +100,8 @@ export class MsxEmu {
 
     this.userPrefs.load();
 
-    Input.init();
+    Input.init(this.userPrefs.get().inputConfig);
+    this.userPrefs.get().inputConfig = Input.serialize();
 
     JoystickPortManager.registerJoystick(0, new MsxJoystick());
     JoystickPortManager.registerJoystick(1, new MsxJoystick());

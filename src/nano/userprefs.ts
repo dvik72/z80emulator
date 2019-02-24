@@ -26,6 +26,7 @@ class Prefs {
   public machineName = '';
   public windowSize = 0;
   public audioBufferSize = 3;
+  public inputConfig = {};
 }
 
 function addPrefsDetaults(prefs: Prefs): void {
@@ -34,6 +35,7 @@ function addPrefsDetaults(prefs: Prefs): void {
   if (!prefs.machineName) prefs.machineName = defaults.machineName;
   if (!prefs.windowSize) prefs.windowSize = defaults.windowSize;
   if (!prefs.audioBufferSize) prefs.audioBufferSize = defaults.audioBufferSize;
+  if (!prefs.inputConfig) prefs.inputConfig = defaults.inputConfig;
 }
 
 
