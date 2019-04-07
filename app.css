@@ -159,8 +159,8 @@ span {
     display: -webkit-flex; /* Safari */
     display: flex;
     flex-direction: column;
-    height: 300px;
-    min-height: 300px;
+    height: 350px;
+    min-height: 350px;
 }
 
 .key-info {
@@ -196,10 +196,8 @@ span {
     flex-direction: row;
 }
 
-.keyboard-wrapper {
+.config-image-container {
     position: relative;
-    width: 590px;
-    min-width: 590px;
     height: 220px;
     min-height: 220px;
     margin-left: auto;
@@ -208,6 +206,16 @@ span {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.config-image-keyboard {
+    width: 590px;
+    min-width: 590px;
+}
+
+.config-image-joystick {
+    width: 295px;
+    min-width: 295px;
 }
 
 .keyboard {
@@ -282,7 +290,7 @@ span {
     float: right;
     font-size: 28px;
     font-weight: bold;
-    margin-top:-9px;
+    margin-top: -9px;
 }
 
 .modalClose:hover,
@@ -296,4 +304,35 @@ span {
     color: white;
     font-size: 20px;
     font-weight: bold;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e7e7e7;
+    background-color: #f3f3f3;
+}
+
+li {
+    float: left;
+}
+
+li span {
+    cursor: pointer;
+    display: block;
+    color: #666;
+    text-align: center;
+    padding: 6px 16px;
+    text-decoration: none;
+}
+
+li span:hover:not(.active) {
+    background-color: #ddd;
+}
+
+li span.active {
+    color: white;
+    background-color: #4CAF50;
 }

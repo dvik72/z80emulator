@@ -136,17 +136,41 @@ const KEY_COORDINATES = [
   new KeyCoord(Key.EC_NUMADD, 550, 87, 30, 23)
 ];
 
+const JOYSTICK1_COORDINATES = [
+  new KeyCoord(Key.EC_NONE, 0, 0, 1, 1),
+
+  new KeyCoord(Key.EC_JOY1_UP, 52, 72, 21, 26),
+  new KeyCoord(Key.EC_JOY1_DOWN, 52, 98, 21, 26),
+  new KeyCoord(Key.EC_JOY1_LEFT, 35, 87, 28, 21),
+  new KeyCoord(Key.EC_JOY1_RIGHT, 63, 87, 28, 21),
+  new KeyCoord(Key.EC_JOY1_BT1, 229, 81, 29, 30),
+  new KeyCoord(Key.EC_JOY1_BT2, 185, 82, 29, 29)
+];
+
+const JOYSTICK2_COORDINATES = [
+  new KeyCoord(Key.EC_NONE, 0, 0, 1, 1),
+
+  new KeyCoord(Key.EC_JOY2_UP, 52, 72, 21, 26),
+  new KeyCoord(Key.EC_JOY2_DOWN, 52, 98, 21, 26),
+  new KeyCoord(Key.EC_JOY2_LEFT, 35, 87, 28, 21),
+  new KeyCoord(Key.EC_JOY2_RIGHT, 63, 87, 28, 21),
+  new KeyCoord(Key.EC_JOY2_BT1, 229, 81, 29, 30),
+  new KeyCoord(Key.EC_JOY2_BT2, 185, 82, 29, 29)
+];
+
 enum Config {
-  NONE,
-  KEYBOARD,
-  JOYSTICK1,
-  JOYSTICK2,
+  NONE = 99,
+  KEYBOARD = 0,
+  JOYSTICK1 = 1,
+  JOYSTICK2 = 2,
 }
 
 export class InputConfig {
   constructor(private userPrefs: UserPrefs) {
     const span = document.getElementById('inputConfigClose');
     span!.addEventListener('click', (event) => { event.preventDefault(); this.hide(); });
+
+    document.addEventListener('inputtabpressed', this.onInputTabPressed.bind(this));
   }
 
   public show(): void {
@@ -165,9 +189,9 @@ export class InputConfig {
       }
     }
 
-    this.currentConfig = Config.KEYBOARD;
-
     modal!.style.display = 'block';
+
+    this.setConfig(Config.JOYSTICK1);
   }
 
   private hide(): void {
@@ -179,11 +203,75 @@ export class InputConfig {
     this.userPrefs.save();
   }
 
+  private setConfig(config: Config): void {
+    if (this.currentConfig == config) {
+      return;
+    }
+    this.currentConfig = config;
+
+    this.updateSelectState();
+
+    const tabs = [
+      'inputconfig-keyboard',
+      'inputconfig-joystick1',
+      'inputconfig-joystick2'
+    ];
+
+    for (let i = 0; i < tabs.length; i++) {
+      const tab = document.getElementById(tabs[i]);
+      if (i == config) {
+        tab!.classList.add('active');
+      } else {
+        tab!.classList.remove('active');
+      }
+    }
+    
+    const img = document.getElementById('keyboard-config');
+    (img as any).src = [
+      'img/keyboard.png',
+      'img/joystick.png',
+      'img/joystick.png'
+    ][config];
+    
+    const containerStyles = [
+      'config-image-keyboard',
+      'config-image-joystick',
+      'config-image-joystick'
+    ];
+    const imgContainer = document.getElementById('config-image-container');
+    for (const style of containerStyles) {
+      imgContainer!.classList.remove(style);
+    }
+    imgContainer!.classList.add(containerStyles[config]);
+    
+    this.coordinates = [
+      KEY_COORDINATES,
+      JOYSTICK1_COORDINATES,
+      JOYSTICK2_COORDINATES
+    ][config];
+
+    this.pressedImg = [
+      'img/keyboardpressed.png',
+      'img/joystickpressed.png',
+      'img/joystickpressed.png'
+    ][config];
+  }
+
+  private onInputTabPressed(event: CustomEvent): void {
+    if (event.detail == 'keyboard') {
+      this.setConfig(Config.KEYBOARD);
+    } else if (event.detail == 'joystick1') {
+      this.setConfig(Config.JOYSTICK1);
+    } else if (event.detail == 'joystick2') {
+      this.setConfig(Config.JOYSTICK2);
+    }
+  }
+
   private onEmuKeyPressed(event: CustomEvent): void {
     if (this.currentConfig == Config.NONE) {
       return;
     }
-
+    
     if (this.keySelected != Key.EC_NONE) {
       const keyMapped = event.detail;
       const keyMappedDiv = document.getElementById('key-mapped-data');
@@ -193,10 +281,14 @@ export class InputConfig {
   }
 
   private onKeyboardClick(event: MouseEvent): void {
-    let keyCoord = KEY_COORDINATES[Key.EC_NONE];
-    for (const coord of KEY_COORDINATES) {
-      const dx = event.offsetX - coord.x;
-      const dy = event.offsetY - coord.y;
+    this.updateSelectState(event.offsetX, event.offsetY)
+  }
+
+  private updateSelectState(x = -1, y = -1): void {
+    let keyCoord = this.coordinates[Key.EC_NONE];
+    for (const coord of this.coordinates) {
+      const dx = x - coord.x;
+      const dy = y - coord.y;
       if (dx >= 0 && dy >= 0 && dx < coord.width && dy < coord.height) {
         keyCoord = coord;
       }
@@ -220,7 +312,7 @@ export class InputConfig {
       keyDiv!.style.top = keyCoord.y + 'px';
       keyDiv!.style.width = keyCoord.width + 'px';
       keyDiv!.style.height = keyCoord.height + 'px';
-      keyDiv!.style.background = 'url(img/keyboardpressed.png) -' + (1 + keyCoord.x) + 'px -' + (1 + keyCoord.y) + 'px';
+      keyDiv!.style.background = 'url(' + this.pressedImg + ') -' + (1 + keyCoord.x) + 'px -' + (1 + keyCoord.y) + 'px';
       
       if (keyCoord.key != this.keySelected) {
         const keyMappedDiv = document.getElementById('key-mapped-data');
@@ -234,4 +326,6 @@ export class InputConfig {
 
   private keySelected = Key.EC_NONE;
   private currentConfig = Config.NONE;
+  private coordinates = KEY_COORDINATES;
+  private pressedImg = 'img/keyboardpressed.png';
 }

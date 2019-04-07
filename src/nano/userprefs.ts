@@ -38,7 +38,6 @@ function addPrefsDetaults(prefs: Prefs): void {
   if (!prefs.inputConfig) prefs.inputConfig = defaults.inputConfig;
 }
 
-
 export class UserPrefs {
   constructor() {
   }

@@ -65,6 +65,8 @@
     <Content Include="img\diska.png" />
     <Content Include="img\diskb.png" />
     <Content Include="img\fullscreen.png" />
+    <Content Include="img\joystick.png" />
+    <Content Include="img\joystickpressed.png" />
     <Content Include="img\keyboard.png" />
     <Content Include="img\keyboardpressed.png" />
     <Content Include="img\machine.png" />
