@@ -134,9 +134,128 @@ export enum Key {
   EC_MAX_KEY_NUM
 };
 
+const KEY_NAME_MAP = new Array<string>(Key.EC_MAX_KEY_NUM);
+
+KEY_NAME_MAP[Key.EC_NONE] = 'None';
+KEY_NAME_MAP[Key.EC_F1] = 'F1';
+KEY_NAME_MAP[Key.EC_F2] = 'F2';
+KEY_NAME_MAP[Key.EC_F3] = 'F3';
+KEY_NAME_MAP[Key.EC_F4] = 'F4';
+KEY_NAME_MAP[Key.EC_F5] = 'F5';
+
+KEY_NAME_MAP[Key.EC_0] = '0';
+KEY_NAME_MAP[Key.EC_1] = '1';
+KEY_NAME_MAP[Key.EC_2] = '2';
+KEY_NAME_MAP[Key.EC_3] = '3';
+KEY_NAME_MAP[Key.EC_4] = '4';
+KEY_NAME_MAP[Key.EC_5] = '5';
+KEY_NAME_MAP[Key.EC_6] = '6';
+KEY_NAME_MAP[Key.EC_7] = '7';
+KEY_NAME_MAP[Key.EC_8] = '8';
+KEY_NAME_MAP[Key.EC_9] = '9';
+
+KEY_NAME_MAP[Key.EC_A] = 'A';
+KEY_NAME_MAP[Key.EC_B] = 'B';
+KEY_NAME_MAP[Key.EC_C] = 'C';
+KEY_NAME_MAP[Key.EC_D] = 'D';
+KEY_NAME_MAP[Key.EC_E] = 'E';
+KEY_NAME_MAP[Key.EC_F] = 'F';
+KEY_NAME_MAP[Key.EC_G] = 'G';
+KEY_NAME_MAP[Key.EC_H] = 'H';
+KEY_NAME_MAP[Key.EC_I] = 'I';
+KEY_NAME_MAP[Key.EC_J] = 'J';
+KEY_NAME_MAP[Key.EC_K] = 'K';
+KEY_NAME_MAP[Key.EC_L] = 'L';
+KEY_NAME_MAP[Key.EC_M] = 'M';
+KEY_NAME_MAP[Key.EC_N] = 'N';
+KEY_NAME_MAP[Key.EC_O] = 'O';
+KEY_NAME_MAP[Key.EC_P] = 'P';
+KEY_NAME_MAP[Key.EC_Q] = 'Q';
+KEY_NAME_MAP[Key.EC_R] = 'R';
+KEY_NAME_MAP[Key.EC_S] = 'S';
+KEY_NAME_MAP[Key.EC_T] = 'T';
+KEY_NAME_MAP[Key.EC_U] = 'U';
+KEY_NAME_MAP[Key.EC_V] = 'V';
+KEY_NAME_MAP[Key.EC_W] = 'W';
+KEY_NAME_MAP[Key.EC_X] = 'X';
+KEY_NAME_MAP[Key.EC_Y] = 'Y';
+KEY_NAME_MAP[Key.EC_Z] = 'Z';
+
+KEY_NAME_MAP[Key.EC_STOP] = 'Stop';
+KEY_NAME_MAP[Key.EC_CLS] = 'Cls';
+KEY_NAME_MAP[Key.EC_SELECT] = 'Select';
+KEY_NAME_MAP[Key.EC_INS] = 'Ins';
+KEY_NAME_MAP[Key.EC_DEL] = 'Del';
+KEY_NAME_MAP[Key.EC_ESC] = 'Esc';
+KEY_NAME_MAP[Key.EC_CIRCFLX] = 'Circomflex';
+KEY_NAME_MAP[Key.EC_BKSLASH] = 'Backslash';
+KEY_NAME_MAP[Key.EC_BKSPACE] = 'Backspace';
+KEY_NAME_MAP[Key.EC_TAB] = 'Tab';
+KEY_NAME_MAP[Key.EC_NEG] = 'Neg';
+KEY_NAME_MAP[Key.EC_AT] = 'At';
+KEY_NAME_MAP[Key.EC_LBRACK] = 'Left Bracket';
+KEY_NAME_MAP[Key.EC_RETURN] = 'Return';
+KEY_NAME_MAP[Key.EC_CTRL] = 'Ctrl';
+KEY_NAME_MAP[Key.EC_SEMICOL] = 'Semicolon';
+KEY_NAME_MAP[Key.EC_COLON] = 'Colon';
+KEY_NAME_MAP[Key.EC_RBRACK] = 'Rigth Bracket';
+KEY_NAME_MAP[Key.EC_LSHIFT] = 'Left Shift';
+
+KEY_NAME_MAP[Key.EC_COMMA] = 'Comma';
+KEY_NAME_MAP[Key.EC_PERIOD] = 'Period';
+KEY_NAME_MAP[Key.EC_DIV] = 'Div';
+KEY_NAME_MAP[Key.EC_UNDSCRE] = 'Underscore';
+KEY_NAME_MAP[Key.EC_RSHIFT] = 'Right Shift';
+KEY_NAME_MAP[Key.EC_CAPS] = 'Caps';
+KEY_NAME_MAP[Key.EC_GRAPH] = 'Graph';
+KEY_NAME_MAP[Key.EC_TORIKE] = 'Torike';
+KEY_NAME_MAP[Key.EC_SPACE] = 'Space';
+KEY_NAME_MAP[Key.EC_JIKKOU] = 'Jikkou';
+KEY_NAME_MAP[Key.EC_CODE] = 'Code';
+KEY_NAME_MAP[Key.EC_PAUSE] = 'Pause';
+
+KEY_NAME_MAP[Key.EC_LEFT] = 'Left';
+KEY_NAME_MAP[Key.EC_UP] = 'Up';
+KEY_NAME_MAP[Key.EC_DOWN] = 'Down';
+KEY_NAME_MAP[Key.EC_RIGHT] = 'Right';
+
+KEY_NAME_MAP[Key.EC_NUM0] = 'Num 0';
+KEY_NAME_MAP[Key.EC_NUM1] = 'Num 1';
+KEY_NAME_MAP[Key.EC_NUM2] = 'Num 2';
+KEY_NAME_MAP[Key.EC_NUM3] = 'Num 3';
+KEY_NAME_MAP[Key.EC_NUM4] = 'Num 4';
+KEY_NAME_MAP[Key.EC_NUM5] = 'Num 5';
+KEY_NAME_MAP[Key.EC_NUM6] = 'Num 6';
+KEY_NAME_MAP[Key.EC_NUM7] = 'Num 7';
+KEY_NAME_MAP[Key.EC_NUM8] = 'Num 8';
+KEY_NAME_MAP[Key.EC_NUM9] = 'Num 9';
+KEY_NAME_MAP[Key.EC_NUMCOM] = 'Num Comma';
+KEY_NAME_MAP[Key.EC_NUMADD] = 'Num Add';
+KEY_NAME_MAP[Key.EC_NUMSUB] = 'Num Sub';
+KEY_NAME_MAP[Key.EC_NUMMUL] = 'Num Mul';
+KEY_NAME_MAP[Key.EC_NUMDIV] = 'Num Div';
+KEY_NAME_MAP[Key.EC_NUMPER] = 'Num Period';
+
+KEY_NAME_MAP[Key.EC_JOY1_UP] = 'Joy1 Up';
+KEY_NAME_MAP[Key.EC_JOY1_DOWN] = 'Joy1 Down';
+KEY_NAME_MAP[Key.EC_JOY1_LEFT] = 'Joy1 Left';
+KEY_NAME_MAP[Key.EC_JOY1_RIGHT] = 'Joy1 Right';
+KEY_NAME_MAP[Key.EC_JOY1_BT1] = 'Joy1 Button 1';
+KEY_NAME_MAP[Key.EC_JOY1_BT2] = 'Joy1 Button 2';
+
+KEY_NAME_MAP[Key.EC_JOY2_UP] = 'Joy2 Up';
+KEY_NAME_MAP[Key.EC_JOY2_DOWN] = 'Joy2 Down';
+KEY_NAME_MAP[Key.EC_JOY2_LEFT] = 'Joy2 Left';
+KEY_NAME_MAP[Key.EC_JOY2_RIGHT] = 'Joy2 Right';
+KEY_NAME_MAP[Key.EC_JOY2_BT1] = 'Joy2 Button 1';
+KEY_NAME_MAP[Key.EC_JOY2_BT2] = 'Joy2 Button 2';
+
+
 export class Input {
   public static keyDown(keyCode: string): void {
     Input.keyArray[keyCode] = true;
+
+    document.dispatchEvent(new CustomEvent('emukeypressed', { detail: keyCode }));
 
     for (let i = 0; i < Input.keyMap.length; i++) {
       Input.keyMap[i] == keyCode && (Input.keyState[i] = 1);
@@ -153,6 +272,20 @@ export class Input {
 
   public static getKeyStateMap(): Array<number> {
     return Input.keyState;
+  }
+
+  public static getKeyName(key: Key): string {
+    return KEY_NAME_MAP[key];
+  }
+
+  public static getMappedKey(key: Key): string {
+    return Input.keyMap[key] || 'none';
+  }
+
+  public static mapKey(key: Key, value: string) {
+    if (key != Key.EC_NONE) {
+      Input.keyMap[key] = value;
+    }
   }
 
   public static init(inputConfig: any): void {

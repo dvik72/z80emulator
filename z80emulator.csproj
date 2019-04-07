@@ -154,6 +154,7 @@
     <TypeScriptCompile Include="src\mappers\turbortimer.ts" />
     <TypeScriptCompile Include="src\memory\amdflash.ts" />
     <TypeScriptCompile Include="src\nano\gamerom.ts" />
+    <TypeScriptCompile Include="src\nano\inputconfig.ts" />
     <TypeScriptCompile Include="src\nano\userprefs.ts" />
     <TypeScriptCompile Include="src\util\fullscreen.ts" />
     <TypeScriptCompile Include="src\input\input.ts" />

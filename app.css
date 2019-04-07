@@ -155,19 +155,59 @@ span {
     background-color: #000000;
 }
 
-/* Keyboard Editor */
-.input-body {
+.input-panel {
+    display: -webkit-flex; /* Safari */
+    display: flex;
+    flex-direction: column;
     height: 300px;
     min-height: 300px;
 }
 
-.input-panel {
-    position: relative;
+.key-info {
+    display: -webkit-flex; /* Safari */
+    display: flex;
+    flex-direction: row;
+}
+
+.key-title {
+    font-style: normal;
+    width: 120px;
+    min-width: 120px;
+    margin-left: auto;
+}
+
+.key-data {
+    font-style: normal;
+    font-weight: bold;
+    width: 120px;
+    min-width: 120px;
+    margin-right: auto;
+}
+
+.keyboard-config {
+    display: -webkit-flex; /* Safari */
+    display: flex;
+    flex-direction: column;
+}
+
+.keyboard-image {
+    display: -webkit-flex; /* Safari */
+    display: flex;
+    flex-direction: row;
 }
 
 .keyboard-wrapper {
+    position: relative;
     width: 590px;
     min-width: 590px;
+    height: 220px;
+    min-height: 220px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .keyboard {
@@ -179,10 +219,81 @@ span {
 
 .keyboard-key {
     position: absolute;
-    left: 44px;
-    top: 50px;
-    width: 30px;
-    height: 22px;
+    left: 0px;
+    top: 0px;
+    width: 1px;
+    height: 1px;
     z-index: 100;
-    background: url(img/keyboardpressed.png) -45px -51px;
+    background: url(img/empty.png) -45px -51px;
+}
+
+
+
+
+.inputConfigModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.inputConfigModal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 640px;
+    min-width: 640px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+}
+
+.inputConfigModal-body {
+    padding: 2px 16px;
+}
+
+.inputConfigModal-footer {
+    padding: 2px 16px;
+    background-color: #3b3b3b;
+    color: white;
+}
+
+.modalHeader {
+    padding: 2px 16px;
+    background-color: #3b3b3b;
+    color: white;
+    min-height: 30px;
+}
+
+.modalClose {
+    color: white;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    margin-top:-9px;
+}
+
+.modalClose:hover,
+.modalClose:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modalHeaderText {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
 }

@@ -16,6 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { InputConfig } from './inputconfig';
 import { Machine } from '../machines/machine';
 import { MachineManager } from '../machines/machinemanager';
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
@@ -97,6 +98,7 @@ export class MsxEmu {
     document.addEventListener('fullscreen', this.toggleFullscreen.bind(this));
     document.addEventListener('power', this.onPower.bind(this));
     document.addEventListener('savestate', this.onSaveState.bind(this));
+    document.addEventListener('inputconfig', this.onInputConfig.bind(this));
 
     this.userPrefs.load();
 
@@ -118,8 +120,10 @@ export class MsxEmu {
     this.setMachine(this.userPrefs.get().machineName);
 
     requestAnimationFrame(this.refreshScreen);
-  }
 
+    this.inputConfig = new InputConfig(this.userPrefs);    
+  }
+  
   private createMachineMenu(): void {
     const machinesDiv = document.getElementById('machines-menu');
     for (const machineName of this.machineManager.getMachineNames()) {
@@ -178,8 +182,11 @@ export class MsxEmu {
       else {
         this.resumeEmulation();
       }
-
     }
+  }
+
+  private onInputConfig(event: CustomEvent): void {
+    this.inputConfig!.show();
   }
 
   private onSaveState(event: CustomEvent): void {
@@ -822,6 +829,7 @@ export class MsxEmu {
     Input.keyUp(event.code);
   }
 
+  private inputConfig?: InputConfig;
   private machine?: Machine;
   private lastSyncTime = 0;
   private runCount = 0;
