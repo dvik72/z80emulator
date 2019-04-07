@@ -191,7 +191,7 @@ export class InputConfig {
 
     modal!.style.display = 'block';
 
-    this.setConfig(Config.JOYSTICK1);
+    this.setConfig(Config.KEYBOARD);
   }
 
   private hide(): void {
