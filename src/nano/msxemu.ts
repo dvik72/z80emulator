@@ -652,36 +652,43 @@ export class MsxEmu {
   private fileEvent(event: CustomEvent): void {
     let slot = 0;
     let type = MediaType.UNKNOWN;
+    let accept = '*';
 
     switch (event.detail) {
       case 'load-state': {
         slot = 0;
         type = MediaType.SAVESTATE;
+        accept = '.png,.PNG';
         break;
       }
       case 'insert-cart0': {
         slot = 0;
         type = MediaType.ROM;
+        accept = '.bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP';
         break;
       }
       case 'insert-cart1': {
         slot = 1;
         type = MediaType.ROM;
+        accept = '.bin,.BIN,.rom,.ROM,.bios,.BIOS,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP';
         break;
       }
       case 'insert-disk0': {
         slot = 0;
         type = MediaType.FLOPPY;
+        accept = '.bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP';
         break;
       }
       case 'insert-disk1': {
         slot = 1;
         type = MediaType.FLOPPY;
+        accept = '.bin,.BIN,.dsk,.DSK,.zip,.ZIP,.gz,.GZ,.gzip,.GZIP';
         break;
       }
     }
 
     const element = document.getElementById('fileLoader');
+    (element! as any).accept = accept;
     element!.onchange = (event) => {
       event.preventDefault();
       if (event.target instanceof HTMLInputElement) {
