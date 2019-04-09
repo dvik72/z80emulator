@@ -34,6 +34,9 @@ import { Input } from '../input/input';
 import { JoystickPortManager } from '../input/joystickportmanager';
 import { MsxJoystick } from '../input/msxjoystick';
 
+import { UrlParser, UrlParam } from '../util/urlparser';
+
+import * as JSZip from '../../js/jszip';
 /// <reference path="../../js/filesaver.d.ts" />
 
 
@@ -119,11 +122,13 @@ export class MsxEmu {
 
     this.setMachine(this.userPrefs.get().machineName);
 
-    requestAnimationFrame(this.refreshScreen);
+    this.inputConfig = new InputConfig(this.userPrefs);
 
-    this.inputConfig = new InputConfig(this.userPrefs);    
+    const urlParams = UrlParser.decodeUrlParams();
+
+    requestAnimationFrame(this.refreshScreen);
   }
-  
+
   private createMachineMenu(): void {
     const machinesDiv = document.getElementById('machines-menu');
     for (const machineName of this.machineManager.getMachineNames()) {
@@ -334,13 +339,13 @@ export class MsxEmu {
 
   private loadMedia(slot: number, type: MediaType, file: File): void {
     if (type == MediaType.UNKNOWN) {
-      if (file.name.slice(-3).toLowerCase() == 'dsk') {
+      if (MsxEmu.isDskFile(file.name)) {
         type = MediaType.FLOPPY;
       }
-      if (file.name.slice(-3).toLowerCase() == 'png') {
+      if (MsxEmu.isPngFile(file.name)) {
         type = MediaType.SAVESTATE;
       }
-      if (file.name.slice(-3).toLowerCase() == 'rom') {
+      if (MsxEmu.isRomFile(file.name)) {
         type = MediaType.ROM;
       }
     }
@@ -363,6 +368,83 @@ export class MsxEmu {
     reader.readAsBinaryString(file);
   }
 
+  private static zipCreate(data: Uint8Array): JSZip | null {
+    if (data[0] != 0x50 || data[1] != 0x4b) {
+      return null;
+    }
+    try {
+      return new JSZip(data);
+    }
+    catch (e) {
+      // Failed decomprssing zip.
+    }
+    return null;
+  }
+
+  private static getFileExtension(filename: string): string {
+    return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
+  }
+
+  private static isDskFile(filename: string): boolean {
+    const ext = MsxEmu.getFileExtension(filename).toLowerCase();
+    return ext == 'dsk' || ext == 'bin';
+  }
+
+  private static isPngFile(filename: string): boolean {
+    const ext = MsxEmu.getFileExtension(filename).toLowerCase();
+    return ext == 'png';
+  }
+
+  private static isRomFile(filename: string): boolean {
+    const ext = MsxEmu.getFileExtension(filename).toLowerCase();
+    return ext == 'rom' || ext == 'bin' || ext == 'bios';
+  }
+
+  private static isZipFile(filename: string): boolean {
+    const ext = MsxEmu.getFileExtension(filename).toLowerCase();
+    return ext == 'zip' || ext == 'gz' || ext == 'gzip';
+  }
+
+  private static extractFirstFileFromZip(data: Uint8Array, extFn: (filename: string) => boolean): Uint8Array | null {
+    const zip = MsxEmu.zipCreate(data);
+    if (!zip) {
+      return null;
+    }
+
+    const files = zip.file(/.+/);
+
+    for (const file of files) {
+      if (!file.dir && extFn(file.name)) {
+        return file.asUint8Array();
+      }
+      console.log('FInding file: ' + file.name);
+    }
+    return null;
+  }
+
+  private findMediaTypeInZip(data: Uint8Array): MediaType {
+    const zip = MsxEmu.zipCreate(data);
+    if (!zip) {
+      return MediaType.UNKNOWN;
+    }
+
+    const files = zip.file(/.+/);
+
+    for (const file of files) {
+      if (MsxEmu.isRomFile(file.name)) {
+        return MediaType.ROM;
+      }
+    }
+
+    for (const file of files) {
+      if (MsxEmu.isDskFile(file.name)) {
+        return MediaType.FLOPPY;
+      }
+    }
+
+    return MediaType.UNKNOWN;
+  }
+
   private mediaLoaded(filename: string, type: MediaType, slot: number, data: Uint8Array, mediaInfo?: MediaInfo): void {
     let ejectMenuId = '';
     let romTypeMenuId = '';
@@ -372,8 +454,18 @@ export class MsxEmu {
         this.setState(state);
       }
     }
+    if (type == MediaType.UNKNOWN && MsxEmu.isZipFile(filename)) {
+      type = this.findMediaTypeInZip(data);
+    }
     if (type == MediaType.FLOPPY) {
       if (!mediaInfo) {
+        if (MsxEmu.isZipFile(filename)) {
+          const zipData = MsxEmu.extractFirstFileFromZip(data, MsxEmu.isDskFile);
+          if (!zipData) {
+            return;
+          }
+          data = zipData;
+        }
         mediaInfo = new MediaInfo(filename, '', 1900, '', MediaType.FLOPPY, data);
       }
       this.diskMedia[slot] = mediaInfo;
@@ -383,6 +475,13 @@ export class MsxEmu {
     if (type == MediaType.ROM) {
       const oldMediaInfo = this.romMedia[slot];
       if (!mediaInfo) {
+        if (MsxEmu.isZipFile(filename)) {
+          const zipData = MsxEmu.extractFirstFileFromZip(data, MsxEmu.isRomFile);
+          if (!zipData) {
+            return;
+          }
+          data = zipData;
+        }
         mediaInfo = this.mediaInfoFactory.mediaInfoFromData(data);
       }
       this.romMedia[slot] = mediaInfo;

@@ -76,10 +76,12 @@
     <Content Include="js\bootstrap-submenu.js" />
     <Content Include="js\docs.js" />
     <Content Include="js\filesaver.js" />
+    <Content Include="js\jszip.js" />
     <Content Include="lib\require.js" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <Content Include="tsconfig.json" />
     <TypeScriptCompile Include="js\filesaver.d.ts" />
+    <TypeScriptCompile Include="js\jszip.d.ts" />
     <TypeScriptCompile Include="src\audio\dac.ts" />
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
     <TypeScriptCompile Include="src\audio\moonsound.ts" />
@@ -219,6 +221,7 @@
     <TypeScriptCompile Include="src\mappers\rombasic.ts" />
     <TypeScriptCompile Include="src\core\slotmanager.ts" />
     <TypeScriptCompile Include="src\nano\msxemu.ts" />
+    <TypeScriptCompile Include="src\util\urlparser.ts" />
     <TypeScriptCompile Include="src\video\shaders\basicshader.ts" />
     <TypeScriptCompile Include="src\video\shaders\shader.ts" />
     <TypeScriptCompile Include="src\video\v9938cmd.ts" />
