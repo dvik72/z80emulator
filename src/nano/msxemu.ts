@@ -368,6 +368,32 @@ export class MsxEmu {
     reader.readAsBinaryString(file);
   }
 
+  private loadRemoteMedia(slot: number, type: MediaType, url: string): void {
+    let httpReq = new XMLHttpRequest();
+    httpReq.open('GET', url, true);
+    httpReq.responseType = 'arraybuffer';
+
+    const mediaLoaded = this.mediaLoaded.bind(this);
+
+    httpReq.onreadystatechange = function () {
+      if (httpReq.readyState === XMLHttpRequest.DONE) {
+        let romData: Uint8Array | null = null;
+        if (httpReq.status == 200) {
+          const arrayBuffer = httpReq.response;
+          if (arrayBuffer instanceof ArrayBuffer) {
+            romData = new Uint8Array(arrayBuffer);
+          }
+        }
+        if (!romData) {
+          console.log('Failed loading media: ' + url);
+        }
+        mediaLoaded(url, type, slot, romData);
+      }
+    };
+
+    httpReq.send(null);
+  }
+  
   private static zipCreate(data: Uint8Array): JSZip | null {
     if (data[0] != 0x50 || data[1] != 0x4b) {
       return null;
@@ -545,7 +571,7 @@ export class MsxEmu {
 
   private loadSpecialRom(slot: number, specialRom: SpecialRom, romName: string): void {
     let httpReq = new XMLHttpRequest();
-    httpReq.open('GET', '../../systemroms/' + romName + '.bin', true);
+    httpReq.open('GET', './systemroms/' + romName + '.bin', true);
     httpReq.responseType = 'arraybuffer';
 
     const loadSpecialRomComplete = this.loadSpecialRomComplete.bind(this);
