@@ -79,6 +79,7 @@
     <Content Include="js\jszip.js" />
     <Content Include="lib\require.js" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
+    <Content Include="proxy\proxy.php" />
     <Content Include="tsconfig.json" />
     <TypeScriptCompile Include="js\filesaver.d.ts" />
     <TypeScriptCompile Include="js\jszip.d.ts" />

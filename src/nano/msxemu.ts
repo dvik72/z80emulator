@@ -125,6 +125,20 @@ export class MsxEmu {
     this.inputConfig = new InputConfig(this.userPrefs);
 
     const urlParams = UrlParser.decodeUrlParams();
+    for (const urlParam of urlParams) {
+      if (urlParam.key == 'rom1' && urlParam.value) {
+        this.loadRemoteMedia(0, MediaType.ROM, urlParam.value);
+      }
+      if (urlParam.key == 'rom2' && urlParam.value) {
+        this.loadRemoteMedia(1, MediaType.ROM, urlParam.value);
+      }
+      if (urlParam.key == 'disk1' && urlParam.value) {
+        this.loadRemoteMedia(0, MediaType.FLOPPY, urlParam.value);
+      }
+      if (urlParam.key == 'disk2' && urlParam.value) {
+        this.loadRemoteMedia(1, MediaType.FLOPPY, urlParam.value);
+      }
+    }
 
     requestAnimationFrame(this.refreshScreen);
   }
@@ -370,8 +384,9 @@ export class MsxEmu {
 
   private loadRemoteMedia(slot: number, type: MediaType, url: string): void {
     let httpReq = new XMLHttpRequest();
-    httpReq.open('GET', url, true);
+    httpReq.open('GET', './proxy/proxy.php', true);
     httpReq.responseType = 'arraybuffer';
+    httpReq.setRequestHeader('X-Proxy-URL', url);
 
     const mediaLoaded = this.mediaLoaded.bind(this);
 
@@ -385,9 +400,9 @@ export class MsxEmu {
           }
         }
         if (!romData) {
-          console.log('Failed loading media: ' + url);
+        } else {
+          mediaLoaded(url, type, slot, romData);
         }
-        mediaLoaded(url, type, slot, romData);
       }
     };
 
@@ -443,7 +458,6 @@ export class MsxEmu {
       if (!file.dir && extFn(file.name)) {
         return file.asUint8Array();
       }
-      console.log('FInding file: ' + file.name);
     }
     return null;
   }
