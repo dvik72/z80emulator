@@ -16,6 +16,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+import { BSON } from '../../modules/bson';
+import * as JSZip from '../../js/jszip';
+
+
 const CRC32_TABLE = new Uint8Array(256);
 
 for (let i = 0; i < 256; i++) {
@@ -179,19 +183,12 @@ export class PngSaveState {
   }
 
   private static fromState(state: any): Uint8Array {
-    const str = JSON.stringify(state, null, 0);
-    const ret = new Uint8Array(str.length);
-    for (let i = 0; i < str.length; i++) {
-      ret[i] = str.charCodeAt(i);
-    }
-    return ret
+    const serializedState = BSON.serialize(state);
+    return (JSZip as any).compressions.DEFLATE.compress(serializedState);
   }
 
   private static toState(array: Uint8Array): any {
-    let str = '';
-    for (let i = 0; i < array.length; i++) {
-      str += String.fromCharCode(array[i]);
-    }
-    return JSON.parse(str)
+    const decompressedArray = (JSZip as any).compressions.DEFLATE.uncompress(array);
+    return BSON.deserialize(decompressedArray);
   }
 }

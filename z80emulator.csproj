@@ -83,6 +83,7 @@
     <Content Include="tsconfig.json" />
     <TypeScriptCompile Include="js\filesaver.d.ts" />
     <TypeScriptCompile Include="js\jszip.d.ts" />
+    <TypeScriptCompile Include="modules\bson.ts" />
     <TypeScriptCompile Include="src\audio\dac.ts" />
     <TypeScriptCompile Include="src\audio\keyclick.ts" />
     <TypeScriptCompile Include="src\audio\moonsound.ts" />
