@@ -2,6 +2,8 @@ import { css, LitElement, customElement, html, unsafeCSS, query } from 'lit-elem
 import { styleMap } from 'lit-html/directives/style-map';
 import { MsxEmu } from '../../emulator/api/msx';
 import { WebAudio } from './webaudio/webaudio';
+import { KeyboardInput } from './input/keyboardinput';
+import { GamepadInput } from './input/gamepadinput';
 
 import '../../../src/views/emulator/gl-canvas.js';
 
@@ -30,6 +32,8 @@ class EmulatorRoot extends LitElement {
   private emuHeight = 0;
 
   private webAudio = new WebAudio();
+  private keyboardInput = new KeyboardInput();
+  private gamepadInput = new GamepadInput();
 
   private msxEmu: MsxEmu;
 
@@ -52,6 +56,9 @@ class EmulatorRoot extends LitElement {
 
   firstUpdated() {
     this.runEmulator = this.runEmulator.bind(this);
+
+    this.keyboardInput.start();
+    this.gamepadInput.start();
 
     window.addEventListener('resize', this.resize.bind(this));
     document.addEventListener('click', () => { this.webAudio.resume(); });

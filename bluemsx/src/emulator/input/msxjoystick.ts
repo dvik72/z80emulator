@@ -16,7 +16,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-import { Input, Key } from './input';
+import { Input, Key } from '../api/input';
 import { JoystickDevice } from './joystickportmanager';
 
 export class MsxJoystick extends JoystickDevice {

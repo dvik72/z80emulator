@@ -129,6 +129,7 @@
     <Folder Include="src\views\app-root\" />
     <Folder Include="src\views\emulator\" />
     <Folder Include="src\views\emulator\img\" />
+    <Folder Include="src\views\emulator\input\" />
     <Folder Include="src\views\emulator\webaudio\" />
     <Folder Include="src\views\emulator\webgl\" />
     <Folder Include="src\views\emulator\webgl\shaders\" />
@@ -165,7 +166,7 @@
     <TypeScriptCompile Include="src\emulator\disk\diskmanager.ts" />
     <TypeScriptCompile Include="src\emulator\disk\tc8566af.ts" />
     <TypeScriptCompile Include="src\emulator\disk\wd2793.ts" />
-    <TypeScriptCompile Include="src\emulator\input\input.ts" />
+    <TypeScriptCompile Include="src\emulator\api\input.ts" />
     <TypeScriptCompile Include="src\emulator\input\joystickportmanager.ts" />
     <TypeScriptCompile Include="src\emulator\input\msxjoystick.ts" />
     <TypeScriptCompile Include="src\emulator\io\i8251.ts" />
@@ -245,6 +246,12 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\views\emulator\gl-canvas.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\views\emulator\input\gamepadinput.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\views\emulator\input\keyboardinput.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\views\emulator\webaudio\webaudio.ts">

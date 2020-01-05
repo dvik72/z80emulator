@@ -255,8 +255,6 @@ export class Input {
   public static keyDown(keyCode: string): void {
     Input.keyArray[keyCode] = true;
 
-    document.dispatchEvent(new CustomEvent('emukeypressed', { detail: keyCode }));
-
     for (let i = 0; i < Input.keyMap.length; i++) {
       Input.keyMap[i] == keyCode && (Input.keyState[i] = 1);
     }
@@ -286,6 +284,18 @@ export class Input {
     if (key != Key.EC_NONE) {
       Input.keyMap[key] = value;
     }
+  }
+
+  public static getGamepadKeys(): Array<string> {
+    const gamepadKeys = new Array<string>(0);
+
+    for (let i = 0; i < Key.EC_MAX_KEY_NUM; i++) {
+      if (Input.keyMap[i] && Input.keyMap[i].substr(0, 7) == 'Gamepad') {
+        gamepadKeys.push(Input.keyMap[i]);
+      }
+    }
+
+    return gamepadKeys;
   }
 
   public static init(inputConfig: any): void {
@@ -392,8 +402,6 @@ export class Input {
     Input.keyMap[Key.EC_JOY2_RIGHT] = inputConfig.joy2_right || 'Gamepad2_Right1';
     Input.keyMap[Key.EC_JOY2_BT1] = inputConfig.joy2_bt1 || 'Gamepad2_Button1';
     Input.keyMap[Key.EC_JOY2_BT2] = inputConfig.joy2_bt2 || 'Gamepad2_Button2';
-
-    Input.updateGamepadsCache();
   }
 
   public static serialize(): any {
@@ -506,100 +514,7 @@ export class Input {
     return inputConfig;
   }
 
-  private static updateGamepadsCache(): void {
-    Input.gamepadCache = [];
-
-    for (let i = 0; i < Key.EC_MAX_KEY_NUM; i++) {
-      if (Input.keyMap[i] && Input.keyMap[i].substr(0, 7) == 'Gamepad') {
-        Input.gamepadCache.push(Input.keyMap[i]);
-      }
-    }
-  }
-  
-  private static registerGamepadIndex(index: number): void {
-    for (let i of Input.gamepadMapping) {
-      if (i == index) {
-        return;
-      }
-    }
-    Input.gamepadMapping.push(index);
-  }
-
-  private static getGamepadIndex(index: number): number {
-    let offset = 0;
-    for (let i of Input.gamepadMapping) {
-      if (i == index) {
-        return offset;
-      }
-      offset++;
-    }
-    return -1;
-  }
-  
-  public static pollGamepads(): void {
-    let gamepads = navigator.getGamepads ? navigator.getGamepads() : ((navigator as any).webkitGetGamepads ? (navigator as any).webkitGetGamepads() : []);
-
-    for (let i = 0; i < gamepads.length; i++) {
-      const gp = gamepads[i];
-
-      if (gp) {
-        for (let j = 0; j < gp.axes.length / 2; j++) {
-          const up = gp.axes[2 * j + 1] < -Input.AXIS_THRESHOLD;
-          const down = gp.axes[2 * j + 1] > Input.AXIS_THRESHOLD;
-          const left = gp.axes[2 * j] < -Input.AXIS_THRESHOLD;
-          const right = gp.axes[2 * j] > Input.AXIS_THRESHOLD;
-
-          if (up || down || left || right) {
-            Input.registerGamepadIndex(i);
-          }
-          const gpIdx = Input.getGamepadIndex(i) + 1;
-
-          const keyCodeUp = 'Gamepad' + gpIdx + '_Up' + (j + 1);
-          if (Input.gamepadCache.indexOf(keyCodeUp) >= 0) {
-            up ? Input.keyDown(keyCodeUp) : Input.keyUp(keyCodeUp);
-          }
-          const keyCodeDown = 'Gamepad' + gpIdx + '_Down' + (j + 1);
-          if (Input.gamepadCache.indexOf(keyCodeDown) >= 0) {
-            down ? Input.keyDown(keyCodeDown) : Input.keyUp(keyCodeDown);
-          }
-          const keyCodeLeft = 'Gamepad' + gpIdx + '_Left' + (j + 1);
-          if (Input.gamepadCache.indexOf(keyCodeLeft) >= 0) {
-            left ? Input.keyDown(keyCodeLeft) : Input.keyUp(keyCodeLeft);
-          }
-          const keyCodeRight = 'Gamepad' + gpIdx + '_Right' + (j + 1);
-          if (Input.gamepadCache.indexOf(keyCodeRight) >= 0) {
-            right ? Input.keyDown(keyCodeRight) : Input.keyUp(keyCodeRight);
-          }
-        }
-
-        for (let j = 0; j < gp.buttons.length; j++) {
-          const b = gp.buttons[j];
-          let pressed = false;
-          if (typeof (b) == 'object') {
-            pressed = !!b.pressed;
-          }
-          else {
-            pressed = b == 1.0;
-          }
-
-          if (pressed) {
-            Input.registerGamepadIndex(i);
-          }
-          const gpIdx = Input.getGamepadIndex(i) + 1;
-
-          const keyCode = 'Gamepad' + gpIdx + '_Button' + (j + 1);
-          if (Input.gamepadCache.indexOf(keyCode) >= 0) {
-            pressed ? Input.keyDown(keyCode) : Input.keyUp(keyCode);
-          }
-        }
-      }
-    }
-  }
-  
   private static keyState = new Array<number>(Key.EC_MAX_KEY_NUM);
   private static keyMap = new Array<string>(Key.EC_MAX_KEY_NUM);
   private static keyArray: { [key: string]: boolean } = {};
-  private static gamepadCache = new Array<string>(0);
-  private static gamepadMapping = new Array<number>(0);
-  private static AXIS_THRESHOLD = 0.5;
 }

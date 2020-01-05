@@ -24,7 +24,7 @@ import { MachineManager } from '../machines/machinemanager';
 import { MediaInfoFactory, MediaInfo, MediaType } from '../util/mediainfo';
 import { LedManager, LedType } from '../core/ledmanager';
 import { DiskManager } from '../disk/diskmanager';
-import { Input } from '../input/input';
+import { Input } from './input';
 import { JoystickPortManager } from '../input/joystickportmanager';
 import { MsxJoystick } from '../input/msxjoystick';
 
