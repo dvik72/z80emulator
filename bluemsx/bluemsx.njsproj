@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <Name>bluemsx</Name>
+    <RootNamespace>bluemsx</RootNamespace>
+    <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>40f3d328-336c-4161-9018-dcf5eb6ae5ed</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>server.ts</StartupFile>
+    <StartWebBrowser>True</StartWebBrowser>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <NodejsPort>1337</NodejsPort>
+    <EnableTypeScript>true</EnableTypeScript>
+    <StartWebBrowser>True</StartWebBrowser>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="dist\app-bundle.js" />
+    <Content Include="dist\app-bundle.js.map" />
+    <Content Include="dist\img\160dfc256f6a56f2dca00d03ec3f8504-bluemsx.png" />
+    <Content Include="index.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\emulator\util\jszip.js" />
+    <Content Include="src\views\app-root\app-root.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\views\emulator\emulator-root.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\views\emulator\gl-canvas.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\views\emulator\img\bluemsx.png" />
+    <Content Include="src\views\emulator\img\cart1.png" />
+    <Content Include="src\views\emulator\img\cart2.png" />
+    <Content Include="src\views\emulator\img\clear.gif" />
+    <Content Include="src\views\emulator\img\diska.png" />
+    <Content Include="src\views\emulator\img\diskb.png" />
+    <Content Include="src\views\emulator\img\fullscreen.png" />
+    <Content Include="src\views\emulator\img\joystick.png" />
+    <Content Include="src\views\emulator\img\joystickpressed.png" />
+    <Content Include="src\views\emulator\img\keyboard.png" />
+    <Content Include="src\views\emulator\img\keyboardpressed.png" />
+    <Content Include="src\views\emulator\img\machine.png" />
+    <Content Include="src\views\emulator\img\power.png" />
+    <Content Include="src\views\emulator\img\settings.png" />
+    <Content Include="src\views\emulator\img\windowsize.png" />
+    <Content Include="src\views\emulator\webgl\shaders\basicshader.js" />
+    <Content Include="src\views\emulator\webgl\shaders\shader.js" />
+    <Content Include="systemroms\a1bios.bin" />
+    <Content Include="systemroms\a1desk1.bin" />
+    <Content Include="systemroms\a1desk2.bin" />
+    <Content Include="systemroms\a1ext.bin" />
+    <Content Include="systemroms\a1gtbios.bin" />
+    <Content Include="systemroms\a1gtdos.bin" />
+    <Content Include="systemroms\a1gtext.bin" />
+    <Content Include="systemroms\a1gtfirm.bin" />
+    <Content Include="systemroms\a1gtkdr.bin" />
+    <Content Include="systemroms\a1gtkfn.bin" />
+    <Content Include="systemroms\a1gtmus.bin" />
+    <Content Include="systemroms\a1gtopt.bin" />
+    <Content Include="systemroms\a1wsbios.bin" />
+    <Content Include="systemroms\a1wsdisp.bin" />
+    <Content Include="systemroms\a1wsext.bin" />
+    <Content Include="systemroms\a1wsfirm.bin" />
+    <Content Include="systemroms\a1wskdr.bin" />
+    <Content Include="systemroms\a1wskfn.bin" />
+    <Content Include="systemroms\a1wsmusp.bin" />
+    <Content Include="systemroms\kanji.bin" />
+    <Content Include="systemroms\moonsound.bin" />
+    <Content Include="systemroms\msx2bios.bin" />
+    <Content Include="systemroms\msx2ext.bin" />
+    <Content Include="systemroms\msx2pbios.bin" />
+    <Content Include="systemroms\msx2pext.bin" />
+    <Content Include="systemroms\msx2pmus.bin" />
+    <Content Include="systemroms\msxkanji.bin" />
+    <Content Include="systemroms\panasonicdisk.bin" />
+    <Content Include="systemroms\philipsdisk.bin" />
+    <Content Include="systemroms\vg8020.bin" />
+    <Content Include="systemroms\xbasic.bin" />
+    <Content Include="webpack-config.js">
+      <SubType>Code</SubType>
+    </Content>
+    <None Include="server.ts" />
+    <Content Include="tsconfig.json" />
+    <Content Include="package.json" />
+    <Content Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="dist\" />
+    <Folder Include="dist\img\" />
+    <Folder Include="src\" />
+    <Folder Include="src\emulator\" />
+    <Folder Include="src\emulator\api\" />
+    <Folder Include="src\emulator\core\" />
+    <Folder Include="src\emulator\audio\" />
+    <Folder Include="src\emulator\disk\" />
+    <Folder Include="src\emulator\input\" />
+    <Folder Include="src\emulator\machines\msx\" />
+    <Folder Include="src\emulator\machines\msx2\" />
+    <Folder Include="src\emulator\machines\msx2plus\" />
+    <Folder Include="src\emulator\machines\msxtr\" />
+    <Folder Include="src\emulator\memory\" />
+    <Folder Include="src\emulator\mappers\" />
+    <Folder Include="src\emulator\io\" />
+    <Folder Include="src\emulator\machines\" />
+    <Folder Include="src\emulator\video\" />
+    <Folder Include="src\emulator\z80\" />
+    <Folder Include="src\emulator\util\" />
+    <Folder Include="src\views\" />
+    <Folder Include="src\views\app-root\" />
+    <Folder Include="src\views\emulator\" />
+    <Folder Include="src\views\emulator\img\" />
+    <Folder Include="src\views\emulator\webaudio\" />
+    <Folder Include="src\views\emulator\webgl\" />
+    <Folder Include="src\views\emulator\webgl\shaders\" />
+    <Folder Include="systemroms\" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\emulator\api\msx.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\emulator\api\webaudio.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\emulator\audio\ay8910.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\dac.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\keyclick.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\moonsound.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\scc.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\y8950.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\ym2413.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\ymf262.ts" />
+    <TypeScriptCompile Include="src\emulator\audio\ymf278.ts" />
+    <TypeScriptCompile Include="src\emulator\core\audiomanager.ts" />
+    <TypeScriptCompile Include="src\emulator\core\board.ts" />
+    <TypeScriptCompile Include="src\emulator\core\drammanager.ts" />
+    <TypeScriptCompile Include="src\emulator\core\iomanager.ts" />
+    <TypeScriptCompile Include="src\emulator\core\ledmanager.ts" />
+    <TypeScriptCompile Include="src\emulator\core\rammanager.ts" />
+    <TypeScriptCompile Include="src\emulator\core\slotmanager.ts" />
+    <TypeScriptCompile Include="src\emulator\core\timeoutmanager.ts" />
+    <TypeScriptCompile Include="src\emulator\disk\disk.ts" />
+    <TypeScriptCompile Include="src\emulator\disk\diskmanager.ts" />
+    <TypeScriptCompile Include="src\emulator\disk\tc8566af.ts" />
+    <TypeScriptCompile Include="src\emulator\disk\wd2793.ts" />
+    <TypeScriptCompile Include="src\emulator\input\input.ts" />
+    <TypeScriptCompile Include="src\emulator\input\joystickportmanager.ts" />
+    <TypeScriptCompile Include="src\emulator\input\msxjoystick.ts" />
+    <TypeScriptCompile Include="src\emulator\io\i8251.ts" />
+    <TypeScriptCompile Include="src\emulator\io\i8254.ts" />
+    <TypeScriptCompile Include="src\emulator\io\i8255.ts" />
+    <TypeScriptCompile Include="src\emulator\io\msxmidi.ts" />
+    <TypeScriptCompile Include="src\emulator\io\msxppi.ts" />
+    <TypeScriptCompile Include="src\emulator\io\msxpsg.ts" />
+    <TypeScriptCompile Include="src\emulator\io\rtc.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\machine.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\machinemanager.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx2plus\genericmsx2plus.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx2plus\msx2plusbase.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx2plus\panasonic_fs_a1wsx.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx2\genericmsx2.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx2\msx2base.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx2\panasonic_fs_a1.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msxtr\msxtrbase.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msxtr\panasonicfsa1gt.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx\msxbase.ts" />
+    <TypeScriptCompile Include="src\emulator\machines\msx\philips_vg_8020.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\f4device.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\mapper.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\mapperfactory.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rammapped.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\ramnormal.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rom64kmirrored.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romascii16.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romascii16sram.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romascii8.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romascii8sram.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rombasic.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romcrossblaim.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romgamemaster2.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romharryfox.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romholyquran.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romkanji.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romkonami.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romkonamiscc.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romkorean126.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romkorean80.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romkorean90.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romloderunner.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rommajutsushi.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rommegaflashromscc.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rommoonsound.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rommsxaudio.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rommsxdos2.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rommsxmusic.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romnormal.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rompanasonic.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\rompanasonicdram.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romphilipsfdc.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romrtype.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\romtc8566af.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\s1990.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\srammatsushita.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\srams1985.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\turborio.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\turborpcm.ts" />
+    <TypeScriptCompile Include="src\emulator\mappers\turbortimer.ts" />
+    <TypeScriptCompile Include="src\emulator\memory\amdflash.ts" />
+    <TypeScriptCompile Include="src\emulator\util\bson.ts" />
+    <TypeScriptCompile Include="src\emulator\util\mediainfo.ts" />
+    <TypeScriptCompile Include="src\emulator\util\pngsavestate.ts" />
+    <TypeScriptCompile Include="src\emulator\util\romdatabase.ts" />
+    <TypeScriptCompile Include="src\emulator\util\savestate.ts" />
+    <TypeScriptCompile Include="src\emulator\util\sha1.ts" />
+    <TypeScriptCompile Include="src\emulator\video\v9938cmd.ts" />
+    <TypeScriptCompile Include="src\emulator\video\vdp.ts" />
+    <TypeScriptCompile Include="src\emulator\z80\z80.ts" />
+    <TypeScriptCompile Include="src\emulator\z80\z80dasm.ts" />
+    <TypeScriptCompile Include="src\views\app-root\app-root.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\views\emulator\emulator-root.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\views\emulator\gl-canvas.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\views\emulator\webaudio\webaudio.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\views\emulator\webgl\shaders\basicshader.ts" />
+    <TypeScriptCompile Include="src\views\emulator\webgl\shaders\shader.ts" />
+    <TypeScriptCompile Include="src\views\emulator\webgl\webglrenderer.ts" />
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:48022/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>True</UseCustomServer>
+          <CustomServerUrl>http://localhost:1337</CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

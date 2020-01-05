@@ -1,0 +1,55 @@
+:host {
+    display: block;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.top-container {
+    display: flex;
+    align-items: center;
+}
+
+.root-container {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.emu-canvas-container {
+    border: 1px solid #000000;
+    display: flex;
+    background: #1b1b1b;
+    width: 0;
+    height: 0;
+}
+
+.left-bar, .right-bar {
+    background: #3b3b3b;
+    width: 60px;
+    min-width: 60px;
+    display: flex;
+    flex-direction: column;
+}
+
+.bar-filler {
+    flex-grow: 1;
+}
+
+.bar-top {
+    margin-top: 10px;
+}
+
+.bar-bottom {
+    margin-bottom: 5px;
+}
+
+.bar-logo-container {
+    margin-left: 14px;
+}
+
+.bar-logo {
+    width: 32px;
+    height: 32px;
+}
