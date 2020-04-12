@@ -1,3 +1,4 @@
+/*
 import { css, LitElement, customElement, html, unsafeCSS } from 'lit-element';
 import '../../../src/views/emulator/emulator-root.js';
 const styles = require('./app-root.css');
@@ -16,3 +17,4 @@ class AppRoot extends LitElement {
     `;
   }
 }
+*/

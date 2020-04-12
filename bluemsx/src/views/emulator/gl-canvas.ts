@@ -1,3 +1,4 @@
+/*
 import { css, LitElement, customElement, html, property, query, unsafeCSS } from 'lit-element';
 import { WebGlRenderer } from './webgl/webglrenderer';
 
@@ -47,3 +48,4 @@ class GlCanvas extends LitElement {
     `;
   }
 }
+*/

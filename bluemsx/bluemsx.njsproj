@@ -38,6 +38,30 @@
     <Content Include="index.html">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="src\components\approot\approot.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\components\emulator\emulator.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\components\emulator\img\bluemsx.png" />
+    <Content Include="src\components\emulator\img\cart1.png" />
+    <Content Include="src\components\emulator\img\cart2.png" />
+    <Content Include="src\components\emulator\img\clear.gif" />
+    <Content Include="src\components\emulator\img\diska.png" />
+    <Content Include="src\components\emulator\img\diskb.png" />
+    <Content Include="src\components\emulator\img\fullscreen.png" />
+    <Content Include="src\components\emulator\img\joystick.png" />
+    <Content Include="src\components\emulator\img\joystickpressed.png" />
+    <Content Include="src\components\emulator\img\keyboard.png" />
+    <Content Include="src\components\emulator\img\keyboardpressed.png" />
+    <Content Include="src\components\emulator\img\machine.png" />
+    <Content Include="src\components\emulator\img\power.png" />
+    <Content Include="src\components\emulator\img\settings.png" />
+    <Content Include="src\components\emulator\img\windowsize.png" />
+    <Content Include="src\components\glcanvas\glcanvas.css">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="src\emulator\util\jszip.js" />
     <Content Include="src\views\app-root\app-root.css">
       <SubType>Code</SubType>
@@ -107,7 +131,15 @@
   <ItemGroup>
     <Folder Include="dist\" />
     <Folder Include="dist\img\" />
+    <Folder Include="img\" />
     <Folder Include="src\" />
+    <Folder Include="src\components\approot\" />
+    <Folder Include="src\components\emulator\" />
+    <Folder Include="src\components\emulator\img\" />
+    <Folder Include="src\components\emulator\util\" />
+    <Folder Include="src\components\glcanvas\" />
+    <Folder Include="src\components\glcanvas\webgl\" />
+    <Folder Include="src\components\glcanvas\webgl\shaders\" />
     <Folder Include="src\emulator\" />
     <Folder Include="src\emulator\api\" />
     <Folder Include="src\emulator\core\" />
@@ -125,6 +157,7 @@
     <Folder Include="src\emulator\video\" />
     <Folder Include="src\emulator\z80\" />
     <Folder Include="src\emulator\util\" />
+    <Folder Include="src\components\" />
     <Folder Include="src\views\" />
     <Folder Include="src\views\app-root\" />
     <Folder Include="src\views\emulator\" />
@@ -136,7 +169,24 @@
     <Folder Include="systemroms\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="index.ts">
+    <TypeScriptCompile Include="src\components\emulator\emulator.tsx">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\components\emulator\util\gamepadinput.ts" />
+    <TypeScriptCompile Include="src\components\emulator\util\keyboardinput.ts" />
+    <TypeScriptCompile Include="src\components\emulator\util\webaudio.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\components\glcanvas\glcanvas.tsx">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\components\glcanvas\webgl\shaders\basicshader.ts" />
+    <TypeScriptCompile Include="src\components\glcanvas\webgl\shaders\shader.ts" />
+    <TypeScriptCompile Include="src\components\glcanvas\webgl\webglrenderer.ts" />
+    <TypeScriptCompile Include="src\index.tsx">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\components\approot\approot.tsx">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\emulator\api\msx.ts">

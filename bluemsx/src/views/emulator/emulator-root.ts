@@ -1,3 +1,4 @@
+/*
 import { css, LitElement, customElement, html, unsafeCSS, query } from 'lit-element';
 import { styleMap } from 'lit-html/directives/style-map';
 import { MsxEmu } from '../../emulator/api/msx';
@@ -38,7 +39,7 @@ class EmulatorRoot extends LitElement {
   private msxEmu: MsxEmu;
 
   private updateEmulatorSize(): void {
-    this.emuHeight = /* Fullscreen.fullscreenElement() ? 0 : */ +WINDOW_SIZES[this.windowSize][0] * 480;
+    this.emuHeight = WINDOW_SIZES[this.windowSize][0] * 480;
 
     if (this.emuHeight == 0 && this.leftBarElem && this.rightBarElem) {
       let width = window.innerWidth || document.documentElement!.clientWidth;
@@ -99,3 +100,4 @@ class EmulatorRoot extends LitElement {
     `;
   }
 }
+*/
