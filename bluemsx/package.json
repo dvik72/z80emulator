@@ -31,7 +31,7 @@
     "url-loader": "^3.0.0",
     "webfontloader": "^1.6.28",
     "webpack": "~4.23.1",
-    "webpack-cli": "~3.1.2"
+    "webpack-cli": "~3.3.12"
   },
   "scripts": {
     "build": "tsc --build && webpack-cli src/index.tsx --config webpack-config.js",
